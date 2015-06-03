@@ -6,13 +6,16 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : Defines.h 
-// Description : Header file containing multiple defines, such as structs, enums etc
+// File Name : Graphics_Defines.h 
+// Description : Header file containing Graphical Defines, Structures, Enum, ect
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 
 #pragma once
+
+#if !defined(__GRAPHICS_DEFINES_H__)
+#define __GRAPHICS_DEFINES_H__
 
 #pragma comment( lib, "winmm.lib" )
 #pragma comment( lib, "d3dx9.lib" )
@@ -26,8 +29,7 @@
 #include <vector>
 #include <string>
 
-#if !defined(__DEFINES_H__)
-#define __DEFINES_H__
+
 
 // Types
 typedef long VertexType;
@@ -63,31 +65,31 @@ enum eColorType
 
 
 //Light Parameters
-//struct D3DLightParameter
-//{
-//	//All lights 
-//	int iID;
-//	bool bIsTurnedOn;
-//	D3DLIGHTTYPE eLightType;
-//	D3DXCOLOR colorAmbient;
-//	D3DXCOLOR colorDiffuse;
-//	D3DXCOLOR colorSpecular;
-//
-//	//Spot and Direction
-//	D3DXVECTOR3 vecDirection;
-//
-//	//Spot and Point
-//	D3DXVECTOR3 vecPosition;
-//	float fRange;
-//	float fAttnConstant;
-//	float fAttnLinear;
-//	float fAttnExponential;
-//
-//	//Spot
-//	float fInnerAngle;
-//	float fOuterAngle;
-//	float fFallOff;
-//};
+struct D3DLightParameter
+{
+	//All lights 
+	int iID;
+	bool bIsTurnedOn;
+	D3DLIGHTTYPE eLightType;
+	D3DXCOLOR colorAmbient;
+	D3DXCOLOR colorDiffuse;
+	D3DXCOLOR colorSpecular;
+
+	//Spot and Direction
+	D3DXVECTOR3 vecDirection;
+
+	//Spot and Point
+	D3DXVECTOR3 vecPosition;
+	float fRange;
+	float fAttnConstant;
+	float fAttnLinear;
+	float fAttnExponential;
+
+	//Spot
+	float fInnerAngle;
+	float fOuterAngle;
+	float fFallOff;
+};
 
 
 
@@ -100,4 +102,4 @@ struct ScalarVertex
 
 #define VALIDATE(a) if (!a) return (false)
 
-#endif //__DEFINES_H__
+#endif //__GRAPHICS_DEFINES_H__

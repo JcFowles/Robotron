@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CClock.cpp
-// Description : Contains the main funtionality of CClock Class
+// Description : Clock Class used to calculate time between proccess calls
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //

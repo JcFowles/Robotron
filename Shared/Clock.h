@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CClock.h
-// Description : Contains the header file for CClock Class
+// Description : Header file containing declarations for CClock Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //

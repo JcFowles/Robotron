@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CGame.cpp
-// Description : Implementation file that holds the functionality of the Game Class
+// Description : The core game app and its functionality for the client
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
@@ -43,9 +43,18 @@ void CGame::DestroyInstance()
 	s_pGame = 0;
 }
 
-void CGame::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
+bool CGame::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 {
+	//Initialise game Window variables
+	m_hWnd = _hWnd;
+	m_iScreenWidth = _iScreenWidth;
+	m_iScreenHeight = _iScreenHeight;
+
+	std::string filename = "H:\\GitHub\\Robotron\\Debug\\Robotron Server";
+	int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
 	
+	return true;
+		
 }
 
 void CGame::Process()
@@ -60,7 +69,7 @@ void CGame::Draw()
 
 void CGame::RenderSingleFrame()
 {
-
+	int c = 9;
 }
 
 

@@ -6,8 +6,8 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : Source.cpp 
-// Description :Implementation file that holds the functionality of the program
+// File Name : SourceClient.cpp 
+// Description : source file containing the main() function of the client- simply just creates the windows and then runs the Game app
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
@@ -100,47 +100,49 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 ********************/
 HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LPCWSTR _pcTitle)
 {
-	WNDCLASSEX winclass;
+	WNDCLASSEX winClass;
 
 	//Clear out the window class for use
-    ZeroMemory(&winclass, sizeof(WNDCLASSEX));
+    ZeroMemory(&winClass, sizeof(WNDCLASSEX));
 
-	//Fill in the struct with the needed information
-	winclass.cbSize = sizeof(WNDCLASSEX);
-	winclass.style = CS_HREDRAW | CS_VREDRAW;
-	winclass.lpfnWndProc = WindowProc;
-	winclass.cbClsExtra = 0;
-	winclass.cbWndExtra = 0;
-	winclass.hInstance = _hInstance;
-	winclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	winclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winclass.hbrBackground = (HBRUSH)WHITE_BRUSH;
-	winclass.lpszMenuName = NULL;
-	winclass.lpszClassName = WINDOW_CLASS_NAME;
-	winclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-	//Register the window class
-	if (!RegisterClassEx(&winclass))
+	// Fills in the window class structure.
+	winClass.cbSize = sizeof(WNDCLASSEX);
+	winClass.style = CS_DBLCLKS | CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	winClass.lpfnWndProc = WindowProc;
+	winClass.cbClsExtra = 0;
+	winClass.cbWndExtra = 0;
+	winClass.hInstance = _hInstance;
+	winClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	winClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	winClass.lpszMenuName = NULL;
+	winClass.lpszClassName = WINDOW_CLASS_NAME;
+	winClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	
+	// Registers the window class
+	if (!RegisterClassEx(&winClass))
 	{
-		// Failed to register.
 		return (0);
 	}
+	
 
 	//Create the window and return the result as the handle
 	HWND hWnd;
-	
-	hWnd = CreateWindowEx(	NULL,												// Extend style.
-							WINDOW_CLASS_NAME,									// Class.		
-							_pcTitle,											// Title.
-							//WS_EX_TOPMOST | WS_POPUP,							//Window Style(Full Screan)
-							WS_OVERLAPPEDWINDOW | WS_BORDER | 
-							WS_CAPTION | WS_SYSMENU | WS_VISIBLE,				//Window stlye(Windowed)
-							CW_USEDEFAULT, CW_USEDEFAULT,						// Initial x,y.
-							_iWidth, _iHeight,									// Initial width, height.
-							NULL,												// Handle to parent.
-							NULL,												// Handle to menu.
-							_hInstance,											// Instance of this application.
-							NULL);												// Extra creation parameters.
+
+
+	hWnd = CreateWindowEx(NULL,				// Extended style.
+		WINDOW_CLASS_NAME,					// Class.
+		_pcTitle,							// Title.
+		WS_VISIBLE | WS_CAPTION |
+		WS_BORDER | WS_SYSMENU,				// Windowed Mode
+		0, 0,								// Initial x,y position for the top left corner of the window
+		_iWidth, _iHeight,					// Initial width, height of the window
+		NULL,								// Handle to parent.
+		NULL,								// Handle to menu.
+		_hInstance,							// Instance of this application.
+		NULL);								// Extra creation parameters.
+
+
 	
 	//Check if window was created succesfully
 	if (!hWnd)
@@ -179,14 +181,15 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	
 	//Create and register the window
 	HWND hWnd = CreateAndRegisterWindow(_hInstance, kiWidth, kiHeight, L"Robotron");
-	
+		
 	// display the window on the screen
     ShowWindow(hWnd, _iCmdshow);
-
+	
 	//Create and initialize the Direct3D Device
 	CGame& rGame = CGame::GetInstance();
 	rGame.Initialise(hWnd, kiWidth, kiHeight);
-			
+	
+
 
 	while (msg.message != WM_QUIT)
 	{
@@ -198,7 +201,7 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 		else
 		{
 			//Render a single frame
-			rGame.RenderFrame();		
+			rGame.RenderSingleFrame();
 		}
 	}
 

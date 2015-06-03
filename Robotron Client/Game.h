@@ -7,17 +7,16 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CGame.h
-// Description : Contains the header file for Game Class
+// Description : Header file containing declarations for CGame Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
 #include <windows.h>
-#include <string.h>
-#include <iomanip>
+#include <string>
 
 //Local Includes
-#include "Clock.h"
+#include "../Shared/Clock.h"
 
 class CGame
 {
@@ -51,9 +50,9 @@ public:
 	* @parameter: _hWnd: Handle to the window
 	* @parameter: _iScreenWidth: Width to the window
 	* @parameter: _iScreenHeight: Height to the window
-	* @return: void
+	* @return: bool: Succesful Initialisation
 	********************/
-	void Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
+	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
 	
 	/***********************
 	* Process: Process the the game instance
@@ -107,10 +106,15 @@ public:
 protected:
 
 private:
+	HWND m_hWnd;
+	int m_iScreenWidth;
+	int	m_iScreenHeight;
 	
 	static CGame* s_pGame;
 	
 	CClock* m_pClock;
+
+	
 
 };
 
