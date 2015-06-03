@@ -23,6 +23,7 @@ class CGame
 {
 	//Member Function
 public:
+	//This is a cpommetn
 
 	/***********************
 	* GetInstance: Returns a refrence to the singleton game object, if one does not excist create one
