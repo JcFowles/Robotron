@@ -12,18 +12,15 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma comment( lib, "winmm.lib" )
-#pragma comment( lib, "d3dx9.lib" )
-#pragma comment( lib, "d3d9.lib" )
-
-//Library includes
-#include <ctime>
-#include <windows.h>
-#include <windowsx.h>
 
 #ifdef _DEBUG
 //#include "vld.h"
 #endif
 
+//Library includes
+//TO DO
+//#include <WinSock2.h>
+#include <ctime>
 //Local Includes
 #include "Game.h"
 

@@ -12,11 +12,15 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
-#include <windows.h>
+//TO DO IFDEF
+
 #include <string>
 
 //Local Includes
+#include "Client.h"
 #include "../Shared/Clock.h"
+#include "../Shared/Network_Defines.h"
+
 
 class CGame
 {
@@ -75,7 +79,8 @@ public:
 	********************/
 	void RenderSingleFrame();
 	
-
+	//TO DO
+	void ConvertToServerDataPacket(std::string _srtData);
 protected:
 	
 private:
@@ -113,6 +118,8 @@ private:
 	static CGame* s_pGame;
 	
 	CClock* m_pClock;
+
+	CClient* m_pClient;
 
 	
 

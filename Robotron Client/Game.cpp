@@ -24,7 +24,8 @@ CGame::CGame(void)
 
 CGame::~CGame(void)
 {
-
+	delete m_pClient;
+	m_pClient = 0;
 }
 
 CGame& CGame::GetInstance()
@@ -50,8 +51,21 @@ bool CGame::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_iScreenWidth = _iScreenWidth;
 	m_iScreenHeight = _iScreenHeight;
 
-	std::string filename = "H:\\GitHub\\Robotron\\Debug\\Robotron Server";
-	int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
+	//Initialise member variables
+	m_pClient = new CClient();
+	VALIDATE(m_pClient->Initialise());
+
+
+	std::string filename;
+#ifdef _DEBUG
+	filename = "..\\Debug\\Robotron Server";
+#endif
+#ifndef _DEBUG
+	//TO DO: change file path for final release
+	filename = "..\\Release\\Robotron Server";
+#endif
+	
+	//int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
 	
 	return true;
 		
@@ -69,7 +83,20 @@ void CGame::Draw()
 
 void CGame::RenderSingleFrame()
 {
-	int c = 9;
+	ServerDataPacket* packet = new ServerDataPacket;
+	packet->iNumber = 78;
+	std::string steTest = "12345678901234567890123456789012345678901234567890123456789012";
+	strcpy_s(packet->cText, steTest.c_str());
+
+	m_pClient->SendData(packet);
 }
 
-
+void CGame::ConvertToServerDataPacket(std::string _srtData)
+{
+	ServerDataPacket* packet = new ServerDataPacket;
+	if (_srtData.length() < NetworkValues::MAX_CHAR_LENGTH)
+	{
+		strcpy_s(packet->cText, _srtData.c_str());
+	}
+	
+}

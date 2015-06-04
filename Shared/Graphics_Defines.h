@@ -24,12 +24,7 @@
 // Library Includes
 #include <d3d9.h>
 #include <d3dx9.h>
-#include <windows.h>
-#include <windowsx.h>
-#include <vector>
-#include <string>
-
-
+//#include <windows.h>
 
 // Types
 typedef long VertexType;
