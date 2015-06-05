@@ -22,7 +22,10 @@
 
 //Local Includes
 #include "Client.h"
+#include "IRenderer.h"
+#include "D3D9Renderer.h"
 #include "../Shared/Clock.h"
+#include "../Shared/App_Defines.h"
 
 
 class CClientApp
@@ -108,6 +111,10 @@ public:
 	********************/
 	void ProcessReceiveData();
 
+	//TO DO: Mouse Getters/Setters
+	void SetMousePos(POINT _MousePosition){ m_MousePosition = _MousePosition; };
+	POINT GetMousePos(){ return m_MousePosition; };
+
 protected:
 
 private:
@@ -132,33 +139,40 @@ private:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
 
+	//TO DO: Main menu
+	void MainMenuDraw();
+	void RenderText(std::string _strText, int _iYPos, eTextType _TextType);
+	
 	//Member Variables
 public:
 	//TO DO: make private and create getters/Setters
-	bool* m_bIsKeyDown;
+	//bool* m_bIsKeyDown;
 protected:
 
 private:
+	//Window variables
 	HWND m_hWnd;
 	int m_iScreenWidth;
 	int	m_iScreenHeight;
-
+	
+	//Game Variables
 	static CClientApp* s_pClientApp;
 	CClock* m_pClock;
+	eGameStates m_GameState;
+	std::string m_strGameTitle;
+	POINT m_MousePosition;
 
+	//Networking variables
 	CClient* m_pClient;
-
 	std::thread m_ClientThread;
-
 	ServerDataPacket* m_ServerPacket;
 	ClientDataPacket* m_ClientPacket;
 	std::queue<ClientDataPacket>* m_pClientDataQueue;
-
 	static CMySemaphore s_Mutex;
 	
-	//Gamestate
-
-	//std::queue<bool*>
+	//Graphic Variables
+	IRenderer* m_pRenderManager;
+	
 };
 
 #endif //__CLIENT_APP_H__

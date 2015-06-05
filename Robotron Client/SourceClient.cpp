@@ -19,7 +19,7 @@
 
 //Library includes
 //TO DO
-//#include <WinSock2.h>
+#include <windowsx.h>
 #include <ctime>
 //Local Includes
 #include "ClientApp.h"
@@ -42,45 +42,73 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 	//Procces the given message
     switch(_uiMsg)
     {
-	case WM_ACTIVATEAPP:
+		case WM_ACTIVATEAPP:
 		{
 
-		}
-		break;
-        //Closing the window
-        case WM_DESTROY:
-            {
-                //Send message to close the entire application
-                PostQuitMessage(0);
-                return 0;
-            } 
-		break;
+		}break;
+
+		//Closing the window
+		case WM_DESTROY:
+		{
+			//Send message to close the entire application
+			PostQuitMessage(0);
+			return 0;
+		}break;
 		
+		//***KEYBOARD***
 		case WM_KEYUP:
 		{
 			//Set the IsKeyDown bool of this key to false
-			CClientApp::GetInstance().m_bIsKeyDown[_wParam] = false;
+			//CClientApp::GetInstance().m_bIsKeyDown[_wParam] = false;
 			//if (_wParam == VK_NUMPAD8)
 			//{
 			//	CClientApp::GetInstance().GetCube()->SetMoveSpeed(50.0f);
 			//}
-		}
-		break;
+		}break;
+
 		case WM_KEYDOWN:
 		{
 			//Set the IsKeyDown bool of this key to true
-			CClientApp::GetInstance().m_bIsKeyDown[_wParam] = true;
+			//CClientApp::GetInstance().m_bIsKeyDown[_wParam] = true;
 			switch (_wParam)
 			{
 				case VK_ESCAPE:
 				{
 					PostQuitMessage(0);
 					return 0;
-				}
-				break;
+				}break;
 			}
-		}
-		break;
+		}break;
+
+		//***MOUSE***
+		case WM_LBUTTONDOWN:
+		{
+			//TO DO
+		}break;
+
+		case WM_LBUTTONUP:
+		{
+			//TO DO
+		}break;
+		
+		case WM_RBUTTONDOWN:
+		{
+			//TO DO
+		}break;
+
+		case WM_RBUTTONUP:
+		{
+			//TO DO
+		}break;
+		
+		case WM_MOUSEMOVE:
+		{
+			POINT MousePos; 
+			MousePos.x = GET_X_LPARAM(_lParam);
+			MousePos.y = GET_Y_LPARAM(_lParam);
+			CClientApp::GetInstance().SetMousePos(MousePos);
+		}break;
+	
     }
 
 	 //Handles any messages the switch statement doesn't

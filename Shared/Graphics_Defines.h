@@ -24,7 +24,7 @@
 // Library Includes
 #include <d3d9.h>
 #include <d3dx9.h>
-//#include <windows.h>
+#include <vector>
 
 // Types
 typedef long VertexType;
@@ -57,7 +57,14 @@ enum eColorType
 	COLORTYPE_SPECULAR
 };
 
-
+//Text Type enums
+enum eTextType
+{
+	TEXT_TITLE,
+	TEXT_MAIN_MENU,
+	TEXT_IN_GAME,
+	TEXT_DEBUG_INFO
+};
 
 //Light Parameters
 struct D3DLightParameter

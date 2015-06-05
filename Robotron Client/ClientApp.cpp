@@ -52,36 +52,54 @@ void CClientApp::DestroyInstance()
 
 bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 {
-	//Initialise game Window variables
+	//Initialise Window variables
 	m_hWnd = _hWnd;
 	m_iScreenWidth = _iScreenWidth;
 	m_iScreenHeight = _iScreenHeight;
 
-	//Initialise member variables
+	//Initialise Game Variables
+	m_pClock = new CClock();
+	VALIDATE(m_pClock->Initialise());
+	m_strGameTitle = "Robotron";
+	m_GameState = MAIN_MENU;
+
+	//Initialise Networking variables
 	m_pClient = new CClient();
 	VALIDATE(m_pClient->Initialise());
-	m_pClientDataQueue = new std::queue < ClientDataPacket > ;
-	
-
-	//Initialize the key down boolean array
-	m_bIsKeyDown = new bool[255];
-	//Set all key downs to false
-	memset(m_bIsKeyDown, false, 255);
-
-	//TO DO
-	std::string filename;
-#ifdef _DEBUG
-	filename = "..\\Debug\\Robotron Server";
-#endif
-#ifndef _DEBUG
-	//TO DO: change file path for final release
-	filename = "..\\Release\\Robotron Server";
-#endif
-
-	//int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
-
+	ServerDataPacket* m_ServerPacket = new ServerDataPacket;
+	ClientDataPacket* m_ClientPacket = new ClientDataPacket;
+	m_pClientDataQueue = new std::queue < ClientDataPacket >;
 	//Create and run separate thread to constantly recieve data
 	m_ClientThread = std::thread(&CClientApp::ReceiveDataThread, (this));
+	
+	//Initialise Graphic variables
+	m_pRenderManager = new CD3D9Renderer();
+	//TO DO: Full screen???
+	bool bFullScreen = false;
+	VALIDATE(m_pRenderManager->Initialise(_iScreenWidth, _iScreenHeight, _hWnd, bFullScreen));
+
+	
+	//TO DO
+	//Initialize the key down boolean array
+	//m_bIsKeyDown = new bool[255];
+	//Set all key downs to false
+	//memset(m_bIsKeyDown, false, 255);
+
+	//TO DO: Run Server function
+//	std::string filename;
+//#ifdef _DEBUG
+//	filename = "..\\Debug\\Robotron Server";
+//#endif
+//#ifndef _DEBUG
+//	//TO DO: change file path for final release
+//	filename = "..\\Release\\Robotron Server";
+//#endif
+//
+//	int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
+
+
+
+	
 
 	return true;
 
@@ -90,8 +108,11 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 void CClientApp::Process()
 {
 	
+	//ProcessReceiveData();
+	
+
 	//TO DO: Remove, This is a send recieve test
-	ServerDataPacket* packet = new ServerDataPacket;
+	/*ServerDataPacket* packet = new ServerDataPacket;
 	packet->iNumber = 78;
 	std::string steTest = "1234567890";
 	strcpy_s(packet->cText, steTest.c_str());
@@ -99,12 +120,79 @@ void CClientApp::Process()
 	m_pClient->SendData(packet);
 
 	ClientDataPacket* ClientPacket = new ClientDataPacket;
-	m_pClient->ReceiveData(ClientPacket);
+	m_pClient->ReceiveData(ClientPacket);*/
 
 }
 
 void CClientApp::Draw()
 {
+	m_pRenderManager->StartRender(true, true, false);
+
+	switch (m_GameState)
+	{
+		case MAIN_MENU:
+		{
+			MainMenuDraw();
+		}break;
+
+	}
+
+	m_pRenderManager->EndRender();
+}
+
+//TO DO FIRST: 
+void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType)
+{
+	//Create the text space as a RECT
+	RECT Rect;
+	Rect.left = 0;
+	Rect.right = m_iScreenWidth;
+	Rect.top = _iYPos;
+	int uiFontHeight = m_pRenderManager->GetFontHeight(_TextType);
+	Rect.bottom = (Rect.top + uiFontHeight);
+	
+	//Change the color if the mouse hovers over a main menu rect
+	DWORD TextColor = D3DCOLOR_XRGB(0, 0, 0);
+	switch (_TextType)
+	{
+		case TEXT_MAIN_MENU:
+		{
+			TextColor = D3DCOLOR_XRGB(0, 0, 255);
+			if (m_MousePosition.y >= Rect.top &&
+				m_MousePosition.y <= Rect.bottom)
+			{
+				TextColor = D3DCOLOR_XRGB(255, 0, 0);
+			}
+
+		}break;
+
+		case TEXT_TITLE:
+		{
+			TextColor = D3DCOLOR_XRGB(0, 255, 0);
+
+		}break;
+	}
+	
+
+	//Render the title 
+	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType);
+
+}
+
+void CClientApp::MainMenuDraw()
+{
+	int iYPos = (m_iScreenHeight / 8);
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	
+	////***MAIN MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
+	RenderText("START", iYPos += 200, TEXT_MAIN_MENU);
+	RenderText("OPTIONS", iYPos += uiFontHeight, TEXT_MAIN_MENU);
+	RenderText("INSTRUCTIONS", iYPos += uiFontHeight, TEXT_MAIN_MENU);
+	RenderText("EXIT", iYPos += uiFontHeight, TEXT_MAIN_MENU);
 
 }
 
@@ -112,10 +200,9 @@ void CClientApp::RenderSingleFrame()
 {
 	//TO DO 
 	//if game is in main menu run main menu
-
-
-	ProcessReceiveData();
+			
 	Process();
+	Draw();
 		
 }
 
