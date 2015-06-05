@@ -32,7 +32,7 @@ CD3D9Renderer::CD3D9Renderer()
 
 	//Fonts
 	m_pTitleFont = 0;
-	m_pMainMenuFont = 0;
+	m_pMenuSelectFont = 0;
 	m_pInGameFont = 0;
 	m_pDebugFont = 0;
 	
@@ -55,8 +55,10 @@ CD3D9Renderer::~CD3D9Renderer()
 
 	m_pTitleFont->Release();
 	m_pTitleFont = 0;
-	m_pMainMenuFont->Release();
-	m_pMainMenuFont = 0;
+	m_pMenuFont->Release();
+	m_pMenuFont = 0;
+	m_pMenuSelectFont->Release();
+	m_pMenuSelectFont = 0;
 	m_pInGameFont->Release();
 	m_pInGameFont = 0;
 	m_pDebugFont->Release();
@@ -89,7 +91,7 @@ CD3D9Renderer::~CD3D9Renderer()
 }
 
 /***********************
-* DeviceCreation: Inisialises the device present paramaters, and creates the device
+* DeviceCreation: Initialize the device present parameters, and creates the device
 * @author: Jc Fowles
 * @return: bool: Successful Creation or not
 ********************/
@@ -173,7 +175,7 @@ bool CD3D9Renderer::DeviceCreation()
 	}
 	else
 	{
-		//None of the about, something wrong return fasle
+		//None of the about, something wrong return false
 		return false;
 	}
 
@@ -210,10 +212,10 @@ void CD3D9Renderer::SetRenderStates()
 	m_pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL);
 	//Set render state z buffer to true
 	//Redundant//m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
-	//Set ambient light to a light grey
+	//Set ambient light to a light gray
 	m_pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(40, 40, 40));
 	m_color = D3DCOLOR_XRGB(40, 40, 40);
-	//Set device to normalise all normals
+	//Set device to normalize all normals
 	m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
 	//m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 	//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
@@ -329,8 +331,8 @@ void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 * @parameter: _iWidth: The width of the screen
 * @parameter: _iHeight: The height of the screen
 * @parameter: _hWindow: Handle to the Window
-* @parameter: _bFullscreen: Whether the screen is fullscreen or not
-* @return: bool: Successful Initialisation or not
+* @parameter: _bFullscreen: Whether the screen is full screen or not
+* @return: bool: Successful Initialization or not
 ********************/
 bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen)
 {
@@ -364,6 +366,7 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	CreateTextFont(150, 150/2, "Times New Roman", TEXT_TITLE);
 	//TO DO
 	CreateTextFont(70, 20, "Times New Roman", TEXT_MAIN_MENU);
+	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU_SELECT);
 	CreateTextFont(70, 20, "Times New Roman", TEXT_IN_GAME);
 
 	return true;
@@ -391,8 +394,8 @@ void CD3D9Renderer::SetMaterial()
 * @parameter: _iWidth: The width of the screen
 * @parameter: _iHeight: The height of the screen
 * @parameter: _hWindow: Handle to the Window
-* @parameter: _bFullscreen: Whether the screen is fullscreen or not
-* @return: bool: Successful Initialisation or not
+* @parameter: _bFullscreen: Whether the screen is full screen or not
+* @return: bool: Successful Initialization or not
 ********************/
 bool CD3D9Renderer::Shutdown()
 {
@@ -416,7 +419,7 @@ bool CD3D9Renderer::Shutdown()
 }
 
 /***********************
-* GetProjectionMatrix: Rretrieves the location of the Projection Matrix stored in memory
+* GetProjectionMatrix: Retrieves the location of the Projection Matrix stored in memory
 * @author: Jc Fowles
 * @return: D3DXMATRIX&: Memory address of the Devices Projection Matrix
 ********************/
@@ -426,7 +429,7 @@ D3DXMATRIX& CD3D9Renderer::GetProjectionMatrix()
 }
 
 /***********************
-* GetViewMatrix: Rretrieves the location of the View Matrix stored in memory
+* GetViewMatrix: Retrieves the location of the View Matrix stored in memory
 * @author: Jc Fowles
 * @return: D3DXMATRIX&: Memory address of the Devices View Matrix
 ********************/
@@ -436,7 +439,7 @@ D3DXMATRIX& CD3D9Renderer::GetViewMatrix()
 }
 
 /***********************
-* GetWorldMatrix: Rretrieves the location of the World Matrix stored in memory
+* GetWorldMatrix: Retrieves the location of the World Matrix stored in memory
 * @author: Jc Fowles
 * @return: D3DXMATRIX&: Memory address of the Devices World Matrix
 ********************/
@@ -446,9 +449,9 @@ D3DXMATRIX& CD3D9Renderer::GetWorldMatrix()
 }
 
 /***********************
-* RetrieveVertices: Retrieve the Vertices with color from the Surface of the ID given
+* RetrieveVertices: Retrieve the Vertices's with color from the Surface of the ID given
 * @author: Jc Fowles
-* @parameter: _pVertices: Vector of all the vertices with color
+* @parameter: _pVertices: Vector of all the vertices's with color
 * @parameter: _iSurfaceID: ID of the surface to render
 * @parameter: _pImageInfo: Information about the image
 * @parameter: _fScaleValues: Width, Height and Depth Scale values
@@ -475,7 +478,7 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexColor>* _pVertices, int 
 	//Loop through entire surface pixel by pixel
 	//Use the pixel information to create the vertex
 	//Remembering Image height is the surface width
-	//Abd Image width is the surface depth
+	//Add Image width is the surface depth
 	for (int iCol = 0; iCol < (int)_pImageInfo.Height; iCol++)
 	{
 		for (int iRow = 0; iRow < (int)_pImageInfo.Width; iRow++)
@@ -518,9 +521,9 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexColor>* _pVertices, int 
 }
 
 /***********************
-* RetrieveVertices: Retrieve the Vertices with normals from the Surface of the ID given
+* RetrieveVertices: Retrieve the Vertices's with normals from the Surface of the ID given
 * @author: Jc Fowles
-* @parameter: _pVertices: Vector of all the vertices with normals
+* @parameter: _pVertices: Vector of all the vertices's with normals
 * @parameter: _iSurfaceID: ID of the surface to render
 * @parameter: _pImageInfo: Information about the image
 * @parameter: _fScaleValues: Width, Height and Depth Scale values
@@ -547,7 +550,7 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 	//Loop through entire surface pixel by pixel
 	//Use the pixel information to create the vertex
 	//Remembering Image height is the surface width
-	//Abd Image width is the surface depth
+	//Add Image width is the surface depth
 	for (int iCol = 0; iCol < (int)_pImageInfo.Height; iCol++)
 	{
 		for (int iRow = 0; iRow < (int)_pImageInfo.Width; iRow++)
@@ -571,7 +574,7 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 			if (iCol % 2 == 0)
 			//Current in an even column
 			{
-				//Surrounding Vertices Pattern
+				//Surrounding Vertices's Pattern
 				/*
 					  \ | /
 					___\|/___
@@ -653,7 +656,7 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 			else
 			//Current in an even column
 			{
-				//Surrounding Vertices Pattern
+				//Surrounding Vertices's Pattern
 				/*
 				    	  |
 			 	       ___|___
@@ -731,7 +734,7 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 			D3DXVECTOR3 tempNormalVector = { 0, 0, 0 };
 			D3DXVECTOR3 VertexNormal = { 0, 0, 0 };
 			
-			//Cross produst all directional vector to get average normal to all sourounding planes
+			//Cross product all directional vector to get average normal to all surrounding planes
 			for (int i = (int)(vecDirectionVectors.size() - 1); i >= 0; i--)
 			{
 				//If on last directional vector 
@@ -752,10 +755,10 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 				}
 			}
 			
-			//Normalise the calculated normal
+			//Normalize the calculated normal
 			D3DXVec3Normalize(&VertexNormal, &tempNormalVector);
 			
-			//Create the CVertexNormal and and it the vector of Vertices
+			//Create the CVertexNormal and and it the vector of Vertices's
 			CVertexNormal TempVertexNormal(fXPos, fYPos, fZPos, VertexNormal.x, VertexNormal.y, VertexNormal.z);
 			_pVertices->push_back(TempVertexNormal);
 		}
@@ -870,7 +873,7 @@ void CD3D9Renderer::StartRender(bool _bTarget, bool _bDepth, bool _bStencil)
 {
 	//Clears the scene, creating a black scene to draw onto
 	Clear(_bTarget, _bDepth, _bStencil);
-	//Begin the current frame, so things can be drawn to its backbuffer
+	//Begin the current frame, so things can be drawn to its back buffer
 	m_pDevice->BeginScene();
 }
 
@@ -891,7 +894,7 @@ void CD3D9Renderer::EndRender()
 * RenderDebugOuput: Render Text to the screen for debug purposes
 * @author: Jc Fowles
 * @parameter: _strInfo: String to be rendered on screen
-* @parameter: _iYPos: Y Postion of the text in screen coordinates
+* @parameter: _iYPos: Y position of the text in screen coordinates
 * @parameter: _color: Color to make the Text
 * @return: void
 ********************/
@@ -934,7 +937,13 @@ void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, e
 		
 		case TEXT_MAIN_MENU:
 		{
-			pFont = m_pMainMenuFont;
+			pFont = m_pMenuFont;
+			
+		}break;
+
+		case TEXT_MENU_SELECT:
+		{
+			pFont = m_pMenuSelectFont;
 		}break;
 		
 		case TEXT_IN_GAME:
@@ -1000,7 +1009,7 @@ void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _
 
 	//Calculate the Projection matrix of the D3D Device
 	D3DXMatrixPerspectiveFovLH( &m_matProjection,
-								_fFov,						//Tthe horizontal field of view
+								_fFov,						//The horizontal field of view
 								(FLOAT)fAspectRatio,		//Aspect ratio
 								_fNear,						//The near view-plane
 								_fFar);						//The far view-plane
@@ -1019,15 +1028,15 @@ void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _
 ********************/
 void CD3D9Renderer::CalculateOrthogonalMatrix(float _fNear, float _fFar)
 {
-	//Calculate the Othogonal Projection matrix of the D3D Device
+	//Calculate the Orthogonal Projection matrix of the D3D Device
 	D3DXMatrixOrthoLH(&m_matProjection, (float)m_iScreenWidth, (float)m_iScreenHeight, _fNear, _fFar);
 
-	//Set the Othogonal Projection matrix of the D3D Device
+	//Set the Orthogonal Projection matrix of the D3D Device
 	m_pDevice->SetTransform(D3DTS_PROJECTION, &m_matProjection);
 }
 
 /***********************
-* CreateOffScreenSurface: Create an offscreen surface
+* CreateOffScreenSurface: Create an off screen surface
 * @author: Jc Fowles
 * @parameter: _strFileName: The file name of the image we wish to create the surface from
 * @return: D3DXMATRIX&: Memory address of the Devices World Matrix
@@ -1037,7 +1046,7 @@ int CD3D9Renderer::CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_IN
 	//Create a surface pointer
 	IDirect3DSurface9* pSurface = 0;
 
-	//Retreive the Image info
+	//Retrieve the Image info
 	HRESULT hr = D3DXGetImageInfoFromFileA(_strFileName.c_str(), &_rImageInfo);
 
 	//Create the off screen surface
@@ -1083,7 +1092,7 @@ void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontTy
 	fontDesc.PitchAndFamily = 0;
 	strcpy_s(fontDesc.FaceName, _strFontType);
 	
-	//Set the passed in textype font of the Device to the created font
+	//Set the passed in texType font of the Device to the created font
 	ID3DXFont* pFont;
 	D3DXCreateFontIndirectA(m_pDevice, &fontDesc, &pFont);
 
@@ -1096,7 +1105,11 @@ void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontTy
 		}break;
 		case TEXT_MAIN_MENU:
 		{
-			m_pMainMenuFont = pFont;
+			m_pMenuFont = pFont;
+		}break;
+		case TEXT_MENU_SELECT:
+		{
+			m_pMenuSelectFont = pFont;
 		}break;
 		case TEXT_IN_GAME:
 		{
@@ -1165,7 +1178,7 @@ int	CD3D9Renderer::CreateStaticBuffer(	VertexType _VertexType,
 /***********************
 * SetBackgroundColor: Create a Static Buffer
 * @author: Jc Fowles
-* @parameter: _Color: D3DCOLOR you wich to set the back buffer to
+* @parameter: _Color: D3DCOLOR you which to set the back buffer to
 * @return: int: ID of the newly created Static Buffer
 ********************/
 void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
@@ -1178,7 +1191,7 @@ void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 //TO DO: Comment header
 int CD3D9Renderer::GetFontHeight(eTextType _textType)
 {
-	//Set the passed in textype font of the Device to the created font
+	//Set the passed in texttype font of the Device to the created font
 	ID3DXFont* pFont = 0;
 
 	//Select which font to use based on the type of text
@@ -1191,7 +1204,12 @@ int CD3D9Renderer::GetFontHeight(eTextType _textType)
 
 	case TEXT_MAIN_MENU:
 	{
-		pFont = m_pMainMenuFont;
+		pFont = m_pMenuFont;
+	}break;
+
+	case TEXT_MENU_SELECT:
+	{
+		pFont = m_pMenuSelectFont;
 	}break;
 
 	case TEXT_IN_GAME:
@@ -1225,7 +1243,6 @@ int CD3D9Renderer::GetFontHeight(eTextType _textType)
 //TO DO: Comment header
 int CD3D9Renderer::GetFontWidth(eTextType _textType)
 {
-	//Set the passed in textype font of the Device to the created font
 	ID3DXFont* pFont = 0;
 
 	//Select which font to use based on the type of text
@@ -1236,9 +1253,9 @@ int CD3D9Renderer::GetFontWidth(eTextType _textType)
 			pFont = m_pTitleFont;
 		}break;
 
-		case TEXT_MAIN_MENU:
+		case TEXT_MENU_SELECT:
 		{
-			pFont = m_pMainMenuFont;
+			pFont = m_pMenuSelectFont;
 		}break;
 
 		case TEXT_IN_GAME:
@@ -1266,4 +1283,5 @@ int CD3D9Renderer::GetFontWidth(eTextType _textType)
 		//Incompatible font type return -1 as error
 		return -1;
 	}
-}
+
+	}

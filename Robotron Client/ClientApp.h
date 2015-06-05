@@ -110,10 +110,36 @@ public:
 	* @return: void
 	********************/
 	void ProcessReceiveData();
-
-	//TO DO: Mouse Getters/Setters
+		
+	/***********************
+	* SetMousePos: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: POINT _MousePosition: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
 	void SetMousePos(POINT _MousePosition){ m_MousePosition = _MousePosition; };
+	
+	/***********************
+	* GetMousePos: TO DO: Description
+	* @author: Jc Fowles
+	* @return: POINT: TO DO: Description
+	********************/
 	POINT GetMousePos(){ return m_MousePosition; };
+
+	/***********************
+	* IsMouseClicked: TO DO: Description
+	* @author: Jc Fowles
+	* @return: bool*: TO DO: Description
+	********************/
+	bool* IsMouseClicked() const { return m_bIsClicked; }
+
+	/***********************
+	* IsMouseClicked: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: bool * val: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
+	void IsMouseClicked(bool* val) { m_bIsClicked = val; }
 
 protected:
 
@@ -143,6 +169,57 @@ private:
 	void MainMenuDraw();
 	void RenderText(std::string _strText, int _iYPos, eTextType _TextType);
 	
+	/***********************
+	* ProcessMouseLClick: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
+	void MenuSelection(std::string _strMenuItem);
+	
+	/***********************
+	* StartMenuDraw: TO DO: Description
+	* @author: Jc Fowles
+	* @return: void: TO DO: Description
+	********************/
+	void StartMenuDraw();
+	/***********************
+	* ExitMenuDraw: TO DO: Description
+	* @author: Jc Fowles
+	* @return: void: TO DO: Description
+	********************/
+	void ExitMenuDraw();
+	
+	/***********************
+	* MainMenuSelect: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
+	void MainMenuSelect(std::string _strMenuItem);
+	
+	/***********************
+	* StartMenuSelect: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
+	void StartMenuSelect(std::string _strMenuItem);
+	
+	/***********************
+	* ExitMenuSelect: TO DO: Description
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: TO DO: Description
+	* @return: void: TO DO: Description
+	********************/
+	void ExitMenuSelect(std::string _strMenuItem);
+	
+	/***********************
+	* HostGameDraw: TO DO: Description
+	* @author: Jc Fowles
+	* @return: void: TO DO: Description
+	********************/
+	void HostGameDraw();
 	//Member Variables
 public:
 	//TO DO: make private and create getters/Setters
@@ -160,8 +237,15 @@ private:
 	CClock* m_pClock;
 	eGameStates m_GameState;
 	std::string m_strGameTitle;
+	std::vector<std::string> m_strMainMenuOptions;
+	//TO DO
+	std::vector<std::string> m_strStartOptions;
+	/*std::vector<std::string> m_strOptionsMenu;
+	std::vector<std::string> m_strInstructions;*/
+	std::vector<std::string> m_strExitOptions;
 	POINT m_MousePosition;
-
+	bool* m_bIsClicked;
+	
 	//Networking variables
 	CClient* m_pClient;
 	std::thread m_ClientThread;

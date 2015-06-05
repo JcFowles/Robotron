@@ -19,13 +19,22 @@
 #pragma comment( lib, "winmm.lib" )
 #pragma comment(lib, "Ws2_32.lib")
 
-//librabry includes
+//library includes
 
 //Local Includes
 
 enum eGameStates
 {
-	MAIN_MENU
+	//Main menu
+	GS_MAIN_MENU,
+	GS_START_MENU,
+	GS_OPTIONS_MENU,
+	GS_INSTRUCTIONS,
+	GS_EXIT_MENU,
+
+	//Game
+	GS_JOIN_GAME,
+	GS_HOST_GAME
 };
 
 #define VALIDATE(a) if (!a) return (false)

@@ -95,14 +95,15 @@ public:
 									void* _pIndices
 									) = 0;
 	
-
+	
 private:
-	//Dissallow copies
+	//Disallow copies
 	IRenderer(const IRenderer& _kr);
 	IRenderer& operator= (const IRenderer& _kr);
 
 	virtual bool DeviceCreation() = 0;
 	virtual void SetRenderStates() = 0;
 };
+
 
 #endif //__RENDERER_H__

@@ -39,7 +39,7 @@
 LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lParam)
 {
 
-	//Procces the given message
+	//Process the given message
     switch(_uiMsg)
     {
 		case WM_ACTIVATEAPP:
@@ -84,21 +84,26 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		case WM_LBUTTONDOWN:
 		{
 			//TO DO
+			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = true;
+
 		}break;
 
 		case WM_LBUTTONUP:
 		{
+			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = false;
 			//TO DO
 		}break;
 		
 		case WM_RBUTTONDOWN:
 		{
 			//TO DO
+			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = true;
 		}break;
 
 		case WM_RBUTTONUP:
 		{
 			//TO DO
+			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = false;
 		}break;
 		
 		case WM_MOUSEMOVE:
@@ -170,7 +175,7 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 
 
 	
-	//Check if window was created succesfully
+	//Check if window was created successfully
 	if (!hWnd)
 	{
 		// Failed to create.

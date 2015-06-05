@@ -34,7 +34,7 @@ CClientApp::~CClientApp(void)
 
 CClientApp& CClientApp::GetInstance()
 {
-	//Create the game intance if it doesnt exist 
+	//Create the game instance if it doesnt exist 
 	if (s_pClientApp == 0)
 	{
 		s_pClientApp = new CClientApp();
@@ -44,8 +44,7 @@ CClientApp& CClientApp::GetInstance()
 
 void CClientApp::DestroyInstance()
 {
-	//join threads
-
+	
 	delete s_pClientApp;
 	s_pClientApp = 0;
 }
@@ -61,7 +60,21 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_pClock = new CClock();
 	VALIDATE(m_pClock->Initialise());
 	m_strGameTitle = "Robotron";
-	m_GameState = MAIN_MENU;
+	m_strMainMenuOptions.push_back("START");
+	m_strMainMenuOptions.push_back("OPTIONS");
+	m_strMainMenuOptions.push_back("INSTRUCTIONS");
+	m_strMainMenuOptions.push_back("EXIT");
+	m_strStartOptions.push_back("JOIN GAME");
+	m_strStartOptions.push_back("HOST GAME");
+	m_strStartOptions.push_back("BACK");
+	m_strExitOptions.push_back("YES - Close The Game");
+	m_strExitOptions.push_back("NO - Take Me Back");
+
+	m_GameState = GS_MAIN_MENU;
+	//Initialize the mouse boolean array
+	m_bIsClicked = new bool[10];
+	//Set all values to false
+	memset(m_bIsClicked, false, 10);
 
 	//Initialise Networking variables
 	m_pClient = new CClient();
@@ -69,7 +82,7 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	ServerDataPacket* m_ServerPacket = new ServerDataPacket;
 	ClientDataPacket* m_ClientPacket = new ClientDataPacket;
 	m_pClientDataQueue = new std::queue < ClientDataPacket >;
-	//Create and run separate thread to constantly recieve data
+	//Create and run separate thread to constantly receive data
 	m_ClientThread = std::thread(&CClientApp::ReceiveDataThread, (this));
 	
 	//Initialise Graphic variables
@@ -95,7 +108,7 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 //	filename = "..\\Release\\Robotron Server";
 //#endif
 //
-//	int errer = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
+//	int error = (int)ShellExecuteA(_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
 
 
 
@@ -111,7 +124,7 @@ void CClientApp::Process()
 	//ProcessReceiveData();
 	
 
-	//TO DO: Remove, This is a send recieve test
+	//TO DO: Remove, This is a send receive test
 	/*ServerDataPacket* packet = new ServerDataPacket;
 	packet->iNumber = 78;
 	std::string steTest = "1234567890";
@@ -130,17 +143,44 @@ void CClientApp::Draw()
 
 	switch (m_GameState)
 	{
-		case MAIN_MENU:
+		//Menu states
+		case GS_MAIN_MENU:
 		{
 			MainMenuDraw();
 		}break;
+		case GS_START_MENU:
+		{
+			StartMenuDraw();
+		}break;
+		case GS_OPTIONS_MENU:
+		{
+			//TO DO
+		}break;
+		case GS_INSTRUCTIONS:
+		{
+			//TO DO
+		}break;
+		case GS_EXIT_MENU:
+		{
+			ExitMenuDraw();
+		}break;
+
+		//Game states
+		case GS_JOIN_GAME:
+		{
+			//TO DO
+		}break;
+		case GS_HOST_GAME:
+		{
+			HostGameDraw();
+		}break;
+
 
 	}
 
 	m_pRenderManager->EndRender();
 }
 
-//TO DO FIRST: 
 void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType)
 {
 	//Create the text space as a RECT
@@ -155,28 +195,254 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	DWORD TextColor = D3DCOLOR_XRGB(0, 0, 0);
 	switch (_TextType)
 	{
-		case TEXT_MAIN_MENU:
-		{
-			TextColor = D3DCOLOR_XRGB(0, 0, 255);
-			if (m_MousePosition.y >= Rect.top &&
-				m_MousePosition.y <= Rect.bottom)
-			{
-				TextColor = D3DCOLOR_XRGB(255, 0, 0);
-			}
-
-		}break;
-
 		case TEXT_TITLE:
 		{
 			TextColor = D3DCOLOR_XRGB(0, 255, 0);
 
 		}break;
+
+		case TEXT_MAIN_MENU:
+		{
+			TextColor = D3DCOLOR_XRGB(0, 0, 255);
+
+		}break;
+
+		case TEXT_MENU_SELECT:
+		{
+			TextColor = D3DCOLOR_XRGB(0, 0, 255);
+
+			//If you hover over a click-able text
+			if (m_MousePosition.y >= Rect.top &&
+				m_MousePosition.y <= Rect.bottom)
+			{
+				//Change its color signifying that its click-able
+				TextColor = D3DCOLOR_XRGB(255, 0, 0);
+				//If the text was clicked
+				if (m_bIsClicked[MK_LBUTTON])
+				{
+					//Run menu selection
+					MenuSelection(_strText);
+					//Set Left mouse button to false
+					m_bIsClicked[MK_LBUTTON] = false;
+				}
+			}
+
+		}break;
+
+		
 	}
 	
-
 	//Render the title 
 	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType);
 
+}
+
+void CClientApp::MenuSelection(std::string _strMenuItem)
+{
+	//Depending on the current game state run the designated Menu select 
+	switch (m_GameState)
+	{
+		case GS_MAIN_MENU:
+		{
+			MainMenuSelect(_strMenuItem);
+		}break;
+		
+		case GS_START_MENU:
+		{
+			StartMenuSelect(_strMenuItem);
+		}break;
+
+		case GS_OPTIONS_MENU:
+		{
+			//TO DO
+			//OptionsMenuSelect(std::string _strMenuItem);
+		}break;
+
+		case GS_INSTRUCTIONS:
+		{
+			//TO DO
+			//InstructMenuSelect(std::string _strMenuItem);
+		}break;
+
+		case GS_EXIT_MENU:
+		{
+			ExitMenuSelect(_strMenuItem);
+		}break;
+
+		default:
+			break;
+	}
+
+}
+
+void CClientApp::StartMenuDraw()
+{
+	int iYPos = (m_iScreenHeight / 8);
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+
+	////***START MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	iYPos += 200 - (uiFontHeight + 1);
+	for (unsigned int i = 0; i < m_strStartOptions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 1);
+		RenderText(m_strStartOptions[i], iYPos, TEXT_MENU_SELECT);
+	}
+}
+
+void CClientApp::ExitMenuDraw()
+{
+	int iYPos = (m_iScreenHeight / 8);
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
+	iYPos += 200;
+	RenderText("Are You Sure You Want To Exit?", iYPos, TEXT_MAIN_MENU);
+	
+
+	////***EXIT MENU***
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	iYPos += 180 - (uiFontHeight + 100);
+	for (unsigned int i = 0; i < m_strExitOptions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 100);
+		RenderText(m_strExitOptions[i], iYPos, TEXT_MENU_SELECT);
+	}
+
+}
+
+void CClientApp::HostGameDraw()
+{
+	//TO DO
+	throw std::logic_error("The method or operation is not implemented.");
+}
+
+void CClientApp::MainMenuSelect(std::string _strMenuItem)
+{
+	//Run through main menu options
+	unsigned int iMenuItem;
+	for (iMenuItem = 0; iMenuItem < m_strMainMenuOptions.size(); iMenuItem++)
+	{
+		if (_strMenuItem == m_strMainMenuOptions[iMenuItem])
+		{
+			break;
+		}
+	}
+
+	//Switch on which text rect was clicked on, 
+	//Then clear the screen and set the game state
+	switch (iMenuItem)
+	{
+	case 0: //START
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_START_MENU;
+		
+	}break;
+
+	case 1: //OPTIONS
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_OPTIONS_MENU;
+		
+	}break;
+
+	case 2: //INSTRUCTIONS
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_INSTRUCTIONS;
+		
+	}break;
+
+	case 3:  //EXIT
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_EXIT_MENU;
+		
+	}break;
+
+	default:
+		break;
+	}
+}
+
+void CClientApp::StartMenuSelect(std::string _strMenuItem)
+{
+	//Run through main menu options
+	unsigned int iMenuItem;
+	for (iMenuItem = 0; iMenuItem < m_strStartOptions.size(); iMenuItem++)
+	{
+		if (_strMenuItem == m_strStartOptions[iMenuItem])
+		{
+			break;
+		}
+	}
+
+	//Switch on which text rect was clicked on, 
+	//Then clear the screen and set the game state
+	switch (iMenuItem)
+	{
+	case 0: //JOIN
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_JOIN_GAME;
+	}break;
+
+	case 1: //HOST
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_HOST_GAME;
+	}break;
+
+	case 3: //BACK
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_MAIN_MENU;
+	}break;
+	
+	default:
+		break;
+	}
+}
+
+void CClientApp::ExitMenuSelect(std::string _strMenuItem)
+{
+	//TO DO
+	//Run through main menu options
+	unsigned int iMenuItem;
+	for (iMenuItem = 0; iMenuItem < m_strExitOptions.size(); iMenuItem++)
+	{
+		if (_strMenuItem == m_strExitOptions[iMenuItem])
+		{
+			break;
+		}
+	}
+
+	//Switch on which text rect was clicked on, 
+	//Then clear the screen and set the game state
+	switch (iMenuItem)
+	{
+	case 0: //YES
+	{
+		//End the program
+		exit(0);
+	}break;
+
+	case 1: //NO
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_GameState = GS_MAIN_MENU;
+	}break;
+
+	default:
+		break;
+	}
 }
 
 void CClientApp::MainMenuDraw()
@@ -188,12 +454,14 @@ void CClientApp::MainMenuDraw()
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
 	
 	////***MAIN MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
-	RenderText("START", iYPos += 200, TEXT_MAIN_MENU);
-	RenderText("OPTIONS", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
-	RenderText("INSTRUCTIONS", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
-	RenderText("EXIT", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
-
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	iYPos += 200 - (uiFontHeight + 1);
+	for (unsigned int i = 0; i < m_strMainMenuOptions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 1);
+		RenderText(m_strMainMenuOptions[i], iYPos, TEXT_MENU_SELECT);
+	}
+	
 }
 
 void CClientApp::RenderSingleFrame()
@@ -208,6 +476,7 @@ void CClientApp::RenderSingleFrame()
 
 void CClientApp::ConvertToServerDataPacket(std::string _srtData)
 {
+	//TO DO
 	ServerDataPacket* packet = new ServerDataPacket;
 	if (_srtData.length() < NetworkValues::MAX_CHAR_LENGTH)
 	{

@@ -92,8 +92,17 @@ public:
 									void* _pIndices
 									);
 private:
+	
 	virtual bool DeviceCreation();
+	
+	/***********************
+	* SetRenderStates: TO DO: Description
+	* @author: Jc Fowles
+	* @return: void: TO DO: Description
+	********************/
 	virtual void SetRenderStates();
+	
+	
 	//Member Variables
 protected:
 
@@ -118,9 +127,11 @@ protected:
 	UINT m_iSurfaceKeyCount;
 
 	ID3DXFont* m_pTitleFont;
-	ID3DXFont* m_pMainMenuFont;
+	ID3DXFont* m_pMenuFont;
+	ID3DXFont* m_pMenuSelectFont;
 	ID3DXFont* m_pInGameFont;
 	ID3DXFont* m_pDebugFont;
+
 
 	bool m_bSpecular;
 
