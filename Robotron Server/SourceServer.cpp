@@ -6,26 +6,22 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : SourceClient.cpp 
-// Description : source file containing the main() function of the client- simply just creates the windows and then runs the Game app
+// File Name : SourceServer.cpp 
+// Description : Source file containing the main() function of the server- simply just creates the windows and then runs the Game app
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma comment( lib, "winmm.lib" )
 
-#ifdef _DEBUG
-//#include "vld.h"
-#endif
-
 //Library includes
 //TO DO
+// #include <ctime>
 //#include <WinSock2.h>
-#include <ctime>
 //Local Includes
-#include "ClientApp.h"
+#include "ServerApp.h"
 
 #define WIN32_LEAN_AND_MEAN
-#define WINDOW_CLASS_NAME L"ROBOTRON"
+#define WINDOW_CLASS_NAME L"ROBOTRON_SERVER"
 
 /***********************
 * WindowProc: This is the message handler for the Window, 
@@ -55,21 +51,20 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
                 return 0;
             } 
 		break;
-		
 		case WM_KEYUP:
 		{
-			//Set the IsKeyDown bool of this key to false
-			CClientApp::GetInstance().m_bIsKeyDown[_wParam] = false;
+			////Set the IsKeyDown bool of this key to false
+			//CGame::GetInstance().m_bIsKeyDown[_wParam] = false;	
 			//if (_wParam == VK_NUMPAD8)
 			//{
-			//	CClientApp::GetInstance().GetCube()->SetMoveSpeed(50.0f);
+			//	CGame::GetInstance().GetCube()->SetMoveSpeed(50.0f);
 			//}
 		}
 		break;
 		case WM_KEYDOWN:
 		{
 			//Set the IsKeyDown bool of this key to true
-			CClientApp::GetInstance().m_bIsKeyDown[_wParam] = true;
+			//CGame::GetInstance().m_bIsKeyDown[_wParam] = true;
 			switch (_wParam)
 			{
 				case VK_ESCAPE:
@@ -112,7 +107,7 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 	winClass.hInstance = _hInstance;
 	winClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	winClass.hbrBackground = (HBRUSH)BLACK_BRUSH;
 	winClass.lpszMenuName = NULL;
 	winClass.lpszClassName = WINDOW_CLASS_NAME;
 	winClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
@@ -165,7 +160,7 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdline, int _iCmdshow)
 {
 	//Seed the random generator
-	srand ((unsigned int)time(NULL));
+	//srand ((unsigned int)time(NULL));
 
 	//Screen Resolution
 	const int kiWidth = 1000; 
@@ -178,16 +173,16 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	ZeroMemory(&msg, sizeof(MSG));
 	
 	//Create and register the window
-	HWND hWnd = CreateAndRegisterWindow(_hInstance, kiWidth, kiHeight, L"Robotron");
-		
+	HWND hWnd = CreateAndRegisterWindow(_hInstance, kiWidth, kiHeight, L"Robotron_Server");
+	
 	// display the window on the screen
     ShowWindow(hWnd, _iCmdshow);
 	
 	//Create and initialize the Direct3D Device
-	CClientApp& rClientApp = CClientApp::GetInstance();
-	rClientApp.Initialise(hWnd, kiWidth, kiHeight);
-	
-
+	CServerApp& rServerApp = CServerApp::GetInstance();
+	rServerApp.Initialise(hWnd, kiWidth, kiHeight);
+			
+	int c = 9;
 
 	while (msg.message != WM_QUIT)
 	{
@@ -199,12 +194,12 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 		else
 		{
 			//Render a single frame
-			rClientApp.RenderSingleFrame();
+			rServerApp.RenderSingleFrame();
 		}
 	}
 
 	//Destroy the game instance
-	rClientApp.DestroyInstance();
+	rServerApp.DestroyInstance();
 	
     // return this part of the WM_QUIT message to Windows
     return msg.wParam;

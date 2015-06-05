@@ -6,50 +6,53 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : CGame.h
-// Description : Header file containing declarations for CGame Class
+// File Name : CClientApp.h
+// Description : Header file containing declarations for CClientApp Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
-//TO DO IFDEF
+#if !defined(__CLIENT_APP_H__)
+#define __CLIENT_APP_H__
 
+//library includes
 #include <string>
+#include <queue>
+#include <thread>
 
 //Local Includes
 #include "Client.h"
 #include "../Shared/Clock.h"
-#include "../Shared/Network_Defines.h"
 
 
-class CGame
+class CClientApp
 {
 	//Member Function
 public:
-	
+
 	/***********************
-	* GetInstance: Returns a refrence to the singleton game object, if one does not excist create one
+	* GetInstance: Returns a refrence to the singleton ClientApp object, if one does not excist create one
 	* @author: Jc Fowles
 	* @return: CGame& : Returns a refrence to the singleton game object
 	********************/
-	static CGame& GetInstance();
+	static CClientApp& GetInstance();
 
 	/***********************
-	* DestroyInstance: Destroys the singleton game object
+	* DestroyInstance: Destroys the singleton ClientApp object
 	* @author: Jc Fowles
 	* @return: void
 	********************/
 	static void DestroyInstance();
 
 	/***********************
-	* ~CGame: Destructor of the Game instance
+	* ~CClientApp: Destructor of the ClientApp instance
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	~CGame(void);
+	~CClientApp(void);
 
 	/***********************
-	* Initialize: Initializes the Game instance
+	* Initialize: Initializes the ClientApp instance
 	* @author: Jc Fowles
 	* @parameter: _hWnd: Handle to the window
 	* @parameter: _iScreenWidth: Width to the window
@@ -57,16 +60,16 @@ public:
 	* @return: bool: Succesful Initialisation
 	********************/
 	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
-	
+
 	/***********************
-	* Process: Process the the game instance
+	* Process: Process the the ClientApp instance
 	* @author: Jc Fowles
 	* @return: void
 	********************/
 	void Process();
 
 	/***********************
-	* Draw: Draw the objects to the D3D Device
+	* Draw: Draw the all the objects 
 	* @author: Jc Fowles
 	* @return: void
 	********************/
@@ -78,50 +81,84 @@ public:
 	* @return: void
 	********************/
 	void RenderSingleFrame();
-	
-	//TO DO
+
+	//TO DO: Comment header
+	//void ProcessInputs(float _fDt);
+
+	/***********************
+	* ConvertToServerDataPacket: Convert passed in data to a ServerDataPacket
+	* @author: Jc Fowles
+	* @param: //TO DO
+	* @return: void
+	********************/
 	void ConvertToServerDataPacket(std::string _srtData);
+
+	/***********************
+	* ReceiveDataThread: Threaded function to receive data from the server and add them
+						 to a work queue
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	void ReceiveDataThread();
+
+	/***********************
+	* ProcessReceiveData: Process the Received Data
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	void ProcessReceiveData();
+
 protected:
-	
+
 private:
 	/***********************
 	* CGame: Constructor of the Game instance
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	CGame();
+	CClientApp();
 
 	/***********************
 	* CGame: Copy Constructor of the Game instance
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	CGame(const CGame& _kr);
+	CClientApp(const CClientApp& _kr);
 
 	/***********************
 	* operator=: Overloaded
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	CGame& operator= (const CGame& _kr);
+	CClientApp& operator= (const CClientApp& _kr);
 
 	//Member Variables
 public:
-	
+	//TO DO: make private and create getters/Setters
+	bool* m_bIsKeyDown;
 protected:
 
 private:
 	HWND m_hWnd;
 	int m_iScreenWidth;
 	int	m_iScreenHeight;
-	
-	static CGame* s_pGame;
-	
+
+	static CClientApp* s_pClientApp;
 	CClock* m_pClock;
 
 	CClient* m_pClient;
 
-	
+	std::thread m_ClientThread;
 
+	ServerDataPacket* m_ServerPacket;
+	ClientDataPacket* m_ClientPacket;
+	std::queue<ClientDataPacket>* m_pClientDataQueue;
+
+	static CMySemaphore s_Mutex;
+	
+	//Gamestate
+
+	//std::queue<bool*>
 };
 
+#endif //__CLIENT_APP_H__
