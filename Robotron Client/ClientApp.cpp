@@ -190,9 +190,9 @@ void CClientApp::MainMenuDraw()
 	////***MAIN MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
 	RenderText("START", iYPos += 200, TEXT_MAIN_MENU);
-	RenderText("OPTIONS", iYPos += uiFontHeight, TEXT_MAIN_MENU);
-	RenderText("INSTRUCTIONS", iYPos += uiFontHeight, TEXT_MAIN_MENU);
-	RenderText("EXIT", iYPos += uiFontHeight, TEXT_MAIN_MENU);
+	RenderText("OPTIONS", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
+	RenderText("INSTRUCTIONS", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
+	RenderText("EXIT", iYPos += uiFontHeight + 1, TEXT_MAIN_MENU);
 
 }
 
