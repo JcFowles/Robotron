@@ -101,6 +101,14 @@ private:
 	* @return: void: TO DO: Description
 	********************/
 	virtual void SetRenderStates();
+		
+	/***********************
+	* FontSelect: Returns a D3D Font pointer of the selected text type
+	* @author: Jc Fowles
+	* @Parameter: eTextType _textType: Selected text type
+	* @return: ID3DXFont*: The D3D Font pointer of the selected text type
+	********************/
+	ID3DXFont* FontSelect(eTextType _textType);
 	
 	
 	//Member Variables
@@ -131,7 +139,8 @@ protected:
 	ID3DXFont* m_pMenuSelectFont;
 	ID3DXFont* m_pInGameFont;
 	ID3DXFont* m_pDebugFont;
-
+	ID3DXFont* m_pListFont;
+	ID3DXFont* m_pListSelectFont;
 
 	bool m_bSpecular;
 

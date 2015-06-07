@@ -386,10 +386,11 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	//Create the various fonts to draw text to screen
 	CreateTextFont(18, 9, "Times New Roman", TEXT_DEBUG_INFO);
 	CreateTextFont(150, 150/2, "Times New Roman", TEXT_TITLE);
-	//TO DO
 	CreateTextFont(70, 20, "Times New Roman", TEXT_MAIN_MENU);
 	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU_SELECT);
-	CreateTextFont(70, 20, "Times New Roman", TEXT_IN_GAME);
+	CreateTextFont(18, 9, "Times New Roman", TEXT_IN_GAME);
+	CreateTextFont(18, 9, "Times New Roman", TEXT_LIST);
+	CreateTextFont(18, 9, "Times New Roman", TEXT_LIST_SELECT);
 
 	return true;
 }
@@ -870,7 +871,7 @@ void CD3D9Renderer::StartRender(bool _bTarget, bool _bDepth, bool _bStencil)
 }
 
 /***********************
-* EndRender: Calls the device Endscence to end the current frame
+* EndRender: Calls the device EndScence to end the current frame
 * @author: Jc Fowles
 * @return: void
 ********************/
@@ -905,68 +906,6 @@ void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYP
 						&rect,					//RECT to draw the text into
 						DT_TOP | DT_LEFT,		//Top justified and left Aligned
 						_color);				//The color of text
-}
-
-/***********************
-* RenderText: Render Text to the screen
-* @author: Jc Fowles
-* @parameter: _strText: Text to be rendered on screen
-* @parameter: _rect: Rectangle to draw text in 
-* @parameter: _color: Color to make the Text
-* @return: void
-********************/
-void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType)
-{
-	ID3DXFont* pFont = 0;;
-
-	//Select which font to use based on the type of text
-	switch (_textType)
-	{
-		case TEXT_TITLE:
-		{
-			pFont = m_pTitleFont;
-		}break;
-		
-		case TEXT_MAIN_MENU:
-		{
-			pFont = m_pMenuFont;
-			
-		}break;
-
-		case TEXT_MENU_SELECT:
-		{
-			pFont = m_pMenuSelectFont;
-		}break;
-		
-		case TEXT_IN_GAME:
-		{
-			pFont = m_pInGameFont;
-		}break;
-		
-		case TEXT_DEBUG_INFO:
-		{
-			pFont = m_pDebugFont;
-		}break;
-	}
-
-	if (pFont != 0)
-	{
-		//Return the Font Description
-		D3DXFONT_DESCA fontDesc;
-		pFont->GetDescA(&fontDesc);
-
-		static_cast<D3DCOLOR>(_color);
-
-		pFont->DrawTextA(NULL,						//Not used
-						_strText.c_str(),			//The String to draw to the screen
-						-1,							//String is null terminated
-						&_rect,						//RECT to draw the text into
-						DT_BOTTOM |
-						DT_CENTER |
-						DT_SINGLELINE,				//Bottom justified and Center Aligned
-						_color);					//The color of text
-
-	}
 }
 
 /***********************
@@ -1059,62 +998,6 @@ int CD3D9Renderer::CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_IN
 }
 
 /***********************
-* CreateTextFont: Create the text font to be rendered to the screen
-* @author: Jc Fowles
-* @param: _pFont: pointer to the created font
-* @param: uiHeight: Height of the font to be created
-* @param: uiWidth: Width of the font to be created
-* @param: _strFontType: Type of the font to be created
-* @param: _textType: TO DO
-* @return: void
-********************/
-void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType)
-{
-	D3DXFONT_DESCA fontDesc;
-	//Font attributes
-	ZeroMemory(&fontDesc, sizeof(D3DXFONT_DESCA));
-	fontDesc.Height = uiHeight;
-	fontDesc.Width = uiWidth;
-	fontDesc.Weight = 1;
-	fontDesc.MipLevels = D3DX_DEFAULT;
-	fontDesc.Italic = false;
-	fontDesc.CharSet = 0;
-	fontDesc.OutputPrecision = 100;
-	fontDesc.Quality = 100;
-	fontDesc.PitchAndFamily = 0;
-	strcpy_s(fontDesc.FaceName, _strFontType);
-	
-	//Set the passed in texType font of the Device to the created font
-	ID3DXFont* pFont;
-	D3DXCreateFontIndirectA(m_pDevice, &fontDesc, &pFont);
-
-	//Select which font to use based on the type of text
-	switch (_textType)
-	{
-		case TEXT_TITLE:
-		{
-			m_pTitleFont = pFont ;
-		}break;
-		case TEXT_MAIN_MENU:
-		{
-			m_pMenuFont = pFont;
-		}break;
-		case TEXT_MENU_SELECT:
-		{
-			m_pMenuSelectFont = pFont;
-		}break;
-		case TEXT_IN_GAME:
-		{
-			m_pInGameFont = pFont;
-		}break;
-		case TEXT_DEBUG_INFO:
-		{
-			m_pDebugFont = pFont;
-		}break;
-	}
-}
-
-/***********************
 * CreateStaticBuffer: Create a Static Buffer
 * @author: Jc Fowles
 * parameter: _VertexType: Long number to define the Vertex Type
@@ -1158,7 +1041,7 @@ int	CD3D9Renderer::CreateStaticBuffer(	VertexType _VertexType,
 	}
 	else
 	{
-		//Delete allocated memory if the initialisation failed
+		//Delete allocated memory if the initialization failed
 		delete pNewBuffer;
 		pNewBuffer = 0;
 	}
@@ -1180,12 +1063,167 @@ void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 	m_pDevice->ColorFill(pBackBuffer, 0, _Color);
 }
 
-//TO DO: Comment header
+/***********************
+* CreateTextFont: Create the text font to be rendered to the screen
+* @author: Jc Fowles
+* @param: _pFont: pointer to the created font
+* @param: uiHeight: Height of the font to be created
+* @param: uiWidth: Width of the font to be created
+* @param: _strFontType: Type of the font to be created
+* @param: _textType: TO DO
+* @return: void
+********************/
+void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType)
+{
+	D3DXFONT_DESCA fontDesc;
+	//Font attributes
+	ZeroMemory(&fontDesc, sizeof(D3DXFONT_DESCA));
+	fontDesc.Height = uiHeight;
+	fontDesc.Width = uiWidth;
+	fontDesc.Weight = 1;
+	fontDesc.MipLevels = D3DX_DEFAULT;
+	fontDesc.Italic = false;
+	fontDesc.CharSet = 0;
+	fontDesc.OutputPrecision = 100;
+	fontDesc.Quality = 100;
+	fontDesc.PitchAndFamily = 0;
+	strcpy_s(fontDesc.FaceName, _strFontType);
+
+	//Set the passed in texType font of the Device to the created font
+	ID3DXFont* pFont;
+	D3DXCreateFontIndirectA(m_pDevice, &fontDesc, &pFont);
+
+	//Save the created font to the correct font pointer
+	switch (_textType)
+	{
+		case TEXT_TITLE:
+		{
+			m_pTitleFont = pFont;
+		}break;
+		case TEXT_MAIN_MENU:
+		{
+			m_pMenuFont = pFont;
+		}break;
+		case TEXT_MENU_SELECT:
+		{
+			m_pMenuSelectFont = pFont;
+		}break;
+		case TEXT_LIST:
+		{
+			m_pListFont = pFont;
+		}
+		case TEXT_LIST_SELECT:
+		{
+			m_pListSelectFont = pFont;
+		}
+		case TEXT_IN_GAME:
+		{
+			m_pInGameFont = pFont;
+		}break;
+		case TEXT_DEBUG_INFO:
+		{
+			m_pDebugFont = pFont;
+		}break;
+		default:
+			break;
+	}
+}
+
+/***********************
+* RenderText: Render Text to the screen
+* @author: Jc Fowles
+* @parameter: _strText: Text to be rendered on screen
+* @parameter: _rect: Rectangle to draw text in
+* @parameter: _color: Color to make the Text
+* @return: void
+********************/
+void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType)
+{
+	//Get the font pointer based on text type
+	ID3DXFont* pFont = FontSelect(_textType);
+	
+	//If font pointer exist 
+	if (pFont != 0)
+	{
+		//Return the Font Description
+		D3DXFONT_DESCA fontDesc;
+		pFont->GetDescA(&fontDesc);
+
+		static_cast<D3DCOLOR>(_color);
+
+		pFont->DrawTextA(NULL,						//Not used
+			_strText.c_str(),			//The String to draw to the screen
+			-1,							//String is null terminated
+			&_rect,						//RECT to draw the text into
+			DT_BOTTOM |
+			DT_CENTER |
+			DT_SINGLELINE,				//Bottom justified and Center Aligned
+			_color);					//The color of text
+
+	}
+}
+
+/***********************
+* GetFontHeight: Return the Height of the font
+* @author: Jc Fowles
+* @parameter: eTextType _textType: Height of this text type is returned
+* @return: int: The height of the font
+********************/
 int CD3D9Renderer::GetFontHeight(eTextType _textType)
 {
-	//Set the passed in texttype font of the Device to the created font
-	ID3DXFont* pFont = 0;
+	//Get the font pointer based on text type
+	ID3DXFont* pFont = FontSelect(_textType);
+	
+	//If font pointer exist 
+	if (pFont != 0)
+	{
+		//Get the Font info
+		D3DXFONT_DESCA fontDesc;
+		pFont->GetDescA(&fontDesc);
 
+		//Return the height of the font
+		return fontDesc.Height;
+	}
+	else
+	{
+		//Incompatible font type return -1 as error
+		return -1;
+	}
+
+}
+
+/***********************
+* GetFontWidth: Return the Width of the font
+* @author: Jc Fowles
+* @parameter: eTextType _textType: Width of this text type is returned
+* @return: int: The Width of the font
+********************/
+int CD3D9Renderer::GetFontWidth(eTextType _textType)
+{
+	//Get the font pointer based on text type
+	ID3DXFont* pFont = FontSelect(_textType);
+	
+	//If font pointer exist 
+	if (pFont != 0)
+	{
+		//Get the Font info
+		D3DXFONT_DESCA fontDesc;
+		pFont->GetDescA(&fontDesc);
+
+		//Return the width of the font
+		return fontDesc.Width;
+	}
+	else
+	{
+		//Incompatible font type return -1 as error
+		return -1;
+	}
+
+}
+
+ID3DXFont* CD3D9Renderer::FontSelect(eTextType _textType)
+{
+	ID3DXFont* pFont = 0;
 	//Select which font to use based on the type of text
 	switch (_textType)
 	{
@@ -1204,6 +1242,16 @@ int CD3D9Renderer::GetFontHeight(eTextType _textType)
 		pFont = m_pMenuSelectFont;
 	}break;
 
+	case TEXT_LIST:
+	{
+		pFont = m_pListFont;
+	}break;
+
+	case TEXT_LIST_SELECT:
+	{
+		pFont = m_pListSelectFont;
+	}break;
+
 	case TEXT_IN_GAME:
 	{
 		pFont = m_pInGameFont;
@@ -1213,67 +1261,10 @@ int CD3D9Renderer::GetFontHeight(eTextType _textType)
 	{
 		pFont = m_pDebugFont;
 	}break;
+
+	default:
+		break;
 	}
 
-	if (pFont != 0)
-	{
-		//Get the Font info
-		D3DXFONT_DESCA fontDesc;
-		pFont->GetDescA(&fontDesc);
-
-		//Return the height of the font
-		return fontDesc.Height;
-	}
-	else
-	{
-		//Incompatible font type return -1 as error
-		return -1;
-	}
-
+	return pFont;
 }
-
-//TO DO: Comment header
-int CD3D9Renderer::GetFontWidth(eTextType _textType)
-{
-	ID3DXFont* pFont = 0;
-
-	//Select which font to use based on the type of text
-	switch (_textType)
-	{
-		case TEXT_TITLE:
-		{
-			pFont = m_pTitleFont;
-		}break;
-
-		case TEXT_MENU_SELECT:
-		{
-			pFont = m_pMenuSelectFont;
-		}break;
-
-		case TEXT_IN_GAME:
-		{
-			pFont = m_pInGameFont;
-		}break;
-
-		case TEXT_DEBUG_INFO:
-		{
-			pFont = m_pDebugFont;
-		}break;
-	}
-	
-	if (pFont != 0)
-	{
-		//Get the Font info
-		D3DXFONT_DESCA fontDesc;
-		pFont->GetDescA(&fontDesc);
-
-		//Return the width of the font
-		return fontDesc.Width;
-	}
-	else
-	{
-		//Incompatible font type return -1 as error
-		return -1;
-	}
-
-	}

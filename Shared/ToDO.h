@@ -7,3 +7,8 @@
 * multiple servers on same pc
 * link server to client who created it and vice versa
 /*
+
+/* create server
+* Server broadcast
+* join server
+*/

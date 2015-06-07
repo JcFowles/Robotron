@@ -103,6 +103,13 @@ public:
 	* @return: void:
 	********************/
 	void ProcessMenuSelection(std::string _strMenuItem);
+	
+	/***********************
+	* ProcessLobbyRequest: Broadcast to fond servers and save list of servers that respond
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessLobbyRequest();
 
 	/***********************
 	* Draw: Draw the all the objects 
@@ -123,21 +130,35 @@ public:
 	* @author: Jc Fowles
 	* @return: void: 
 	********************/
-	void StartMultiPlayerDraw();
+	void MultiPlayerMenuDraw();
+		
+	/***********************
+	* JoinMenuDraw: Draw the join game menu
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void JoinMenuDraw();
+
+	/***********************
+	* HostMenuDraw: Draw the host menu
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void HostMenuDraw();
 	
 	/***********************
 	* StartInstructionDraw: Draw the options menu
 	* @author: Jc Fowles
 	* @return: void:
 	********************/
-	void StartOptionsDraw();
+	void OptionsMenuDraw();
 
 	/***********************
 	* StartInstructionDraw: Draw the instructions menu
 	* @author: Jc Fowles
 	* @return: void:
 	********************/
-	void StartInstructionDraw();
+	void InstructionMenuDraw();
 
 	/***********************
 	* ExitMenuDraw: Draw the Exit menu
@@ -163,6 +184,14 @@ public:
 	void MultiPlayerMenuSelect(std::string _strMenuItem);
 
 	/***********************
+	* HostMenuSelect: Process the Selection in the Host menu
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void:
+	********************/
+	void HostMenuSelect(std::string _strMenuItem);
+
+	/***********************
 	* OptionsMenuSelect: Process the Selection in option menu
 	* @author: Jc Fowles
 	* @Parameter: std::string _strMenuItem: Selected menu item
@@ -185,13 +214,13 @@ public:
 	* @return: void: 
 	********************/
 	void ExitMenuSelect(std::string _strMenuItem);
-
+	
 	/***********************
-	* HostMenuDraw: Process the Selection in option menu
+	* LobbyMenuDraw: TO DO: Description
 	* @author: Jc Fowles
-	* @return: void: 
+	* @return: void:
 	********************/
-	void HostMenuDraw();
+	void LobbyMenuDraw();
 
 	/***********************
 	* RenderSingleFrame: Render a single frame to the screen
@@ -209,10 +238,7 @@ public:
 	* @return: void:
 	********************/
 	void RenderText(std::string _strText, int _iYPos, eTextType _TextType);
-
-	//TO DO: Comment header
-	//void ProcessInputs(float _fDt);
-
+	
 	/***********************
 	* ConvertToServerDataPacket: Convert passed in data to a ServerDataPacket
 	* @author: Jc Fowles
@@ -332,7 +358,6 @@ private:
 
 
 
-
 	//Member Variables
 public:
 	//TO DO: make private and create getters/Setters
@@ -353,7 +378,7 @@ private:
 	eHostStates m_eHostState;
 	std::string m_strGameTitle;
 	std::vector<std::string> m_strMainMenuOptions;
-	std::vector<std::string> m_strStartOptions;
+	std::vector<std::string> m_strMultiPlayerOptions;
 	std::vector<std::string> m_strOptionsMenu;
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
@@ -371,10 +396,9 @@ private:
 	ClientDataPacket* m_pClientPacket;
 	std::queue<ClientDataPacket>* m_pClientDataQueue;
 	static CMySemaphore s_Mutex;
-	//To DO 
 	std::string m_strServerName;
-	//char* m_strServerName;
 	std::string m_strUserName;
+	std::vector<std::string> m_strActiveServers;
 	
 	//Graphic Variables
 	IRenderer* m_pRenderManager;

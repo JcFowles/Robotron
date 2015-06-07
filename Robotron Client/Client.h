@@ -22,7 +22,6 @@
 //Local Includes
 #include "../Shared/Network_Defines.h"
 
-
 class CClient
 {
 public:

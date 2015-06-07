@@ -20,6 +20,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 //library includes
+#include <cassert>
 
 //Local Includes
 
@@ -32,10 +33,9 @@ enum eMenuStates
 	MS_OPTIONS,
 	MS_INSTRUCTIONS,
 	MS_EXIT,
-
-	//Game
 	MS_JOIN_GAME,
-	MS_HOST_GAME
+	MS_HOST_GAME,
+	MS_LOBBY,
 };
 
 enum eGameStates
