@@ -86,7 +86,7 @@ private:
 	SOCKET m_hServerSocket;
 
 	sockaddr_in m_ServerSocketAddress;
-	//TO DO: MAP THIS
+	
 	sockaddr_in m_ClientSocketAddress;
 
 	

@@ -97,6 +97,14 @@ public:
 	void ProcessHostGame(int _iInput);
 
 	/***********************
+	* ProcessMenuSelection: process the menu selection
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: which menu was seleceted
+	* @return: void:
+	********************/
+	void ProcessMenuSelection(std::string _strMenuItem);
+
+	/***********************
 	* Draw: Draw the all the objects 
 	* @author: Jc Fowles
 	* @return: void
@@ -104,63 +112,86 @@ public:
 	void Draw();
 		
 	/***********************
-	* MainMenuDraw: TO DO: Description
+	* MainMenuDraw: Draw the main menu
 	* @author: Jc Fowles
 	* @return: void: TO DO: Description
 	********************/
 	void MainMenuDraw();
-
+	
 	/***********************
-	* ProcessMouseLClick: TO DO: Description
+	* StartMenuDraw: Draw the Multi player menu
 	* @author: Jc Fowles
-	* @Parameter: std::string _strMenuItem: TO DO: Description
-	* @return: void: TO DO: Description
-	********************/
-	void MenuSelection(std::string _strMenuItem);
-
-	/***********************
-	* StartMenuDraw: TO DO: Description
-	* @author: Jc Fowles
-	* @return: void: TO DO: Description
+	* @return: void: 
 	********************/
 	void StartMultiPlayerDraw();
+	
 	/***********************
-	* ExitMenuDraw: TO DO: Description
+	* StartInstructionDraw: Draw the options menu
 	* @author: Jc Fowles
-	* @return: void: TO DO: Description
+	* @return: void:
+	********************/
+	void StartOptionsDraw();
+
+	/***********************
+	* StartInstructionDraw: Draw the instructions menu
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void StartInstructionDraw();
+
+	/***********************
+	* ExitMenuDraw: Draw the Exit menu
+	* @author: Jc Fowles
+	* @return: void:
 	********************/
 	void ExitMenuDraw();
 
 	/***********************
-	* MainMenuSelect: TO DO: Description
+	* MainMenuSelect: Process the Selection in Multi player menu
 	* @author: Jc Fowles
-	* @Parameter: std::string _strMenuItem: TO DO: Description
-	* @return: void: TO DO: Description
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void:
 	********************/
 	void MainMenuSelect(std::string _strMenuItem);
 
 	/***********************
-	* StartMenuSelect: TO DO: Description
+	* MultiPlayerMenuSelect: Process the Selection in Multi player menu
 	* @author: Jc Fowles
-	* @Parameter: std::string _strMenuItem: TO DO: Description
-	* @return: void: TO DO: Description
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void:
 	********************/
-	void StartMultiplayerMenuSelect(std::string _strMenuItem);
+	void MultiPlayerMenuSelect(std::string _strMenuItem);
 
 	/***********************
-	* ExitMenuSelect: TO DO: Description
+	* OptionsMenuSelect: Process the Selection in option menu
 	* @author: Jc Fowles
-	* @Parameter: std::string _strMenuItem: TO DO: Description
-	* @return: void: TO DO: Description
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void: 
+	********************/
+	void OptionsMenuSelect(std::string _strMenuItem);
+		
+	/***********************
+	* InstructMenuSelect: Process the Selection in option menu
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void: 
+	********************/
+	void InstructMenuSelect(std::string _strMenuItem);
+
+	/***********************
+	* ExitMenuSelect: Process the Selection in option menu
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Selected menu item
+	* @return: void: 
 	********************/
 	void ExitMenuSelect(std::string _strMenuItem);
 
 	/***********************
-	* HostGameDraw: TO DO: Description
+	* HostMenuDraw: Process the Selection in option menu
 	* @author: Jc Fowles
-	* @return: void: TO DO: Description
+	* @return: void: 
 	********************/
-	void HostGameDraw();
+	void HostMenuDraw();
 
 	/***********************
 	* RenderSingleFrame: Render a single frame to the screen
@@ -188,7 +219,7 @@ public:
 	* @param: //TO DO
 	* @return: void
 	********************/
-	void ConvertToServerDataPacket(std::string _srtData);
+	void AddTextToServerDataPacket(std::string _srtData);
 
 	/***********************
 	* ReceiveDataThread: Threaded function to receive data from the server and add them
@@ -204,6 +235,13 @@ public:
 	* @return: void
 	********************/
 	void ProcessReceiveData();
+
+	/***********************
+	* ProcessCreation: Process the creation of the server
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessCreation();
 		
 	/***********************
 	* SetMousePos: TO DO: Description
@@ -264,6 +302,8 @@ public:
 	* @return: void:
 	********************/
 	void SetIsHost(bool _bIsHost) { m_bIsHost = _bIsHost; }
+
+
 		
 protected:
 
@@ -289,6 +329,10 @@ private:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
 	
+
+
+
+
 	//Member Variables
 public:
 	//TO DO: make private and create getters/Setters
@@ -309,13 +353,14 @@ private:
 	eHostStates m_eHostState;
 	std::string m_strGameTitle;
 	std::vector<std::string> m_strMainMenuOptions;
-	//TO DO
 	std::vector<std::string> m_strStartOptions;
-	/*std::vector<std::string> m_strOptionsMenu;
-	std::vector<std::string> m_strInstructions;*/
+	std::vector<std::string> m_strOptionsMenu;
+	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
 	POINT m_MousePosition;
 	bool* m_bIsClicked;
+	bool m_bMenuClicked;
+	std::string m_strClickedMenu;
 	bool* m_bIsKeyDown;
 	bool m_bIsHost;
 

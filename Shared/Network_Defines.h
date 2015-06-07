@@ -19,11 +19,12 @@
 #pragma comment( lib, "winmm.lib" )
 #pragma comment(lib, "Ws2_32.lib")
 
-//librabry includes
+//library includes
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <string>
 #include <queue>
+#include <map>
 
 //Local Includes
 #include "../Shared/MySemaphore.h"
@@ -36,23 +37,36 @@ namespace NetworkValues
 	unsigned const MAX_USERS = 16;
 	//ip address of udp server
 	const char ipAddUPD[INET_ADDRSTRLEN] = "127.0.0.1";
-	unsigned const MAX_CHAR_LENGTH = 100;
+	unsigned const MAX_CHAR_LENGTH = 255;
 }
 
+enum ePacketType
+{
+	PT_CREATE,
+	PT_COMMAND,
+	PT_RESPONSE
+};
 
-//Data structure to send to Server
+//Data structure to send to Server received 
 struct ServerDataPacket
 {
-	int iNumber;
+	ePacketType packetType;
+	sockaddr_in socReceivedFrom;
 	char cText[NetworkValues::MAX_CHAR_LENGTH];
+	bool bSuccess;
+	
 };
 
 //Data structure to send to client
 struct ClientDataPacket
 {
-	int iNumber;
+	ePacketType packetType;
+	sockaddr_in socReceivedFrom;
 	char cText[NetworkValues::MAX_CHAR_LENGTH];
+	bool bSuccess;
 };
+
+
 
 #define VALIDATE(a) if (!a) return (false)
 

@@ -32,6 +32,8 @@ CClientApp::~CClientApp(void)
 	m_pClock = 0;
 	delete[] m_bIsClicked;
 	m_bIsClicked = 0;
+	delete[] m_bIsKeyDown;
+	m_bIsKeyDown = 0;
 
 	//Networking
 	
@@ -88,6 +90,8 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_bIsHost = false;
 	m_pClock = new CClock();
 	VALIDATE(m_pClock->Initialise());
+	m_strClickedMenu = "";
+	m_bMenuClicked = false;
 	//If adding or changing stings here go set states Dependant
 	m_strGameTitle = "Robotron";
 	m_strMainMenuOptions.push_back("SINGLE PLAYER");
@@ -96,12 +100,18 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_strMainMenuOptions.push_back("INSTRUCTIONS");
 	m_strMainMenuOptions.push_back("EXIT");
 
-	m_strStartOptions.push_back("JOIN GAME");
-	m_strStartOptions.push_back("HOST GAME");
-	m_strStartOptions.push_back("BACK");
+	m_strStartOptions.push_back("Join Game");
+	m_strStartOptions.push_back("Host Game");
+	m_strStartOptions.push_back("Back");
 
-	m_strExitOptions.push_back("YES - Close The Game");
-	m_strExitOptions.push_back("NO - Take Me Back");
+	m_strOptionsMenu.push_back("Game options");
+	m_strOptionsMenu.push_back("Back");
+
+	m_strInstructions.push_back("Game Instructions");
+	m_strInstructions.push_back("Back");
+
+	m_strExitOptions.push_back("Yes - Close The Game");
+	m_strExitOptions.push_back("Np - Take Me Back");
 	
 	m_eGameState = GS_MENU;
 	m_eHostState = HS_DEFAULT;
@@ -139,20 +149,23 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 
 void CClientApp::Process()
 {
+	ProcessReceiveData();
 	
-	//ProcessReceiveData();
-	
-
-	//TO DO: Remove, This is a send receive test
-	/*ServerDataPacket* packet = new ServerDataPacket;
-	packet->iNumber = 78;
-	std::string steTest = "1234567890";
-	strcpy_s(packet->cText, steTest.c_str());
-
-	m_pClient->SendData(packet);
-
-	ClientDataPacket* ClientPacket = new ClientDataPacket;
-	m_pClient->ReceiveData(ClientPacket);*/
+	switch (m_eGameState)
+	{
+	case GS_MENU:
+	{
+		if (m_bMenuClicked)
+		{
+			ProcessMenuSelection(m_strClickedMenu);
+		}
+	}
+		break;
+	case GS_PLAY:
+		break;
+	default:
+		break;
+	}
 
 }
 
@@ -194,6 +207,52 @@ void CClientApp::ProcessInputs(int _iInput)
 			break;
 	}
 	
+
+}
+
+void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
+{
+	//Reset menu clicked
+	m_bMenuClicked = false;
+
+	//Depending on the current game state run the designated Menu select 
+	switch (m_eMenuState)
+	{
+	case MS_MAIN:
+	{
+		MainMenuSelect(_strMenuItem);
+	}break;
+
+	case MS_SINGLE_PLAYER:
+	{
+		//TO DO
+		m_pRenderManager->Clear(true, true, false);
+		m_eGameState = GS_PLAY;
+	}break;
+
+	case MS_MULTI_PLAYER:
+	{
+		MultiPlayerMenuSelect(_strMenuItem);
+	}break;
+
+	case MS_OPTIONS:
+	{
+		OptionsMenuSelect(_strMenuItem);
+	}break;
+
+	case MS_INSTRUCTIONS:
+	{
+		InstructMenuSelect(_strMenuItem);
+	}break;
+
+	case MS_EXIT:
+	{
+		ExitMenuSelect(_strMenuItem);
+	}break;
+
+	default:
+		break;
+	}
 
 }
 
@@ -301,11 +360,11 @@ void CClientApp::Draw()
 		}break;
 		case MS_OPTIONS:
 		{
-			//TO DO
+			StartOptionsDraw();
 		}break;
 		case MS_INSTRUCTIONS:
 		{
-			//TO DO
+			StartInstructionDraw();
 		}break;
 		case MS_EXIT:
 		{
@@ -319,7 +378,7 @@ void CClientApp::Draw()
 		}break;
 		case MS_HOST_GAME:
 		{
-			HostGameDraw();
+			HostMenuDraw();
 		}break;
 		}
 	}
@@ -374,64 +433,21 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 				//If the text was clicked
 				if (m_bIsClicked[MK_LBUTTON])
 				{
-					//Run menu selection
-					MenuSelection(_strText);
+					//Set menu clicked to true
+					m_bMenuClicked = true;
+					//Save which menu has been clicked
+					m_strClickedMenu = _strText;
 					//Set Left mouse button to false
 					m_bIsClicked[MK_LBUTTON] = false;
 				}
 			}
 
 		}break;
-
-		
+			
 	}
 	
 	//Render the title 
 	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType);
-
-}
-
-void CClientApp::MenuSelection(std::string _strMenuItem)
-{
-	//Depending on the current game state run the designated Menu select 
-	switch (m_eMenuState)
-	{
-		case MS_MAIN:
-		{
-			MainMenuSelect(_strMenuItem);
-		}break;
-		
-		case MS_SINGLE_PLAYER:
-		{
-			//TO DO
-			// //StartMenuSelect(_strMenuItem);
-		}break;
-
-		case MS_MULTI_PLAYER:
-		{
-			StartMultiplayerMenuSelect(_strMenuItem);
-		}break;
-		
-		case MS_OPTIONS:
-		{
-			//TO DO
-			//OptionsMenuSelect(std::string _strMenuItem);
-		}break;
-
-		case MS_INSTRUCTIONS:
-		{
-			//TO DO
-			//InstructMenuSelect(std::string _strMenuItem);
-		}break;
-
-		case MS_EXIT:
-		{
-			ExitMenuSelect(_strMenuItem);
-		}break;
-
-		default:
-			break;
-	}
 
 }
 
@@ -443,13 +459,49 @@ void CClientApp::StartMultiPlayerDraw()
 	//***TITLE***
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
 
-	////***Multiplayer MENU***
+	//***Multiplayer MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
 	iYPos += 200 - (uiFontHeight + 1);
 	for (unsigned int i = 0; i < m_strStartOptions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
 		RenderText(m_strStartOptions[i], iYPos, TEXT_MENU_SELECT);
+	}
+}
+
+void CClientApp::StartOptionsDraw()
+{
+	int iYPos = (m_iScreenHeight / 8);
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+
+	//***Options MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	iYPos += 200 - (uiFontHeight + 1);
+	for (unsigned int i = 0; i < m_strOptionsMenu.size(); i++)
+	{
+		iYPos += (uiFontHeight + 1);
+		RenderText(m_strOptionsMenu[i], iYPos, TEXT_MENU_SELECT);
+	}
+}
+
+void CClientApp::StartInstructionDraw()
+{
+	int iYPos = (m_iScreenHeight / 8);
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+
+	//***Options MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	iYPos += 200 - (uiFontHeight + 1);
+	for (unsigned int i = 0; i < m_strInstructions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 1);
+		RenderText(m_strInstructions[i], iYPos, TEXT_MENU_SELECT);
 	}
 }
 
@@ -477,7 +529,7 @@ void CClientApp::ExitMenuDraw()
 
 }
 
-void CClientApp::HostGameDraw()
+void CClientApp::HostMenuDraw()
 {
 		
 	int iYPos = (m_iScreenHeight / 8);
@@ -537,12 +589,19 @@ void CClientApp::HostGameDraw()
 				#endif
 
 				//TO DO: hide server
-				int error = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
-
+				//int error = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
+				int error = 42;
 				if (error > 32) //Server exe opened successfully
 				{
 					//RETURN HERE
+					//Create packet to send
+					// 
+					m_pServerPacket->packetType = PT_CREATE;
+					std::string strTextToSend = m_strServerName + ":" + m_strUserName;
+					AddTextToServerDataPacket(strTextToSend);
+					m_pClient->SendData(m_pServerPacket);
 					//Send Stuff to Server
+					
 					//OWNAGE
 					// SERVER NAME
 					// USER NAME OF CLIENT
@@ -616,9 +675,9 @@ void CClientApp::MainMenuSelect(std::string _strMenuItem)
 	}
 }
 
-void CClientApp::StartMultiplayerMenuSelect(std::string _strMenuItem)
+void CClientApp::MultiPlayerMenuSelect(std::string _strMenuItem)
 {
-	//Run through main menu options
+	//Run through current menu options
 	unsigned int iMenuItem;
 	for (iMenuItem = 0; iMenuItem < m_strStartOptions.size(); iMenuItem++)
 	{
@@ -651,6 +710,64 @@ void CClientApp::StartMultiplayerMenuSelect(std::string _strMenuItem)
 		m_eMenuState = MS_MAIN;
 	}break;
 	
+	default:
+		break;
+	}
+}
+
+void CClientApp::OptionsMenuSelect(std::string _strMenuItem)
+{
+	//Run through current menu options
+	unsigned int iMenuItem;
+	for (iMenuItem = 0; iMenuItem < m_strOptionsMenu.size(); iMenuItem++)
+	{
+		if (_strMenuItem == m_strOptionsMenu[iMenuItem])
+		{
+			break;
+		}
+	}
+
+	//Switch on which text rect was clicked on, 
+	//Then clear the screen and set the game state
+	switch (iMenuItem)
+	{
+	case 0:
+		break;
+	case 1: //Back
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+	break;
+	default:
+		break;
+	}
+}
+
+void CClientApp::InstructMenuSelect(std::string _strMenuItem)
+{
+	//Run through current menu options
+	unsigned int iMenuItem;
+	for (iMenuItem = 0; iMenuItem < m_strInstructions.size(); iMenuItem++)
+	{
+		if (_strMenuItem == m_strInstructions[iMenuItem])
+		{
+			break;
+		}
+	}
+
+	//Switch on which text rect was clicked on, 
+	//Then clear the screen and set the game state
+	switch (iMenuItem)
+	{
+	case 0:
+		break;
+	case 1: //Back
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+	break;
 	default:
 		break;
 	}
@@ -728,13 +845,12 @@ bool CClientApp::RenderSingleFrame()
 		
 }
 
-void CClientApp::ConvertToServerDataPacket(std::string _srtData)
+void CClientApp::AddTextToServerDataPacket(std::string _srtText)
 {
-	//TO DO
-	ServerDataPacket* packet = new ServerDataPacket;
-	if (_srtData.length() < NetworkValues::MAX_CHAR_LENGTH)
+	//convert and add the string to the ServerDataPacket
+	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
 	{
-		strcpy_s(packet->cText, _srtData.c_str());
+		strcpy_s(m_pServerPacket->cText, _srtText.c_str());
 	}
 }
 
@@ -785,8 +901,21 @@ void CClientApp::ProcessReceiveData()
 		//Signal that you are done with the queue
 		s_Mutex.Signal();
 
-		int c = 9;
-		//TO DO: DO some stuff with the m_pClientPacket
+		switch (m_pClientPacket->packetType)
+		{
+		case PT_CREATE:
+		{
+			ProcessCreation();
+		}
+		break;
+		default:
+			break;
+		}
 
 	}
+}
+
+void CClientApp::ProcessCreation()
+{
+	
 }

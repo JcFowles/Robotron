@@ -45,6 +45,8 @@ CServerApp::~CServerApp(void)
 	m_pClientPacket = 0;
 	delete m_pServerDataQueue;
 	m_pServerDataQueue = 0;
+	delete m_pMapClients;
+	m_pMapClients = 0;
 }
 
 CServerApp& CServerApp::GetInstance()
@@ -76,28 +78,22 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_pServerDataQueue = new std::queue < ServerDataPacket >;
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
+	strHostClient = "";
+	//Initialise the map of client addresses
+	m_pMapClients = new std::map < std::string, sockaddr_in > ;
 
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CServerApp::ReceiveDataThread, (this));
+
+	
 
 	return true;
 }
 
 void CServerApp::Process()
 {
-	//TO DO : remove testing send and receive 
 	
-	//ClientDataPacket* ClientPacket = new ClientDataPacket;
-	//ClientPacket->iNumber = 100;
-
-	//std::string steTest = "Replied from server: i received yo shit: ";
-	////steTest.append(ServerPacket->cText);
-	//int ser = steTest.length();
-
-	//strcpy_s(ClientPacket->cText, steTest.c_str());
-	//m_pServer->SendData(ClientPacket);
-
-	int c = 8;
+	ProcessReceiveData();
 }
 
 void CServerApp::Draw()
@@ -165,11 +161,72 @@ void CServerApp::ProcessReceiveData()
 		m_pServerDataQueue->pop();
 		//Signal that you are done with the queue
 		s_Mutex.Signal();
-
-		int c = 9;
+		
+		switch (m_pServerPacket->packetType)
+		{
+		case PT_CREATE:
+		{
+			ProcessCreation();
+		}
+			break;
+		default:
+			break;
+		}
+		
 		//TO DO: DO some stuff with the ServerPacket
+		//TO DO : remove testing send and receive 
 
+		//ClientDataPacket* ClientPacket = new ClientDataPacket;
+		//ClientPacket->iNumber = 100;
+
+		//std::string steTest = "Replied from server: i received yo shit: ";
+		////steTest.append(ServerPacket->cText);
+		//int ser = steTest.length();
+
+		//strcpy_s(ClientPacket->cText, steTest.c_str());
+		//m_pServer->SendData(ClientPacket);
 	}
 }
 
+void CServerApp::ProcessCreation()
+{
+	//Convert the text in received packet to a string to be manipulated
+	std::string strCreation(m_pServerPacket->cText);
 
+	//Separate the user and server name
+	std::size_t found = strCreation.find(":");
+	std::string strUserName = strCreation.substr(found + 1);
+	m_strServerName = strCreation.substr(0, found);
+
+	//Add the user to the map of clients
+	if (AddUser(strUserName, m_pServerPacket->socReceivedFrom))
+	{
+		//set this client to the host client of this server
+		strHostClient = strUserName;
+
+		m_pClientPacket->packetType = PT_CREATE;
+		m_pClientPacket->bSuccess = true;
+	}
+	else
+	{
+		m_pClientPacket->packetType = PT_CREATE;
+		m_pClientPacket->bSuccess = false;
+	}
+
+	//send back successful creation 
+	m_pServer->SendData(m_pClientPacket);
+	
+}
+
+bool CServerApp::AddUser(std::string _UserName, sockaddr_in _ClientAddress)
+{
+	std::pair<std::map<std::string, sockaddr_in>::iterator, bool> MapIterater;
+
+	//Add passed in params to map of clients
+	MapIterater = m_pMapClients->insert(std::pair<std::string, sockaddr_in>(_UserName, _ClientAddress));
+
+	//Return the bool part(second)
+	//This will hold true if a new element was added 
+	//Or false if the element already exists
+	return MapIterater.second;
+}

@@ -94,9 +94,8 @@ bool CServer::SendData(ClientDataPacket* _pDataToSend)
 	int iBytesToSend = sizeof(packetToSend) + 1;
 
 	//Convert server data packet to a char pointer so that it is able to be sent
-	char* cpPacketToSend = new char[iBytesToSend];
-	cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
-
+	char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
+	
 	//Send data
 	int iNumSendBytes = sendto(m_hServerSocket,											// socket to send through.
 								cpPacketToSend,											// data to send
@@ -166,7 +165,8 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 
 	//convert back to a Server Data Packet
 	*_pReceivedData = *(reinterpret_cast<ServerDataPacket*>(cpReceivedData));
-	
+	_pReceivedData->socReceivedFrom = m_ClientSocketAddress;
+
 	//Clean up memory
 	delete cpReceivedData;
 	cpReceivedData = 0;

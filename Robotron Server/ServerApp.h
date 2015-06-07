@@ -117,6 +117,22 @@ private:
 	* @return: void
 	********************/
 	void ProcessReceiveData();
+	
+	/***********************
+	* ProcessCreation: Process the creation of the server
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessCreation();
+	
+	/***********************
+	* AddUser: Add a user to the map of clients
+	* @author: Jc Fowles
+	* @Parameter: std::string _UserName: User name of client (also the map key)
+	* * @Parameter: sockaddr_in _ClientAddress: sockaddr of the client
+	* @return: bool: if successfully added, false returned if user name already excists
+	********************/
+	bool AddUser(std::string _UserName, sockaddr_in _ClientAddress);
 
 	//Member Variables
 public:
@@ -132,7 +148,8 @@ private:
 	//Server Variables
 	static CServerApp* s_pServerApp;
 	CClock* m_pClock;
-	
+	std::string m_strServerName;
+
 	//Networking Variables
 	CServer* m_pServer;
 	std::thread m_RecieveThread;
@@ -141,6 +158,10 @@ private:
 	std::queue<ServerDataPacket>* m_pServerDataQueue;
 	static CMySemaphore s_Mutex;
 
+	std::map< std::string, sockaddr_in>* m_pMapClients;
+
+	std::string strHostClient;
+	
 
 };
 

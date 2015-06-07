@@ -109,9 +109,8 @@ bool CClient::SendData(ServerDataPacket* _pDataToSend)
 	int iBytesToSend = sizeof(packetToSend) + 1;
 		
 	//Convert server data packet to a char pointer so that it is able to be sent
-	char* cpPacketToSend = new char[iBytesToSend];
-	cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
-
+	char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
+	
 	//Send data
 	int iNumSendBytes = sendto( m_hClientSocket,									// socket to send through.
 							cpPacketToSend,											// data to send
