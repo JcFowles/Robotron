@@ -40,23 +40,23 @@ public:
 	/***********************
 	* Initialize: Initializes the Server Socket and Address
 	* @author: Jc Fowles
-	* @return: bool: Succesful Initialisation
+	* @return: bool: Successful Initialization
 	********************/
 	bool Initialise();
 
 	/***********************
 	* SendData: Send Data packet to the Client
 	* @author: Jc Fowles
-	* @param: _DataToSend: Datapacket to send to the client
-	* @return: bool: Succesful Sending
+	* @param: _DataToSend: Data packet to send to the client
+	* @return: bool: Successful Sending
 	********************/
 	bool SendData(ClientDataPacket* _pDataToSend);
 
 	/***********************
 	* ReceiveData: Receive data from the client
 	* @author: Jc Fowles
-	* @param: _pReceivedData: Data that will be recieved
-	* @return: bool: Succesful Retrieval
+	* @param: _pReceivedData: Data that will be received
+	* @return: bool: Successful Retrieval
 	********************/
 	bool ReceiveData(ServerDataPacket* _pReceivedData);
 	
@@ -78,18 +78,20 @@ public:
 
 	//Member variables
 public:
-	//TO DO make private
-	bool m_bIsActive;
+	
 private:
+
+	bool m_bIsActive;
 	
 	SOCKET m_hServerSocket;
 
 	sockaddr_in m_ServerSocketAddress;
-
 	//TO DO: MAP THIS
 	sockaddr_in m_ClientSocketAddress;
 
 	
+
+	bool m_bWaitOnRecieve;
 };
 
 #endif //__CSERVER_H__

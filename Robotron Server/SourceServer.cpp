@@ -13,6 +13,11 @@
 //
 #pragma comment( lib, "winmm.lib" )
 
+#ifdef _DEBUG
+	#include "vld.h"
+	#define D3D_DEBUG_INFO
+#endif
+
 //Library includes
 //TO DO
 // #include <ctime>
@@ -35,47 +40,25 @@
 LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lParam)
 {
 
-	//Procces the given message
+	//Process the given message
     switch(_uiMsg)
     {
-	case WM_ACTIVATEAPP:
+		case WM_ACTIVATEAPP:
 		{
 
 		}
 		break;
+
         //Closing the window
         case WM_DESTROY:
             {
                 //Send message to close the entire application
                 PostQuitMessage(0);
+				CServerApp::GetInstance().DestroyInstance();
                 return 0;
             } 
 		break;
-		case WM_KEYUP:
-		{
-			////Set the IsKeyDown bool of this key to false
-			//CGame::GetInstance().m_bIsKeyDown[_wParam] = false;	
-			//if (_wParam == VK_NUMPAD8)
-			//{
-			//	CGame::GetInstance().GetCube()->SetMoveSpeed(50.0f);
-			//}
-		}
-		break;
-		case WM_KEYDOWN:
-		{
-			//Set the IsKeyDown bool of this key to true
-			//CGame::GetInstance().m_bIsKeyDown[_wParam] = true;
-			switch (_wParam)
-			{
-				case VK_ESCAPE:
-				{
-					PostQuitMessage(0);
-					return 0;
-				}
-				break;
-			}
-		}
-		break;
+		
     }
 
 	 //Handles any messages the switch statement doesn't
@@ -159,8 +142,6 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 ********************/
 int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdline, int _iCmdshow)
 {
-	//Seed the random generator
-	//srand ((unsigned int)time(NULL));
 
 	//Screen Resolution
 	const int kiWidth = 1000; 
@@ -194,7 +175,10 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 		else
 		{
 			//Render a single frame
-			rServerApp.RenderSingleFrame();
+			if (rServerApp.RenderSingleFrame() == false)
+			{
+				break;
+			}
 		}
 	}
 

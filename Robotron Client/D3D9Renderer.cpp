@@ -48,11 +48,27 @@ CD3D9Renderer::CD3D9Renderer()
 ********************/
 CD3D9Renderer::~CD3D9Renderer()
 {
+	//Release the device
 	m_pDevice->Release();
 	m_pDevice = 0;
+
+	//Release the Direct3D
 	m_pDirect3D->Release();
 	m_pDirect3D = 0;
+}
 
+/***********************
+* Shutdown: Shut down the device
+* @author: Jc Fowles
+* @parameter: _iWidth: The width of the screen
+* @parameter: _iHeight: The height of the screen
+* @parameter: _hWindow: Handle to the Window
+* @parameter: _bFullscreen: Whether the screen is full screen or not
+* @return: bool: Successful Initialization or not
+********************/
+bool CD3D9Renderer::Shutdown()
+{
+	
 	m_pTitleFont->Release();
 	m_pTitleFont = 0;
 	m_pMenuFont->Release();
@@ -64,6 +80,7 @@ CD3D9Renderer::~CD3D9Renderer()
 	m_pDebugFont->Release();
 	m_pDebugFont = 0;
 
+	//Deallocate the Surface map
 	if (m_pSurfaceMap != 0)
 	{
 		std::map<int, IDirect3DSurface9*>::iterator iterCurrent = m_pSurfaceMap->begin();
@@ -77,6 +94,8 @@ CD3D9Renderer::~CD3D9Renderer()
 		delete m_pSurfaceMap;
 		m_pSurfaceMap = 0;
 	}
+
+	//Deallocate the Static buffer container
 	if (m_pvectBuffer != 0)
 	{
 		while (m_pvectBuffer->empty() == false)
@@ -88,6 +107,9 @@ CD3D9Renderer::~CD3D9Renderer()
 		delete m_pvectBuffer;
 		m_pvectBuffer = 0;
 	}
+
+	
+	return true;
 }
 
 /***********************
@@ -386,36 +408,6 @@ void CD3D9Renderer::SetMaterial()
 	D3DMaterial.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Ambient light color 
 	m_pDevice->SetMaterial(&D3DMaterial);
 
-}
-
-/***********************
-* Initialise: Initialise the D3D9 Renderer
-* @author: Jc Fowles
-* @parameter: _iWidth: The width of the screen
-* @parameter: _iHeight: The height of the screen
-* @parameter: _hWindow: Handle to the Window
-* @parameter: _bFullscreen: Whether the screen is full screen or not
-* @return: bool: Successful Initialization or not
-********************/
-bool CD3D9Renderer::Shutdown()
-{
-	//Deallocate the Static buffer container
-	for (unsigned int i = 0; i < m_pvectBuffer->size(); i++)
-	{
-		delete m_pvectBuffer->back();
-		m_pvectBuffer->back() = 0;
-	}
-	m_pvectBuffer = 0;
-
-	//Release the device
-	m_pDevice->Release();
-	m_pDevice = 0;
-
-	//Release the Direct3D
-	m_pDirect3D->Release();
-	m_pDirect3D = 0;
-
-	return true;
 }
 
 /***********************

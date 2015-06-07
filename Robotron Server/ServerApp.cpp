@@ -26,15 +26,30 @@ CServerApp::CServerApp(void)
 
 CServerApp::~CServerApp(void)
 {
-	delete m_ServerPacket;
-	m_ServerPacket = 0;
-	delete m_ClientPacket;
-	m_ClientPacket = 0;
+	//Server
+	delete m_pClock;
+	m_pClock = 0;
+	
+	//Networking
+	
+	//Make sure the the client is set to inactive
+	m_pServer->SetActive(false);
+	//Join the threads
+	m_RecieveThread.join();
+
+	delete m_pServer;
+	m_pServer = 0;
+	delete m_pServerPacket;
+	m_pServerPacket = 0;
+	delete m_pClientPacket;
+	m_pClientPacket = 0;
+	delete m_pServerDataQueue;
+	m_pServerDataQueue = 0;
 }
 
 CServerApp& CServerApp::GetInstance()
 {
-	//Create the game intance if it doesnt exist 
+	//Create the game instance if it doesnt exist 
 	if (s_pServerApp == 0)
 	{
 		s_pServerApp = new CServerApp();
@@ -59,10 +74,10 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_pServer = new CServer();
 	VALIDATE(m_pServer->Initialise());
 	m_pServerDataQueue = new std::queue < ServerDataPacket >;
-	ServerDataPacket* m_ServerPacket = new ServerDataPacket;
-	ClientDataPacket* m_ClientPacket = new ClientDataPacket;
+	m_pServerPacket = new ServerDataPacket;
+	m_pClientPacket = new ClientDataPacket;
 
-	//Create and run separate thread to constantly recieve data
+	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CServerApp::ReceiveDataThread, (this));
 
 	return true;
@@ -70,17 +85,17 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 
 void CServerApp::Process()
 {
-	//TO DO : remove testing send and recieve 
+	//TO DO : remove testing send and receive 
 	
-	ClientDataPacket* ClientPacket = new ClientDataPacket;
-	ClientPacket->iNumber = 100;
+	//ClientDataPacket* ClientPacket = new ClientDataPacket;
+	//ClientPacket->iNumber = 100;
 
-	std::string steTest = "Replied from server: i recieved yo shit: ";
-	//steTest.append(ServerPacket->cText);
-	int ser = steTest.length();
+	//std::string steTest = "Replied from server: i received yo shit: ";
+	////steTest.append(ServerPacket->cText);
+	//int ser = steTest.length();
 
-	strcpy_s(ClientPacket->cText, steTest.c_str());
-	m_pServer->SendData(ClientPacket);
+	//strcpy_s(ClientPacket->cText, steTest.c_str());
+	//m_pServer->SendData(ClientPacket);
 
 	int c = 8;
 }
@@ -90,13 +105,18 @@ void CServerApp::Draw()
 
 }
 
-void CServerApp::RenderSingleFrame()
+bool CServerApp::RenderSingleFrame()
 {
-	
+	if (m_pServer->getActive() == false)
+	{
+		return false;
+	}
 	
 	ProcessReceiveData();
 
 	Process();
+
+	return true;
 }
 
 void CServerApp::ReceiveDataThread()
@@ -141,7 +161,7 @@ void CServerApp::ProcessReceiveData()
 		}
 
 		//Get item from the work queue
-		ServerDataPacket m_ServerPacket = m_pServerDataQueue->front();
+		*m_pServerPacket = m_pServerDataQueue->front();
 		m_pServerDataQueue->pop();
 		//Signal that you are done with the queue
 		s_Mutex.Signal();

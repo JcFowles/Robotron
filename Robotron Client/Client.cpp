@@ -21,11 +21,15 @@ CClient::CClient()
 
 CClient::~CClient()
 {
+	closesocket(m_hClientSocket);
 }
 
 bool CClient::Initialise()
 {
-	//Free up the memeory
+	//Initialize member variables
+	m_bWaitOnRecieve = false;
+	
+	//Free up the memory
 	bool bSuccess = false;
 	ZeroMemory(&m_ClientSocketAddress, sizeof(m_ClientSocketAddress));
 	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress));
@@ -38,7 +42,7 @@ bool CClient::Initialise()
 		return false;
 	}
 
-	//Loop Through set amount of ports untill socket succesfully bound
+	//Loop Through set amount of ports until socket successfully bound
 	for (unsigned int uiPort = NetworkValues::DEFAULT_CLIENT_PORT;
 		 uiPort <= NetworkValues::MAX_CLIENT_PORT;
 		 uiPort++)
@@ -61,7 +65,7 @@ bool CClient::Initialise()
 		//Try and bind the socket to the current port number
 		if (bind(m_hClientSocket, reinterpret_cast<sockaddr*>(&m_ClientSocketAddress), sizeof(m_ClientSocketAddress)) == 0)
 		{
-			//Set Client socket to be able to braodcast
+			//Set Client socket to be able to broadcast
 			bool bBroadcastVal = true;
 			if (	setsockopt(m_hClientSocket,
 					SOL_SOCKET,
@@ -71,11 +75,11 @@ bool CClient::Initialise()
 			{
 				//Error Setting client socket to be able to broadcast
 				closesocket(m_hClientSocket);
-				//Try anouther port number
+				//Try another port number
 				continue;
 			}
 			
-			//Set succes to true
+			//Set success to true
 			bSuccess = true;
 			break;
 		}
@@ -85,8 +89,8 @@ bool CClient::Initialise()
 			closesocket(m_hClientSocket);
 		}
 
-		//if we got to this point it ment we have failed to bind
-		//Therefore try anouther port number
+		//if we got to this point it meant we have failed to bind
+		//Therefore try another port number
 	}
 
 	//setup address structure
@@ -95,7 +99,7 @@ bool CClient::Initialise()
 	//m_ServerSocketAddress.sin_addr.S_un.S_addr = INADDR_ANY;
 	inet_pton(AF_INET, NetworkValues::ipAddUPD, &m_ServerSocketAddress.sin_addr);
 	
-	//Return succes
+	//Return success
 	return bSuccess;
 }
 
@@ -138,6 +142,22 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 	//calculate the size of client address
 	int iSizeOfClientAddress = sizeof(m_ServerSocketAddress);
 
+	struct timeval stucTimeValue;
+	if (m_bWaitOnRecieve) //Wait till you receive something
+	{
+		// No timeout
+		stucTimeValue.tv_sec = 0;
+		stucTimeValue.tv_usec = 0;
+		setsockopt(m_hClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&stucTimeValue, sizeof(stucTimeValue));
+	}
+	else  //Time out after 1 seconds
+	{	
+		// 1 sec timeout
+		stucTimeValue.tv_sec = 1;
+		stucTimeValue.tv_usec = 0000;
+		setsockopt(m_hClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&stucTimeValue, sizeof(stucTimeValue));
+	}
+	
 	int iNumReceivedBytes = recvfrom(																// pulls a packet from a single source...
 										m_hClientSocket,											// client-end socket being used to read from
 										cpReceivedData,												// incoming packet to be filled
@@ -149,8 +169,13 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 
 	if (iNumReceivedBytes < 0)
 	{
-		//No data was recieved
+		//No data was received
 		int iError = WSAGetLastError();
+		
+		//Clean up memory
+		delete cpReceivedData;
+		cpReceivedData = 0;
+
 		return false;
 	}
 

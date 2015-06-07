@@ -21,12 +21,15 @@ CServer::CServer()
 
 CServer::~CServer()
 {
-//Delete m_pServerPacketQueue
+	closesocket(m_hServerSocket);
 }
 
 bool CServer::Initialise()
 {
-	//Free up the memeory
+	//Initialise member variables
+	m_bWaitOnRecieve = false;
+
+	//Free up the memory
 	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress));
 	
 	WSADATA wsaData;
@@ -54,7 +57,7 @@ bool CServer::Initialise()
 	//Try and bind the server socket
 	if (bind(m_hServerSocket, reinterpret_cast<sockaddr*>(&m_ServerSocketAddress), sizeof(m_ServerSocketAddress)) == 0)
 	{
-		//Set server socket to be able to braodcast
+		//Set server socket to be able to broadcast
 		bool bBroadcastVal = true;
 		if (setsockopt(m_hServerSocket,
 			SOL_SOCKET,
@@ -78,7 +81,7 @@ bool CServer::Initialise()
 	}
 
 
-	//Return succes
+	//Return success
 	m_bIsActive = true;
 	return true;
 }
@@ -124,6 +127,22 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 	//calculate the size of client address
 	int iSizeOfClientAddress = sizeof(m_ClientSocketAddress);
 
+	struct timeval stucTimeValue;
+	if (m_bWaitOnRecieve) //Wait till you receive something
+	{
+		// No timeout
+		stucTimeValue.tv_sec = 0;
+		stucTimeValue.tv_usec = 0;
+		setsockopt(m_hServerSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&stucTimeValue, sizeof(stucTimeValue));
+	}
+	else  //Time out after 1 seconds
+	{
+		// 1 sec timeout
+		stucTimeValue.tv_sec = 1;
+		stucTimeValue.tv_usec = 0000;
+		setsockopt(m_hServerSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&stucTimeValue, sizeof(stucTimeValue));
+	}
+
 	int iNumReceivedBytes = recvfrom(																// pulls a packet from a single source...
 										m_hServerSocket,											// client-end socket being used to read from
 										cpReceivedData,												// incoming packet to be filled
@@ -135,8 +154,13 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 
 	if (iNumReceivedBytes < 0)
 	{
-		//No data was recieved
+		//No data was received
 		int iError = WSAGetLastError();
+
+		//Clean up memory
+		delete cpReceivedData;
+		cpReceivedData = 0;
+
 		return false;
 	}
 

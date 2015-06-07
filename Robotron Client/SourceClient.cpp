@@ -14,11 +14,11 @@
 #pragma comment( lib, "winmm.lib" )
 
 #ifdef _DEBUG
-//#include "vld.h"
+	#include "vld.h"
+	#define D3D_DEBUG_INFO
 #endif
 
 //Library includes
-//TO DO
 #include <windowsx.h>
 #include <ctime>
 //Local Includes
@@ -52,6 +52,7 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		{
 			//Send message to close the entire application
 			PostQuitMessage(0);
+			CClientApp::GetInstance().DestroyInstance();
 			return 0;
 		}break;
 		
@@ -59,25 +60,17 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		case WM_KEYUP:
 		{
 			//Set the IsKeyDown bool of this key to false
-			//CClientApp::GetInstance().m_bIsKeyDown[_wParam] = false;
-			//if (_wParam == VK_NUMPAD8)
-			//{
-			//	CClientApp::GetInstance().GetCube()->SetMoveSpeed(50.0f);
-			//}
+			CClientApp::GetInstance().IsKeyDown()[_wParam] = false;
+			
 		}break;
 
 		case WM_KEYDOWN:
 		{
 			//Set the IsKeyDown bool of this key to true
-			//CClientApp::GetInstance().m_bIsKeyDown[_wParam] = true;
-			switch (_wParam)
-			{
-				case VK_ESCAPE:
-				{
-					PostQuitMessage(0);
-					return 0;
-				}break;
-			}
+			CClientApp::GetInstance().IsKeyDown()[_wParam] = true;
+			CClientApp::GetInstance().ProcessInputs(_wParam);
+			
+
 		}break;
 
 		//***MOUSE***
@@ -232,7 +225,10 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 		else
 		{
 			//Render a single frame
-			rClientApp.RenderSingleFrame();
+			if (rClientApp.RenderSingleFrame() == false)
+			{
+				break;
+			}
 		}
 	}
 

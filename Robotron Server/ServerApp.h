@@ -27,9 +27,9 @@ class CServerApp
 public:
 
 	/***********************
-	* GetInstance: Returns a refrence to the singleton game object, if one does not excist create one
+	* GetInstance: Returns a reference to the singleton game object, if one does not exist create one
 	* @author: Jc Fowles
-	* @return: CGame& : Returns a refrence to the singleton game object
+	* @return: CGame& : Returns a reference to the singleton game object
 	********************/
 	static CServerApp& GetInstance();
 
@@ -53,7 +53,7 @@ public:
 	* @parameter: _hWnd: Handle to the window
 	* @parameter: _iScreenWidth: Width to the window
 	* @parameter: _iScreenHeight: Height to the window
-	* @return: bool: Succesful Initialisation
+	* @return: bool: Successful Initialization
 	********************/
 	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
 
@@ -76,7 +76,7 @@ public:
 	* @author: Jc Fowles
 	* @return: void
 	********************/
-	void RenderSingleFrame();
+	bool RenderSingleFrame();
 
 
 protected:
@@ -124,21 +124,23 @@ public:
 protected:
 
 private:
+	//Window variables
 	HWND m_hWnd;
 	int m_iScreenWidth;
 	int	m_iScreenHeight;
 
+	//Server Variables
 	static CServerApp* s_pServerApp;
-
 	CClock* m_pClock;
 	
+	//Networking Variables
 	CServer* m_pServer;
 	std::thread m_RecieveThread;
-
-	ServerDataPacket* m_ServerPacket;
-	ClientDataPacket* m_ClientPacket;
+	ServerDataPacket* m_pServerPacket;
+	ClientDataPacket* m_pClientPacket;
 	std::queue<ServerDataPacket>* m_pServerDataQueue;
-
 	static CMySemaphore s_Mutex;
+
+
 };
 

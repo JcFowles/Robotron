@@ -43,23 +43,23 @@ public:
 	/***********************
 	* Initialize: Initializes the Client Socket and Address
 	* @author: Jc Fowles
-	* @return: bool: Succesful Initialisation
+	* @return: bool: Successful Initialization
 	********************/
 	bool Initialise();
 
 	/***********************
 	* SendData: Send Data packet to the server
 	* @author: Jc Fowles
-	* @param: _DataToSend: Datapacket to send to the server
-	* @return: bool: Succesful Sending
+	* @param: _DataToSend: Data packet to send to the server
+	* @return: bool: Successful Sending
 	********************/
 	bool SendData(ServerDataPacket* _pDataToSend);
 
 	/***********************
 	* ReceiveData: Receive data from the Server
 	* @author: Jc Fowles
-	* @param: _pReceivedData: Data that will be recieved
-	* @return: bool: Succesful Retrieval
+	* @param: _pReceivedData: Data that will be received
+	* @return: bool: Successful Retrieval
 	********************/
 	bool ReceiveData(ClientDataPacket* _pReceivedData);
 	
@@ -68,7 +68,7 @@ public:
 	* @author: Jc Fowles
 	* @return: bool: Weather the Client is active
 	********************/
-	bool getActive(){ return m_bIsActive; };
+	bool GetActive(){ return m_bIsActive; };
 
 	/***********************
 	* SetActive: Set weather the Client is active
@@ -78,14 +78,16 @@ public:
 	********************/
 	void SetActive(bool _bActive){ m_bIsActive = _bActive; };
 
+	
+	
 
 	//Member variables
 public:
-	//TO DO make private
-	bool m_bIsActive;
-	
+		
 private:
 
+	bool m_bIsActive;
+	
 	SOCKET m_hClientSocket;
 
 	sockaddr_in m_ClientSocketAddress;
@@ -93,9 +95,8 @@ private:
 	
 	unsigned int uiServerPort;
 
-
-
-	
+	bool m_bWaitOnRecieve;
+		
 };
 
 #endif //__CCLIENT_H__

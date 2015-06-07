@@ -23,19 +23,35 @@
 
 //Local Includes
 
-enum eGameStates
+enum eMenuStates
 {
 	//Main menu
-	GS_MAIN_MENU,
-	GS_START_MENU,
-	GS_OPTIONS_MENU,
-	GS_INSTRUCTIONS,
-	GS_EXIT_MENU,
+	MS_MAIN,
+	MS_SINGLE_PLAYER,
+	MS_MULTI_PLAYER,
+	MS_OPTIONS,
+	MS_INSTRUCTIONS,
+	MS_EXIT,
 
 	//Game
-	GS_JOIN_GAME,
-	GS_HOST_GAME
+	MS_JOIN_GAME,
+	MS_HOST_GAME
 };
+
+enum eGameStates
+{
+	GS_MENU,
+	GS_PLAY
+};
+
+enum eHostStates
+{
+	HS_DEFAULT,
+	HS_SERVER_NAME,
+	HS_USER_NAME,
+	HS_DONE
+};
+
 
 #define VALIDATE(a) if (!a) return (false)
 
