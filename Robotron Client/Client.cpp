@@ -32,8 +32,7 @@ bool CClient::Initialise()
 	//Free up the memory
 	bool bSuccess = false;
 	ZeroMemory(&m_ClientSocketAddress, sizeof(m_ClientSocketAddress));
-	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress));
-
+	
 	//Initiates use of the Winsock DLL by a process
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -53,8 +52,11 @@ bool CClient::Initialise()
 		//check if its been correctly 
 		if (INVALID_SOCKET == m_hClientSocket)
 		{
+			//Failure to create socket 
 			int error = WSAGetLastError();
-			continue;
+			//return failure
+			bSuccess = false;
+			break;
 		}
 
 		//Initialise port values
@@ -93,6 +95,9 @@ bool CClient::Initialise()
 		//Therefore try another port number
 	}
 
+	//TO DO THIS SHOULD BE MOVED
+
+	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress));
 	//setup address structure
 	m_ServerSocketAddress.sin_family = AF_INET;
 	m_ServerSocketAddress.sin_port = htons(NetworkValues::DEFAULT_SERVER_PORT);
@@ -186,4 +191,55 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 	cpReceivedData = 0;
 	
 	return true;
+}
+
+bool CClient::Broadcast(ServerDataPacket* _pDataToSend)
+{
+	//initialize the sock address to broadcast on
+	struct sockaddr_in socBroadcastAddress;
+	socBroadcastAddress.sin_family = AF_INET;
+	socBroadcastAddress.sin_addr.s_addr = INADDR_BROADCAST;
+
+	//Create and get size of the packet to be sent
+	ServerDataPacket packetToSend = *_pDataToSend;
+	int iBytesToSend = sizeof(packetToSend) + 1;
+
+	//Convert server data packet to a char pointer so that it is able to be sent
+	char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
+
+	//Loop through possible server ports
+	for (int iServerPort = NetworkValues::DEFAULT_SERVER_PORT;
+		iServerPort <= NetworkValues::MAX_SERVER_PORT;
+		iServerPort++)
+	{
+		//Set port number
+		socBroadcastAddress.sin_port = htons(iServerPort);
+
+		//Send data
+		int iNumBytes = sendto( m_hClientSocket,										// socket to send through.
+								cpPacketToSend,											// data to send
+								iBytesToSend,											// number of bytes to send
+								0,														// flags
+								reinterpret_cast<sockaddr*>(&socBroadcastAddress),		// address to be filled with packet target
+								sizeof(socBroadcastAddress)								// size of the above address struct.
+								);
+
+		if (iBytesToSend != iNumBytes)
+		{
+			//There was an error sending data from client to server
+			int iError = WSAGetLastError();
+			//Something went wrong with sending a packet
+			return false;
+		}
+
+	}
+
+	//Successfully broadcast
+	return true;
+
+}
+
+void CClient::FindServers()
+{
+
 }

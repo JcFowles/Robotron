@@ -159,12 +159,15 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	// display the window on the screen
     ShowWindow(hWnd, _iCmdshow);
 	
+	//Get command line arguments
+	LPWSTR* pCmdArgs;
+	int iNumCmdArgs;
+	pCmdArgs = CommandLineToArgvW(GetCommandLine(), &iNumCmdArgs);
+
 	//Create and initialize the Direct3D Device
 	CServerApp& rServerApp = CServerApp::GetInstance();
-	rServerApp.Initialise(hWnd, kiWidth, kiHeight);
-			
-	int c = 9;
-
+	rServerApp.Initialise(hWnd, kiWidth, kiHeight, pCmdArgs);
+	
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))

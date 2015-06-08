@@ -41,7 +41,7 @@ enum eMenuStates
 enum eGameStates
 {
 	GS_MENU,
-	GS_PLAY
+	GS_PLAY,
 };
 
 enum eHostStates

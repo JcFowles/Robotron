@@ -105,13 +105,6 @@ public:
 	void ProcessMenuSelection(std::string _strMenuItem);
 	
 	/***********************
-	* ProcessLobbyRequest: Broadcast to fond servers and save list of servers that respond
-	* @author: Jc Fowles
-	* @return: void:
-	********************/
-	void ProcessLobbyRequest();
-
-	/***********************
 	* Draw: Draw the all the objects 
 	* @author: Jc Fowles
 	* @return: void
@@ -223,6 +216,13 @@ public:
 	void LobbyMenuDraw();
 
 	/***********************
+	* OpenServerApp: Open and the the Server app executable
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void OpenServerApp();
+
+	/***********************
 	* RenderSingleFrame: Render a single frame to the screen
 	* @author: Jc Fowles
 	* @return: bool: return weather to continue rendering 
@@ -242,7 +242,7 @@ public:
 	/***********************
 	* ConvertToServerDataPacket: Convert passed in data to a ServerDataPacket
 	* @author: Jc Fowles
-	* @param: //TO DO
+	* @param: std::string _srtData: String Data to be converted
 	* @return: void
 	********************/
 	void AddTextToServerDataPacket(std::string _srtData);
@@ -268,6 +268,13 @@ public:
 	* @return: void:
 	********************/
 	void ProcessCreation();
+		
+	/***********************
+	* ProcessSuccesfulHost: Process the successful client to server hosting
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessSuccesfulHost();
 		
 	/***********************
 	* SetMousePos: TO DO: Description
@@ -328,9 +335,16 @@ public:
 	* @return: void:
 	********************/
 	void SetIsHost(bool _bIsHost) { m_bIsHost = _bIsHost; }
-
-
 		
+	/***********************
+	* FindServers: Get the client to broadcast out and find all servers, then save them
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void FindServers();
+		
+	
+	bool AddServer(sockaddr_in _SeverAddress, std::string _ServerName);
 protected:
 
 private:
@@ -355,6 +369,9 @@ private:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
 	
+
+
+
 
 
 
@@ -391,6 +408,7 @@ private:
 
 	//Networking variables
 	CClient* m_pClient;
+	bool m_bServerCreated;
 	std::thread m_RecieveThread;
 	ServerDataPacket* m_pServerPacket;
 	ClientDataPacket* m_pClientPacket;
@@ -398,6 +416,9 @@ private:
 	static CMySemaphore s_Mutex;
 	std::string m_strServerName;
 	std::string m_strUserName;
+
+	std::multimap< std::string, sockaddr_in>* m_pMapActiveServers;
+	std::pair< std::string, sockaddr_in> m_selectedServer;
 	std::vector<std::string> m_strActiveServers;
 	
 	//Graphic Variables

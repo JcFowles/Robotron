@@ -65,12 +65,16 @@ void CServerApp::DestroyInstance()
 	s_pServerApp = 0;
 }
 
-bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
+bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, LPWSTR* _pCmdArgs)
 {
 	//Initialise Server app Window variables
 	m_hWnd = _hWnd;
 	m_iScreenWidth = _iScreenWidth;
 	m_iScreenHeight = _iScreenHeight;
+
+	//Store the server arguments
+	m_strServerName = WideStringToString(_pCmdArgs[1]);
+	m_strHostClient = WideStringToString(_pCmdArgs[2]);
 
 	//Initialise member variables
 	m_pServer = new CServer();
@@ -78,15 +82,21 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_pServerDataQueue = new std::queue < ServerDataPacket >;
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
-	strHostClient = "";
 	//Initialise the map of client addresses
 	m_pMapClients = new std::map < std::string, sockaddr_in > ;
 
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CServerApp::ReceiveDataThread, (this));
 
+	m_pClientPacket->packetType = PT_CREATE;
+	m_pClientPacket->socReceivedFrom = m_pServer->GetServerSocketAddress();
+	//Send back the the server name and Host client names to be checked against
+	std::string strTextToSend = m_strServerName + ":" + m_strHostClient;
+	AddTextToClientDataPacket(strTextToSend);
 	
-
+	//Broadcast to all potential clients
+	m_pServer->Broadcast(m_pClientPacket);
+		
 	return true;
 }
 
@@ -113,6 +123,15 @@ bool CServerApp::RenderSingleFrame()
 	Process();
 
 	return true;
+}
+
+void CServerApp::AddTextToClientDataPacket(std::string _srtText)
+{
+	//convert and add the string to the ServerDataPacket
+	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
+	{
+		strcpy_s(m_pClientPacket->cText, _srtText.c_str());
+	}
 }
 
 void CServerApp::ReceiveDataThread()
@@ -169,64 +188,63 @@ void CServerApp::ProcessReceiveData()
 			ProcessCreation();
 		}
 			break;
+		case PT_FIND:
+		{
+			ProcessFind();
+		}
+			break;
 		default:
 			break;
 		}
 		
-		//TO DO: DO some stuff with the ServerPacket
-		//TO DO : remove testing send and receive 
-
-		//ClientDataPacket* ClientPacket = new ClientDataPacket;
-		//ClientPacket->iNumber = 100;
-
-		//std::string steTest = "Replied from server: i received yo shit: ";
-		////steTest.append(ServerPacket->cText);
-		//int ser = steTest.length();
-
-		//strcpy_s(ClientPacket->cText, steTest.c_str());
-		//m_pServer->SendData(ClientPacket);
 	}
 }
 
 void CServerApp::ProcessCreation()
 {
+
 	//Convert the text in received packet to a string to be manipulated
 	std::string strCreation(m_pServerPacket->cText);
 
-	//Separate the user and server name
-	std::size_t found = strCreation.find(":");
-	std::string strUserName = strCreation.substr(found + 1);
-	m_strServerName = strCreation.substr(0, found);
-
-	//Add the user to the map of clients
-	if (AddUser(strUserName, m_pServerPacket->socReceivedFrom))
+	if (strCreation == "<KW>HOST")
 	{
-		//set this client to the host client of this server
-		strHostClient = strUserName;
+		//Client has sent back that it is this servers host
 
-		m_pClientPacket->packetType = PT_CREATE;
-		m_pClientPacket->bSuccess = true;
-	}
-	else
-	{
-		m_pClientPacket->packetType = PT_CREATE;
-		m_pClientPacket->bSuccess = false;
-	}
+		//Give the server the host clients information
+		//So that the server knows who its hosting client is
+		m_pServer->SetHostClientInfo(m_strHostClient, m_pServerPacket->socReceivedFrom);
 
-	//send back successful creation 
-	m_pServer->SendData(m_pClientPacket);
+		//Add the client to the map of clients
+		m_pServer->AddUser(m_strHostClient, m_pServerPacket->socReceivedFrom);
+		
+	}
 	
 }
 
-bool CServerApp::AddUser(std::string _UserName, sockaddr_in _ClientAddress)
+void CServerApp::ProcessFind()
 {
-	std::pair<std::map<std::string, sockaddr_in>::iterator, bool> MapIterater;
+	m_pClientPacket->packetType = PT_FIND;
+	AddTextToClientDataPacket(m_strServerName);
+	m_pClientPacket->iNum = m_pMapClients->size();
 
-	//Add passed in params to map of clients
-	MapIterater = m_pMapClients->insert(std::pair<std::string, sockaddr_in>(_UserName, _ClientAddress));
-
-	//Return the bool part(second)
-	//This will hold true if a new element was added 
-	//Or false if the element already exists
-	return MapIterater.second;
+	m_pServer->SendData(m_pClientPacket, m_pServerPacket->socReceivedFrom);
 }
+
+std::string CServerApp::WideStringToString(wchar_t* _wstr)
+{
+	//Convert the Wide String to a standard string
+	size_t lengthWstr = (wcslen(_wstr) + 1);
+	size_t convertedCount = 0;
+	char* cConversion = new char[lengthWstr * 2];
+	wcstombs_s(&convertedCount, cConversion, lengthWstr, _wstr, _TRUNCATE);
+
+	std::string strConverted = (std::string)(cConversion);
+
+	//Deallocate memory
+	delete cConversion;
+	cConversion = 0;
+
+	//Return the converted standard string
+	return strConverted;
+}
+

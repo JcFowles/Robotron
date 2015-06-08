@@ -53,9 +53,10 @@ public:
 	* @parameter: _hWnd: Handle to the window
 	* @parameter: _iScreenWidth: Width to the window
 	* @parameter: _iScreenHeight: Height to the window
+	* @parameter: _pCmdArgs: Command line arguments
 	* @return: bool: Successful Initialization
 	********************/
-	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
+	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, LPWSTR* _pCmdArgs);
 
 	/***********************
 	* Process: Process the the game instance
@@ -119,21 +120,35 @@ private:
 	void ProcessReceiveData();
 	
 	/***********************
-	* ProcessCreation: Process the creation of the server
+	* ProcessCreation: Process the CREATE message
 	* @author: Jc Fowles
 	* @return: void:
 	********************/
 	void ProcessCreation();
+
+	/***********************
+	* ProcessFind: Process the FIND message 
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessFind();
 	
 	/***********************
-	* AddUser: Add a user to the map of clients
+	* AddTextToClientDataPacket: Convert passed in data to a ClientDataPacket
 	* @author: Jc Fowles
-	* @Parameter: std::string _UserName: User name of client (also the map key)
-	* * @Parameter: sockaddr_in _ClientAddress: sockaddr of the client
-	* @return: bool: if successfully added, false returned if user name already excists
+	* @param: std::string _srtData: String Data to be converted
+	* @return: void
 	********************/
-	bool AddUser(std::string _UserName, sockaddr_in _ClientAddress);
+	void AddTextToClientDataPacket(std::string _srtText);
 
+	/***********************
+	* WideStringToString: Convert a Wide string to a standard string
+	* @author: Jc Fowles
+	* @Parameter: wchar_t * _wstr: Wide string to be converted
+	* @return: std::string: The converted Wide string as a standard string
+	********************/
+	std::string WideStringToString(wchar_t* _wstr);
+	
 	//Member Variables
 public:
 
@@ -160,7 +175,7 @@ private:
 
 	std::map< std::string, sockaddr_in>* m_pMapClients;
 
-	std::string strHostClient;
+	std::string m_strHostClient;
 	
 
 };

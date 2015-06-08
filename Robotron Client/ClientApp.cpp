@@ -50,6 +50,9 @@ CClientApp::~CClientApp(void)
 	m_pClientPacket = 0;
 	delete m_pClientDataQueue;
 	m_pClientDataQueue = 0;
+	//delete m_pMapActiveServers;
+	//m_pMapActiveServers = 0;
+
 
 	//Graphics
 	
@@ -88,6 +91,7 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 
 	//Initialise Game Variables
 	m_bIsHost = false;
+	m_bServerCreated = false;
 	m_pClock = new CClock();
 	VALIDATE(m_pClock->Initialise());
 	m_strClickedMenu = "";
@@ -133,6 +137,7 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
 	m_pClientDataQueue = new std::queue < ClientDataPacket >;
+	m_pMapActiveServers = new std::multimap< std::string, sockaddr_in>;
 
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CClientApp::ReceiveDataThread, (this));
@@ -149,17 +154,20 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 
 void CClientApp::Process()
 {
-	//First thing to do is reprocess received data
-	ProcessReceiveData();
+	
 	
 	switch (m_eGameState)
 	{
 	case GS_MENU:
 	{
+		//If a menu item has been clicked 
+		//Process it
 		if (m_bMenuClicked)
 		{
 			ProcessMenuSelection(m_strClickedMenu);
 		}
+
+
 		switch (m_eMenuState)
 		{
 		case MS_MAIN:
@@ -175,13 +183,58 @@ void CClientApp::Process()
 		case MS_EXIT:
 			break;
 		case MS_JOIN_GAME:
+		{
+			switch (m_eHostState)
+			{
+			case HS_DEFAULT:
+				break;
+			case HS_SERVER_NAME:
+			{
+				//If m_strActiveServers didnt need to be processed remove then
+				if (m_bMenuClicked == false)
+				{
+					//Clear server list
+					m_pMapActiveServers->clear();
+				}
+
+				//Broadcast to find servers
+				FindServers();
+			}
+				break;
+			case HS_USER_NAME:
+			{
+				//Ask to join server
+			}
+				break;
+			case HS_DONE:
+				break;
+			default:
+				break;
+			}
+		}
 			break;
 		case MS_HOST_GAME:
+		{
+			switch (m_eHostState)
+			{
+			case HS_DEFAULT:
+				break;
+			case HS_SERVER_NAME:
+				break;
+			case HS_USER_NAME:
+				break;
+			case HS_DONE:
+			{
+				//open server app
+				OpenServerApp();
+			}
+				break;
+			default:
+				break;
+			}
+		}
 			break;
 		case MS_LOBBY:
-		{
-			ProcessLobbyRequest();
-		}
 			break;
 		default:
 			break;
@@ -195,7 +248,13 @@ void CClientApp::Process()
 		break;
 	}
 
+	//First thing to do is reprocess received data
+	ProcessReceiveData();
+
+
 }
+
+
 
 void CClientApp::ProcessInputs(int _iInput)
 {
@@ -218,7 +277,7 @@ void CClientApp::ProcessInputs(int _iInput)
 				case MS_EXIT:
 					break;
 				case MS_JOIN_GAME:
-					break;
+				//fall though
 				case MS_HOST_GAME:
 				{
 					ProcessHostGame(_iInput);
@@ -267,6 +326,7 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 	case MS_JOIN_GAME:
 	{
 		HostMenuSelect(_strMenuItem);
+
 	}break;
 
 	case MS_OPTIONS:
@@ -295,41 +355,50 @@ void CClientApp::ProcessHostGame(int _iInput)
 	switch (m_eHostState)
 	{
 		case HS_DEFAULT:
-		{
-			
-		}
 			break;
 		case HS_SERVER_NAME:
 		{
-			if (_iInput == 13)
+			//Only reprocess inputs if you are hosting a game	
+			if (m_eMenuState == MS_HOST_GAME )
 			{
-				m_eHostState = HS_USER_NAME;
-				int c = 9;
+				if (_iInput == 13)	//Enter Key
+				{
+					//Go to input user name
+					m_eHostState = HS_USER_NAME;
+				}
+				else
+				{
+					//Continue processing text input
+					ProcessTextInput(&m_strServerName, _iInput);
+				}
 			}
-			else
-			{
-				ProcessTextInput(&m_strServerName, _iInput);
-			}
+			
 		}
 			break;
 		case HS_USER_NAME:
 		{
-			if (_iInput == 13)
+			if (_iInput == 13) //Enter Key
 			{
-				m_eHostState = HS_DONE;
+				if (m_eMenuState == MS_HOST_GAME)
+				{
+					//Ready to host server
+					m_eHostState = HS_DONE;
+				}
+				else if (m_eMenuState == MS_JOIN_GAME)
+				{
+					//Request to join selected server
+					//RETURN HERE
+				}
 			}
 			else
 			{
+				//Continue processing text input
 				ProcessTextInput(&m_strUserName, _iInput);
 			}
 		}
 			break;
 		case HS_DONE:
-			{
-				
-
-			
-			}break;
+			break;
 		default:
 			break;
 	}
@@ -366,15 +435,6 @@ void CClientApp::ProcessTextInput(std::string* _strText, int _iInput)
 	}
 	
 	*_strText = strTemp;
-}
-
-void CClientApp::ProcessLobbyRequest()
-{
-	//Broadcast to find all active servers
-	
-	//Save all available servers, and number of users
-
-
 }
 
 void CClientApp::MainMenuSelect(std::string _strMenuItem)
@@ -481,6 +541,22 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 		break;
 	case HS_SERVER_NAME:
 	{
+		if (m_eMenuState == MS_JOIN_GAME)
+		{
+			//Check if it was a server name that was selected
+			std::map< std::string, sockaddr_in>::iterator iterServer = m_pMapActiveServers->begin();
+			std::map< std::string, sockaddr_in>::iterator iterServertEnd = m_pMapActiveServers->end();
+			while (iterServer != iterServertEnd)
+			{
+				if (_strMenuItem == iterServer->first) //Yes a server name was selected
+				{
+					//Go to User name input
+					m_selectedServer = *iterServer;
+					m_eHostState = HS_USER_NAME;
+				}
+				iterServer++;
+			}
+		}
 		if (_strMenuItem == "Back")
 		{
 			m_pRenderManager->Clear(true, true, false);
@@ -490,6 +566,8 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 		break;
 	case HS_USER_NAME:
 	{
+		
+
 		if (_strMenuItem == "Back")
 		{
 			m_pRenderManager->Clear(true, true, false);
@@ -715,14 +793,13 @@ void CClientApp::JoinMenuDraw()
 		break;
 	case HS_SERVER_NAME:
 	{
-		//m_eHostState = HS_USER_NAME;
 		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
 		iYPos += 200;
 		RenderText("Select Server to join: ", iYPos, TEXT_MAIN_MENU);
 		iYPos += (uiFontHeight + 1);
 
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
-		if (m_strActiveServers.size() < 1)	 //No servers found
+		if (m_pMapActiveServers->size() < 1)	 //No servers found
 		{
 			//Print no servers found
 			iYPos += (uiFontHeight + 1);
@@ -731,14 +808,19 @@ void CClientApp::JoinMenuDraw()
 		else //Servers found
 		{
 			//Print the list of found servers
-			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
-			for (unsigned int iActiveServer = m_strActiveServers.size(); iActiveServer > 0; iActiveServer--)
+			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST_SELECT);
+			std::map< std::string, sockaddr_in >::iterator iterServer = m_pMapActiveServers->begin();
+			std::map< std::string, sockaddr_in >::iterator iterServertEnd = m_pMapActiveServers->end();
+			while (iterServer != iterServertEnd)
 			{
 				iYPos += (uiFontHeight + 1);
-				RenderText(m_strActiveServers[iActiveServer], iYPos, TEXT_LIST);
+				RenderText(iterServer->first , iYPos, TEXT_LIST_SELECT);
+				iterServer++;
 			}
+
 		}
 
+		
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
 		iYPos += (uiFontHeight + 1);
 		RenderText("Back", iYPos, TEXT_MENU_SELECT);
@@ -753,6 +835,10 @@ void CClientApp::JoinMenuDraw()
 
 		iYPos += (uiFontHeight + 100);
 		RenderText(m_strUserName, iYPos, TEXT_MAIN_MENU);
+
+		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+		iYPos += (uiFontHeight + 1);
+		RenderText("Back", iYPos, TEXT_MENU_SELECT);
 	}
 		break;
 	case HS_DONE:
@@ -813,36 +899,7 @@ void CClientApp::HostMenuDraw()
 		break;
 	case HS_DONE:
 	{
-		//only run this if you are not yet a host, ie this only gets run once 
-		if (m_bIsHost == false)
-		{
-			m_bIsHost = true;
-
-			//Run Server exe
-			std::string filename;
-
-#ifdef _DEBUG
-			filename = "..\\Debug\\Robotron Server";
-#endif
-#ifndef _DEBUG
-			//TO DO: change file path for final release
-			filename = "..\\Release\\Robotron Server";
-#endif
-
-			//TO DO: hide server
-			//int error = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), NULL, NULL, SW_NORMAL);
-			int error = 42;
-			if (error > 32) //Server exe opened successfully
-			{
-				//Create packet to send
-				m_pServerPacket->packetType = PT_CREATE;
-				std::string strTextToSend = m_strServerName + ":" + m_strUserName;
-				AddTextToServerDataPacket(strTextToSend);
-
-				//Send creation packet to server
-				m_pClient->SendData(m_pServerPacket);
-			}
-		}
+		
 	}
 	default:
 		break;
@@ -860,13 +917,14 @@ void CClientApp::LobbyMenuDraw()
 	//***TITLE***
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
 
-	//***Options MENU***
+	//***Lobby MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
 	iYPos += 200;
 	
 	RenderText("Multi Player Lobby", iYPos, TEXT_MAIN_MENU);
 
-	//TO DO: get list of users and print them
+	//Get list of users
+
 	
 }
 
@@ -932,18 +990,15 @@ void CClientApp::ExitMenuDraw()
 
 bool CClientApp::RenderSingleFrame()
 {
-	//TO DO 
-	//if game is in main menu run main menu
+	//Is the client still active? if not return false
 	if (m_pClient->GetActive() == false)
 	{
 		return false;
 	}
-
-
-			
+				
 	Process();
 	Draw();
-
+		
 	return true;
 		
 }
@@ -978,7 +1033,7 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	case TEXT_MENU_SELECT:
 	case TEXT_LIST_SELECT:
 	{
-		TextColor = D3DCOLOR_XRGB(0, 0, 255);
+		TextColor = D3DCOLOR_XRGB(0, 255, 255);
 
 		//If you hover over a click-able text
 		if (m_MousePosition.y >= Rect.top &&
@@ -1005,6 +1060,38 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	//Render the title 
 	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType);
 
+}
+
+void CClientApp::OpenServerApp()
+{
+	//only run this if you are not yet a host, ie this only gets run once 
+	if (m_bIsHost == false)
+	{
+		m_bIsHost = true;
+
+		//Run Server exe
+		std::string filename;
+
+#ifdef _DEBUG
+		filename = "..\\Debug\\Robotron Server";
+#endif
+#ifndef _DEBUG
+		//TO DO: change file path for final release
+		filename = "..\\Release\\Robotron Server";
+#endif
+
+		//TO DO: hide server
+		std::string strTextToSend = m_strServerName + " " + m_strUserName;
+		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_NORMAL);
+		//int error = 42;
+		if (iError < 32) //Server exe opened successfully
+		{
+			//Robotron Server.exe was unable to open for some reason.
+			//Reason as to why it didnt open look up the value of iError
+			bool UnableToOpenServer = false;
+			assert(UnableToOpenServer);
+		}
+	}
 }
 
 void CClientApp::AddTextToServerDataPacket(std::string _srtText)
@@ -1067,9 +1154,18 @@ void CClientApp::ProcessReceiveData()
 		{
 		case PT_CREATE:
 		{
+			//Initial message received from the server (The broadcast message to find its host)
 			ProcessCreation();
 		}
 		break;
+		case PT_FIND:
+		{
+			//m_strActiveServers.push_back(m_pClientPacket->cText);
+			std::string strServerDetails = m_pClientPacket->cText;
+			strServerDetails += " -- " + std::to_string(m_pClientPacket->iNum);
+			strServerDetails += "/" + std::to_string(NetworkValues::MAX_USERS);
+			AddServer(m_pClientPacket->socReceivedFrom, strServerDetails);
+		}
 		default:
 			break;
 		}
@@ -1079,13 +1175,54 @@ void CClientApp::ProcessReceiveData()
 
 void CClientApp::ProcessCreation()
 {
-	//The only way this assert will trigger is if the client user name already exist in the server,
-	//which is not possible, therefor should never trigger
-	// TO DO: PP: Assert
-	assert(m_pClientPacket->bSuccess);
-	//Server created set menu state to lobby
-	m_eMenuState = MS_LOBBY;
-	//Return host state to default
-	m_eHostState = HS_DEFAULT;
+	//Convert the text in received packet to a string to be manipulated
+	std::string strCreation(m_pClientPacket->cText);
+
+	//Separate the user and server name
+	std::size_t found = strCreation.find(":");
+	std::string strUserName = strCreation.substr(found + 1);
+	std::string strServerName = strCreation.substr(0, found);
+
+	//Check the received message
+	if ((strUserName == m_strUserName) && 
+		(strServerName == m_strServerName))
+	{
+		//If the received packet has the same values that was sent 
+		//when the server was run, then send back to that server that 
+		//This client is its host
+		m_pServerPacket->packetType = PT_CREATE;
+		m_pServerPacket->socReceivedFrom = m_pClient->GetClientSocketAddress();
+		m_pServerPacket->bSuccess = true;
+		std::string strTextToSend = "<KW>HOST";
+		AddTextToServerDataPacket(strTextToSend);
+		
+		m_pClient->SendData(m_pServerPacket);
+
+		//Set that the server has been created
+		m_bServerCreated = true;
+
+		//Set the menu state to lobby
+		m_eMenuState = MS_LOBBY;
+
+	}
+
+}
+
+void CClientApp::FindServers()
+{
+	//BroadCast to find if any server replies
+	m_pServerPacket->packetType = PT_FIND;
+	m_pServerPacket->socReceivedFrom = m_pClient->GetClientSocketAddress();
+	m_pClient->Broadcast(m_pServerPacket);
+
+	//TO DO: REMOVE AFTER ADDING FRAME LIMITER
+	Sleep(5);
 	
+}
+
+bool CClientApp::AddServer(sockaddr_in _SeverAddress, std::string _ServerName)
+{
+	//Add passed in params to map of servers
+	m_pMapActiveServers->insert(std::pair<std::string, sockaddr_in >(_ServerName, _SeverAddress));
+	return true;
 }

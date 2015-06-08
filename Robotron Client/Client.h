@@ -61,6 +61,14 @@ public:
 	* @return: bool: Successful Retrieval
 	********************/
 	bool ReceiveData(ClientDataPacket* _pReceivedData);
+		
+	/***********************
+	* Broadcast: Broadcast the Data
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Data to be broadcated
+	* @return: bool: Successful broadcasting
+	********************/
+	bool Broadcast(ServerDataPacket* _pDataToSend);
 	
 	/***********************
 	* getActive: Return weather the Client is active
@@ -77,8 +85,19 @@ public:
 	********************/
 	void SetActive(bool _bActive){ m_bIsActive = _bActive; };
 
+	/***********************
+	* GetClientSocketAddress: Get the Client Socket Address
+	* @author: Jc Fowles
+	* @return: sockaddr_in: The Client Socket Address
+	********************/
+	sockaddr_in GetClientSocketAddress() const { return m_ClientSocketAddress; }
 	
-	
+	/***********************
+	* FindServers: Broadcast to find all active servers
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void FindServers();
 
 	//Member variables
 public:
@@ -88,8 +107,9 @@ private:
 	bool m_bIsActive;
 	
 	SOCKET m_hClientSocket;
-
+	
 	sockaddr_in m_ClientSocketAddress;
+	
 	sockaddr_in m_ServerSocketAddress;
 	
 	unsigned int uiServerPort;
