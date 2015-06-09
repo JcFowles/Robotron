@@ -39,7 +39,14 @@ public:
 	* @return: CGame& : Returns a reference to the singleton game object
 	********************/
 	static CClientApp& GetInstance();
-
+		
+	/***********************
+	* PreQuit: Before we destroy the client app send Leave or Quit messages to server
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void PreQuit();
+	
 	/***********************
 	* DestroyInstance: Destroys the singleton ClientApp object
 	* @author: Jc Fowles
@@ -114,7 +121,7 @@ public:
 	/***********************
 	* MainMenuDraw: Draw the main menu
 	* @author: Jc Fowles
-	* @return: void: TO DO: Description
+	* @return: void: 
 	********************/
 	void MainMenuDraw();
 	
@@ -139,6 +146,13 @@ public:
 	********************/
 	void HostMenuDraw();
 	
+	/***********************
+	* LobbyMenuDraw: Draw the Lobby menu
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void LobbyMenuDraw();
+
 	/***********************
 	* StartInstructionDraw: Draw the options menu
 	* @author: Jc Fowles
@@ -209,13 +223,6 @@ public:
 	void ExitMenuSelect(std::string _strMenuItem);
 	
 	/***********************
-	* LobbyMenuDraw: TO DO: Description
-	* @author: Jc Fowles
-	* @return: void:
-	********************/
-	void LobbyMenuDraw();
-
-	/***********************
 	* OpenServerApp: Open and the the Server app executable
 	* @author: Jc Fowles
 	* @return: void:
@@ -235,18 +242,12 @@ public:
 	* @Parameter: std::string _strText: String of text to be rendered
 	* @Parameter: int _iYPos: Y position of the text to be rendered
 	* @Parameter: eTextType _TextType: The type of text to be rendered
+	* @Parameter: bool _bSelectable: Weather the text should be select able
+	* @Parameter: DWORD _format: Text format
 	* @return: void:
 	********************/
-	void RenderText(std::string _strText, int _iYPos, eTextType _TextType);
-	
-	/***********************
-	* ConvertToServerDataPacket: Convert passed in data to a ServerDataPacket
-	* @author: Jc Fowles
-	* @param: std::string _srtData: String Data to be converted
-	* @return: void
-	********************/
-	void AddTextToServerDataPacket(std::string _srtData);
-
+	void RenderText(std::string _strText, int _iYPos, eTextType _TextType, bool _bSelectable, DWORD _format);
+		
 	/***********************
 	* ReceiveDataThread: Threaded function to receive data from the server and add them
 						 to a work queue
@@ -275,52 +276,50 @@ public:
 	* @return: void:
 	********************/
 	void ProcessSuccesfulHost();
-		
+	
 	/***********************
-	* SetMousePos: TO DO: Description
+	* ProcessJoinRequest: Process the Join Request state received from server
 	* @author: Jc Fowles
-	* @Parameter: POINT _MousePosition: TO DO: Description
-	* @return: void: TO DO: Description
+	* @return: void:
+	********************/
+	void ProcessJoinRequest();
+
+	/***********************
+	* ProcessJoinRequest: Process the found servers
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessServerFind();
+
+	/***********************
+	* SetMousePos: Set mouse position / Save the position of the mouse
+	* @author: Jc Fowles
+	* @Parameter: POINT _MousePosition: Mouse position, XY screen coordinates 
+	* @return: void:
 	********************/
 	void SetMousePos(POINT _MousePosition){ m_MousePosition = _MousePosition; };
 	
 	/***********************
-	* GetMousePos: TO DO: Description
+	* GetMousePos: Get the mouse position
 	* @author: Jc Fowles
-	* @return: POINT: TO DO: Description
+	* @return: POINT: The Mouse position, XY screen coordinates
 	********************/
 	POINT GetMousePos(){ return m_MousePosition; };
 
 	/***********************
-	* IsMouseClicked: TO DO: Description
+	* IsMouseClicked: Return the bool array of mouse buttons, used as a getter and setter
 	* @author: Jc Fowles
-	* @return: bool*: TO DO: Description
+	* @return: bool*: bool array of mouse buttons.
 	********************/
 	bool* IsMouseClicked() const { return m_bIsClicked; }
-
-	/***********************
-	* IsMouseClicked: TO DO: Description
-	* @author: Jc Fowles
-	* @Parameter: bool * val: TO DO: Description
-	* @return: void: TO DO: Description
-	********************/
-	void IsMouseClicked(bool* _bIsClicked) { m_bIsClicked = _bIsClicked; }
 	
 	/***********************
-	* IsKeyDown: Is this key down?
+	* IsKeyDown: Return the bool array of keyboard keys, used as a getter and setter
 	* @author: Jc Fowles
-	* @return: bool*: Returns whether this key is down
+	* @return: bool*: Bool array of keyboard keys
 	********************/
 	bool* IsKeyDown() const { return m_bIsKeyDown; }
 	
-	/***********************
-	* IsKeyDown: Set whether this key is down
-	* @author: Jc Fowles
-	* @Parameter: bool * _IsKeyDown: bool value of whether this key is down
-	* @return: void:
-	********************/
-	void IsKeyDown(bool* _IsKeyDown) { m_bIsKeyDown = _IsKeyDown; }
-
 	/***********************
 	* GetisHost: Is this client hosting a server?
 	* @author: Jc Fowles
@@ -342,9 +341,46 @@ public:
 	* @return: void:
 	********************/
 	void FindServers();
-		
 	
-	bool AddServer(sockaddr_in _SeverAddress, std::string _ServerName);
+	/***********************
+	* AddServer: Add the passed in server to the list of active servers
+	* @author: Jc Fowles
+	* @Parameter: std::string _ServerName: Server name
+	* @Parameter: ServerInfo _serverInfo: struct holding server info
+	* @return: bool: Successful add
+	********************/
+	bool AddServer(std::string _ServerName, ServerInfo _serverInfo);
+
+	/***********************
+	* RequestUserList: Send user list request
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void RequestUserList();
+		
+	/***********************
+	* SetClientInfo: Set the Client info of the packet before sending
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void SetClientInfo();
+
+	/***********************
+	* ConvertToServerDataPacket: Convert passed in string to a ServerDataPacket text
+	* @author: Jc Fowles
+	* @param: std::string _srtText: String of text to be converted
+	* @return: void
+	********************/
+	void AddTextToServerDataPacket(std::string _srtText);
+
+	/***********************
+	* AddUserNameToClientInfo: Add user name to Client info
+	* @author: Jc Fowles
+	* @Parameter: std::string _srtUserName: UserName Data to be converted
+	* @return: void:
+	********************/
+	void AddUserNameToClientInfo(std::string _srtUserName);
+
 protected:
 
 private:
@@ -371,14 +407,9 @@ private:
 	
 
 
-
-
-
-
 	//Member Variables
 public:
-	//TO DO: make private and create getters/Setters
-	//bool* m_bIsKeyDown;
+	
 protected:
 
 private:
@@ -404,26 +435,35 @@ private:
 	bool m_bMenuClicked;
 	std::string m_strClickedMenu;
 	bool* m_bIsKeyDown;
-	bool m_bIsHost;
+	
 
 	//Networking variables
 	CClient* m_pClient;
+	bool m_bIsHost;
 	bool m_bServerCreated;
 	std::thread m_RecieveThread;
 	ServerDataPacket* m_pServerPacket;
 	ClientDataPacket* m_pClientPacket;
 	std::queue<ClientDataPacket>* m_pClientDataQueue;
 	static CMySemaphore s_Mutex;
+	bool m_bJoinError;
+	std::string m_strErrorReason;
+	
 	std::string m_strServerName;
 	std::string m_strUserName;
+	bool m_bClientActive;
 
-	std::multimap< std::string, sockaddr_in>* m_pMapActiveServers;
-	std::pair< std::string, sockaddr_in> m_selectedServer;
-	std::vector<std::string> m_strActiveServers;
+	//Maps
+	std::multimap< std::string, ServerInfo>* m_pMapActiveServers;
+	std::map< std::string, ClientInfo>* m_pMapActiveClients;
 	
+	std::pair< std::string, ServerInfo>* m_pSelectedServer;
+		
 	//Graphic Variables
 	IRenderer* m_pRenderManager;
 	
+
+
 	
 	
 	

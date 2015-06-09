@@ -50,8 +50,12 @@ CClientApp::~CClientApp(void)
 	m_pClientPacket = 0;
 	delete m_pClientDataQueue;
 	m_pClientDataQueue = 0;
-	//delete m_pMapActiveServers;
-	//m_pMapActiveServers = 0;
+	delete m_pMapActiveServers;
+	m_pMapActiveServers = 0;
+	delete m_pMapActiveClients;
+	m_pMapActiveClients = 0;
+	delete m_pSelectedServer;
+	m_pSelectedServer = 0;
 
 
 	//Graphics
@@ -73,13 +77,33 @@ CClientApp& CClientApp::GetInstance()
 	return (*s_pClientApp);
 }
 
+void CClientApp::PreQuit()
+{
+	if (s_pClientApp != 0)
+	{
+		//Send Quit message
+		SetClientInfo();
+
+		if (m_bIsHost)
+		{
+			m_pServerPacket->packetType = PT_QUIT;
+		}
+		else
+		{
+			m_pServerPacket->packetType = PT_LEAVE;
+		}
+
+		m_pClient->SendData(m_pServerPacket);
+		
+	}
+}
+
 void CClientApp::DestroyInstance()
 {
 	
 	delete s_pClientApp;
 	s_pClientApp = 0;
 
-	
 }
 
 bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
@@ -106,13 +130,11 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 
 	m_strMultiPlayerOptions.push_back("Join Game");
 	m_strMultiPlayerOptions.push_back("Host Game");
-	m_strMultiPlayerOptions.push_back("Back");
-
+	
 	m_strOptionsMenu.push_back("Game options");
-	m_strOptionsMenu.push_back("Back");
-
+	
 	m_strInstructions.push_back("Game Instructions");
-	m_strInstructions.push_back("Back");
+	
 
 	m_strExitOptions.push_back("Yes - Close The Game");
 	m_strExitOptions.push_back("No - Take Me Back");
@@ -132,13 +154,18 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	//Initialise Networking variables
 	m_strServerName = "";
 	m_strUserName = "";
+	m_strErrorReason = "";
+	m_bJoinError = false;
+	m_bClientActive = false;
+	
 	m_pClient = new CClient();
 	VALIDATE(m_pClient->Initialise());
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
 	m_pClientDataQueue = new std::queue < ClientDataPacket >;
-	m_pMapActiveServers = new std::multimap< std::string, sockaddr_in>;
-
+	m_pMapActiveServers = new std::multimap< std::string, ServerInfo>;
+	m_pMapActiveClients = new std::map< std::string, ClientInfo>;
+	m_pSelectedServer = new std::pair < std::string, ServerInfo > ;
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CClientApp::ReceiveDataThread, (this));
 	
@@ -202,9 +229,6 @@ void CClientApp::Process()
 			}
 				break;
 			case HS_USER_NAME:
-			{
-				//Ask to join server
-			}
 				break;
 			case HS_DONE:
 				break;
@@ -235,6 +259,9 @@ void CClientApp::Process()
 		}
 			break;
 		case MS_LOBBY:
+		{
+			RequestUserList();
+		}
 			break;
 		default:
 			break;
@@ -248,13 +275,11 @@ void CClientApp::Process()
 		break;
 	}
 
-	//First thing to do is reprocess received data
+	//process received data
 	ProcessReceiveData();
 
 
 }
-
-
 
 void CClientApp::ProcessInputs(int _iInput)
 {
@@ -315,6 +340,8 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 		//TO DO
 		m_pRenderManager->Clear(true, true, false);
 		m_eGameState = GS_PLAY;
+		m_bIsHost = true;
+		
 	}break;
 
 	case MS_MULTI_PLAYER:
@@ -383,11 +410,18 @@ void CClientApp::ProcessHostGame(int _iInput)
 				{
 					//Ready to host server
 					m_eHostState = HS_DONE;
+					m_bJoinError = false;
 				}
 				else if (m_eMenuState == MS_JOIN_GAME)
 				{
 					//Request to join selected server
-					//RETURN HERE
+					//Initialize request
+					m_pServerPacket->packetType = PT_JOIN_REQUEST;
+					//Add Client info to server packet
+					SetClientInfo();
+					//Send message 
+					m_pClient->SendData(m_pServerPacket);
+					
 				}
 			}
 			else
@@ -426,12 +460,22 @@ void CClientApp::ProcessTextInput(std::string* _strText, int _iInput)
 	{
 		//Backspace has been pressed remove a char
 		strTemp = _strText->substr(0, _strText->size() - 1);
+
+		//If user name was changed - set join error to false
+		m_bJoinError = false;
 	}
 	else if ((_iInput >= 65 && _iInput <= 90) ||
 			(_iInput >= 97 && _iInput <= 122))
 	{
-		//char has been pressed add it to the string
-		strTemp += cUserInput;
+		//Only add to the string if its within length limits
+		if (strTemp.length() < NetworkValues::MAX_NAME_LENGTH)
+		{
+			//char has been pressed add it to the string
+			strTemp += cUserInput;
+
+			//If user name was changed - set join error to false
+			m_bJoinError = false;
+		}
 	}
 	
 	*_strText = strTemp;
@@ -544,15 +588,22 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 		if (m_eMenuState == MS_JOIN_GAME)
 		{
 			//Check if it was a server name that was selected
-			std::map< std::string, sockaddr_in>::iterator iterServer = m_pMapActiveServers->begin();
-			std::map< std::string, sockaddr_in>::iterator iterServertEnd = m_pMapActiveServers->end();
+			std::map< std::string, ServerInfo>::iterator iterServer = m_pMapActiveServers->begin();
+			std::map< std::string, ServerInfo>::iterator iterServertEnd = m_pMapActiveServers->end();
 			while (iterServer != iterServertEnd)
 			{
 				if (_strMenuItem == iterServer->first) //Yes a server name was selected
-				{
-					//Go to User name input
-					m_selectedServer = *iterServer;
-					m_eHostState = HS_USER_NAME;
+				{			
+					//Check if server is full
+					if (m_pClientPacket->serverInfo.iNumClients < NetworkValues::MAX_USERS)
+					{
+						//Go to User name input
+						*m_pSelectedServer = *iterServer;
+						//Set the server socket address to the selected socket address
+						m_pClient->SetServerSocketAddress(m_pSelectedServer->second.serverSocAddr);
+						m_eHostState = HS_USER_NAME;
+					}
+
 				}
 				iterServer++;
 			}
@@ -576,6 +627,9 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 	}
 		break;
 	case HS_DONE:
+	{
+
+	}
 		break;
 	default:
 		break;
@@ -642,7 +696,6 @@ void CClientApp::InstructMenuSelect(std::string _strMenuItem)
 
 void CClientApp::ExitMenuSelect(std::string _strMenuItem)
 {
-	//TO DO
 	//Run through main menu options
 	unsigned int iMenuItem;
 	for (iMenuItem = 0; iMenuItem < m_strExitOptions.size(); iMenuItem++)
@@ -660,7 +713,6 @@ void CClientApp::ExitMenuSelect(std::string _strMenuItem)
 	case 0: //YES
 	{
 		//End the program
-		//TO DO, memory leak stuff
 		m_pClient->SetActive(false);
 	}break;
 
@@ -741,18 +793,20 @@ void CClientApp::Draw()
 void CClientApp::MainMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	////***MAIN MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
 	for (unsigned int i = 0; i < m_strMainMenuOptions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
-		RenderText(m_strMainMenuOptions[i], iYPos, TEXT_MENU_SELECT);
+		RenderText(m_strMainMenuOptions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 
 }
@@ -760,29 +814,38 @@ void CClientApp::MainMenuDraw()
 void CClientApp::MultiPlayerMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	//***Multiplayer MENU***
 	//get font height 
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
 	for (unsigned int i = 0; i < m_strMultiPlayerOptions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
-		RenderText(m_strMultiPlayerOptions[i], iYPos, TEXT_MENU_SELECT);
+		RenderText(m_strMultiPlayerOptions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::JoinMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	switch (m_eHostState)
 	{
@@ -793,9 +856,9 @@ void CClientApp::JoinMenuDraw()
 		break;
 	case HS_SERVER_NAME:
 	{
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos += 200;
-		RenderText("Select Server to join: ", iYPos, TEXT_MAIN_MENU);
+		RenderText("Select Server to join: ", iYPos, TEXT_MENU, false, dwTextFormat);
 		iYPos += (uiFontHeight + 1);
 
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
@@ -803,42 +866,77 @@ void CClientApp::JoinMenuDraw()
 		{
 			//Print no servers found
 			iYPos += (uiFontHeight + 1);
-			RenderText("No Active Servers Found!", iYPos, TEXT_LIST);
+			RenderText("No Active Servers Found!", iYPos, TEXT_LIST, false, dwTextFormat);
 		}
 		else //Servers found
 		{
 			//Print the list of found servers
-			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST_SELECT);
-			std::map< std::string, sockaddr_in >::iterator iterServer = m_pMapActiveServers->begin();
-			std::map< std::string, sockaddr_in >::iterator iterServertEnd = m_pMapActiveServers->end();
+			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+			std::map< std::string, ServerInfo >::iterator iterServer = m_pMapActiveServers->begin();
+			std::map< std::string, ServerInfo >::iterator iterServertEnd = m_pMapActiveServers->end();
 			while (iterServer != iterServertEnd)
 			{
 				iYPos += (uiFontHeight + 1);
-				RenderText(iterServer->first , iYPos, TEXT_LIST_SELECT);
+				//Render server name
+				dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+				RenderText(iterServer->first, iYPos, TEXT_LIST, true, dwTextFormat);
+				//Render host of server
+				dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+				std::string strHostName(iterServer->second.cHostName);
+				RenderText(strHostName, iYPos, TEXT_LIST, true, dwTextFormat);
+				//Render Number of clients in server
+				dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE;
+				std::string strNumClients = std::to_string(iterServer->second.iNumClients);
+				std::string strMaxClients = std::to_string(NetworkValues::MAX_USERS);
+				std::string strFullness;
+				if (iterServer->second.iNumClients >= NetworkValues::MAX_USERS) //Server is full
+				{
+					strFullness = "FULL";
+				}
+				else
+				{
+					strFullness = strNumClients + "/" + strMaxClients;
+				}
+				RenderText(strFullness, iYPos, TEXT_LIST, true, dwTextFormat);
+				
+				//Go to next one in the list
 				iterServer++;
 			}
 
 		}
-
-		
-		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
-		iYPos += (uiFontHeight + 1);
-		RenderText("Back", iYPos, TEXT_MENU_SELECT);
+				
+		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+				
 	}
 		break;
 	case HS_USER_NAME:
 	{
 		//***Host MENU***
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
-		iYPos += 200; //- (uiFontHeight + 1);
-		RenderText("Enter User Name: ", iYPos, TEXT_MAIN_MENU);
-
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos += 200; 
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Enter User Name: ", iYPos, TEXT_MENU, false, dwTextFormat);
+		//Render the user name
 		iYPos += (uiFontHeight + 100);
-		RenderText(m_strUserName, iYPos, TEXT_MAIN_MENU);
+		RenderText(m_strUserName, iYPos, TEXT_MENU, false, dwTextFormat);
+		
+		//Render User name is in Use
+		if (m_bJoinError)
+		{
+			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+			iYPos += (uiFontHeight + 1);
+			dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+			RenderText(m_strErrorReason, iYPos, TEXT_LIST, false, dwTextFormat);
+		}
 
-		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
-		iYPos += (uiFontHeight + 1);
-		RenderText("Back", iYPos, TEXT_MENU_SELECT);
+		//Render back button
+		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_DONE:
@@ -855,10 +953,12 @@ void CClientApp::HostMenuDraw()
 {
 
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	switch (m_eHostState)
 	{
@@ -870,31 +970,37 @@ void CClientApp::HostMenuDraw()
 	case HS_SERVER_NAME:
 	{
 		//***Host MENU***
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
-		iYPos += 200; //- (uiFontHeight + 1);
-		RenderText("Enter Server Name: ", iYPos, TEXT_MAIN_MENU);
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos += 200; 
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Enter Server Name: ", iYPos, TEXT_MENU, false, dwTextFormat);
 
+		//Render the server name
 		iYPos += (uiFontHeight + 100);
-		RenderText(m_strServerName, iYPos, TEXT_MAIN_MENU);
+		RenderText(m_strServerName, iYPos, TEXT_MENU, false, dwTextFormat);
 
-		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
-		iYPos += (uiFontHeight + 1);
-		RenderText("Back", iYPos, TEXT_MENU_SELECT);
+		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_USER_NAME:
 	{
 		//***Host MENU***
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
-		iYPos += 200; //- (uiFontHeight + 1);
-		RenderText("Enter User Name: ", iYPos, TEXT_MAIN_MENU);
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos += 200; 
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Enter User Name: ", iYPos, TEXT_MENU, false, dwTextFormat);
 
+		//render user name
 		iYPos += (uiFontHeight + 100);
-		RenderText(m_strUserName, iYPos, TEXT_MAIN_MENU);
+		RenderText(m_strUserName, iYPos, TEXT_MENU, false, dwTextFormat);
 
-		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
-		iYPos += (uiFontHeight + 1);
-		RenderText("Back", iYPos, TEXT_MENU_SELECT);
+		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_DONE:
@@ -912,78 +1018,122 @@ void CClientApp::HostMenuDraw()
 void CClientApp::LobbyMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	//***Lobby MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200;
 	
-	RenderText("Multi Player Lobby", iYPos, TEXT_MAIN_MENU);
+	RenderText("Multi Player Lobby", iYPos, TEXT_MENU, false, dwTextFormat);
 
 	//Get list of users
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos += 200 - uiFontHeight;
+	for (int i = 0; i < NetworkValues::MAX_USERS; i++)
+	{
+		std::string strUserName(m_pClientPacket->serverInfo.cListOfClients[i]);
 
+		if (strUserName != "")
+		{
+			iYPos += uiFontHeight + 1;
+			//Render client names
+			dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+			RenderText(strUserName, iYPos, TEXT_LIST, false, dwTextFormat);
+			//Render if they are ready or not
+			std::string strReady;
+			if (m_pClientPacket->serverInfo.activeClientList[i].bActive)
+			{
+				strReady = "Ready";
+			}
+			else
+			{
+				strReady = "Not Ready";
+			}
+			dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+			RenderText(strReady, iYPos, TEXT_LIST, false, dwTextFormat);
+		}
+	}
 	
 }
 
 void CClientApp::OptionsMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+
 
 	//***Options MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
 	for (unsigned int i = 0; i < m_strOptionsMenu.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
-		RenderText(m_strOptionsMenu[i], iYPos, TEXT_MENU_SELECT);
+		RenderText(m_strOptionsMenu[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::InstructionMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	//***Options MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
 	for (unsigned int i = 0; i < m_strInstructions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
-		RenderText(m_strInstructions[i], iYPos, TEXT_MENU_SELECT);
+		RenderText(m_strInstructions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::ExitMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 8);
+	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MAIN_MENU);
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200;
-	RenderText("Are You Sure You Want To Exit?", iYPos, TEXT_MAIN_MENU);
+	RenderText("Are You Sure You Want To Exit?", iYPos, TEXT_MENU, false, dwTextFormat);
 	
 
 	////***EXIT MENU***
-	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU_SELECT);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 180 - (uiFontHeight + 100);
 	for (unsigned int i = 0; i < m_strExitOptions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 100);
-		RenderText(m_strExitOptions[i], iYPos, TEXT_MENU_SELECT);
+		RenderText(m_strExitOptions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 
 }
@@ -1003,7 +1153,7 @@ bool CClientApp::RenderSingleFrame()
 		
 }
 
-void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType)
+void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType, bool _bSelectable, DWORD _format)
 {
 	//Create the text space as a RECT
 	RECT Rect;
@@ -1019,28 +1169,30 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	{
 	case TEXT_TITLE:
 	{
-		TextColor = D3DCOLOR_XRGB(0, 255, 0);
+		TextColor = D3DCOLOR_XRGB(155, 0, 0);
 
 	}break;
-
-	case TEXT_MAIN_MENU:
+	case TEXT_MENU:
+	{
+		TextColor = D3DCOLOR_XRGB(100, 0, 0);
+	}break;
 	case TEXT_LIST:
 	{
-		TextColor = D3DCOLOR_XRGB(0, 0, 255);
+		TextColor = D3DCOLOR_XRGB(255, 0, 0);
 
 	}break;
+	}
 
-	case TEXT_MENU_SELECT:
-	case TEXT_LIST_SELECT:
+	if (_bSelectable)
 	{
-		TextColor = D3DCOLOR_XRGB(0, 255, 255);
+		TextColor = D3DCOLOR_XRGB(255, 50, 0);
 
 		//If you hover over a click-able text
 		if (m_MousePosition.y >= Rect.top &&
 			m_MousePosition.y <= Rect.bottom)
 		{
 			//Change its color signifying that its click-able
-			TextColor = D3DCOLOR_XRGB(255, 0, 0);
+			TextColor = D3DCOLOR_XRGB(255, 185, 0);
 			//If the text was clicked
 			if (m_bIsClicked[MK_LBUTTON])
 			{
@@ -1053,12 +1205,10 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 			}
 		}
 
-	}break;
-
 	}
 
 	//Render the title 
-	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType);
+	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
 
 }
 
@@ -1083,7 +1233,8 @@ void CClientApp::OpenServerApp()
 		//TO DO: hide server
 		std::string strTextToSend = m_strServerName + " " + m_strUserName;
 		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_NORMAL);
-		//int error = 42;
+		//int iError = 42;
+		//m_bIsHost = true;
 		if (iError < 32) //Server exe opened successfully
 		{
 			//Robotron Server.exe was unable to open for some reason.
@@ -1091,15 +1242,6 @@ void CClientApp::OpenServerApp()
 			bool UnableToOpenServer = false;
 			assert(UnableToOpenServer);
 		}
-	}
-}
-
-void CClientApp::AddTextToServerDataPacket(std::string _srtText)
-{
-	//convert and add the string to the ServerDataPacket
-	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
-	{
-		strcpy_s(m_pServerPacket->cText, _srtText.c_str());
 	}
 }
 
@@ -1119,7 +1261,7 @@ void CClientApp::ReceiveDataThread()
 			//Signal that you are done with the queue
 			s_Mutex.Signal();
 		}
-
+	
 	}
 
 	//Memory clean up
@@ -1152,20 +1294,31 @@ void CClientApp::ProcessReceiveData()
 
 		switch (m_pClientPacket->packetType)
 		{
+		case PT_DEFAULT:
+		{
+			int c = 9;
+		}
+			break;
 		case PT_CREATE:
 		{
-			//Initial message received from the server (The broadcast message to find its host)
-			ProcessCreation();
+			if (m_bServerCreated == false)
+			{
+				//Initial message received from the server (The broadcast message to find its host)
+				ProcessCreation();
+			}
 		}
 		break;
 		case PT_FIND:
 		{
-			//m_strActiveServers.push_back(m_pClientPacket->cText);
-			std::string strServerDetails = m_pClientPacket->cText;
-			strServerDetails += " -- " + std::to_string(m_pClientPacket->iNum);
-			strServerDetails += "/" + std::to_string(NetworkValues::MAX_USERS);
-			AddServer(m_pClientPacket->socReceivedFrom, strServerDetails);
+			ProcessServerFind();
 		}
+		break;
+		case PT_JOIN_REQUEST:
+		{
+			ProcessJoinRequest();
+		}
+		
+		
 		default:
 			break;
 		}
@@ -1191,11 +1344,15 @@ void CClientApp::ProcessCreation()
 		//when the server was run, then send back to that server that 
 		//This client is its host
 		m_pServerPacket->packetType = PT_CREATE;
-		m_pServerPacket->socReceivedFrom = m_pClient->GetClientSocketAddress();
-		m_pServerPacket->bSuccess = true;
 		std::string strTextToSend = "<KW>HOST";
 		AddTextToServerDataPacket(strTextToSend);
 		
+		//Set the server socket address to the server that replied correctly
+		m_pClient->SetServerSocketAddress(m_pClientPacket->serverInfo.serverSocAddr);
+		
+		//Add Client info to server packet
+		SetClientInfo();
+		//Send message 
 		m_pClient->SendData(m_pServerPacket);
 
 		//Set that the server has been created
@@ -1208,21 +1365,117 @@ void CClientApp::ProcessCreation()
 
 }
 
+void CClientApp::ProcessServerFind()
+{
+
+	//TO DO: Redo this
+	//Store info from received packet
+	//std::string strServerDetails = m_pClientPacket->cText;
+	//
+	//if (m_pClientPacket->iNum >= NetworkValues::MAX_USERS)
+	//{
+	//	//Server is full
+	//	strServerDetails += " - FULL";
+	//}
+	//else
+	//{
+	//	//Server not full
+	//	strServerDetails += " - " + std::to_string(m_pClientPacket->iNum);
+	//	strServerDetails += "/" + std::to_string(NetworkValues::MAX_USERS);
+	//}
+
+	//Add server to multimap of servers 
+	AddServer(m_pClientPacket->serverInfo.cServerName, m_pClientPacket->serverInfo);
+}
+
+void CClientApp::ProcessJoinRequest()
+{
+	//Check if Successful
+	if (m_pClientPacket->bSuccess)
+	{
+		//We are done with connecting
+		//Set the menu state to lobby
+		m_eMenuState = MS_LOBBY;
+		m_bJoinError = false;
+	}
+	else //Not Successful, find out why it is not
+	{
+		//Set Join Error to true
+		m_bJoinError = true;
+
+		//Convert the text in received packet to a string to be manipulated
+		std::string strCreation(m_pClientPacket->cText);
+		
+		if (strCreation == "<KW>INVALID_USERNAME")
+		{
+			//User name already in use, try again
+			//Send back to user name
+			m_strErrorReason = "Username already in Use";
+		}
+	}
+}
+
 void CClientApp::FindServers()
 {
 	//BroadCast to find if any server replies
 	m_pServerPacket->packetType = PT_FIND;
-	m_pServerPacket->socReceivedFrom = m_pClient->GetClientSocketAddress();
+	//Add Client info to server packet
+	SetClientInfo();
+	//Broad Cast message
 	m_pClient->Broadcast(m_pServerPacket);
 
 	//TO DO: REMOVE AFTER ADDING FRAME LIMITER
-	Sleep(5);
+	Sleep(100);
 	
 }
 
-bool CClientApp::AddServer(sockaddr_in _SeverAddress, std::string _ServerName)
+bool CClientApp::AddServer(std::string _ServerName, ServerInfo _serverInfo)
 {
 	//Add passed in params to map of servers
-	m_pMapActiveServers->insert(std::pair<std::string, sockaddr_in >(_ServerName, _SeverAddress));
+	m_pMapActiveServers->insert(std::pair<std::string, ServerInfo >(_ServerName, _serverInfo));
 	return true;
+}
+
+void CClientApp::RequestUserList()
+{
+	//Create a default message to send to server
+	m_pServerPacket->packetType = PT_DEFAULT;
+	
+	//Add Client info to server packet
+	SetClientInfo();
+	//Send message 
+	m_pClient->SendData(m_pServerPacket);
+}
+
+
+//Packet manipulations
+void CClientApp::SetClientInfo()
+{
+	/*<CLIENT_INFO>*/
+	//User Name
+	AddUserNameToClientInfo(m_strUserName);
+	//Client Socket address
+	m_pServerPacket->clientInfo.clientSocAddr = m_pClient->GetClientSocketAddress();
+	//Server Socket Address
+	m_pServerPacket->clientInfo.ServerSocAddr = m_pClient->GetServerSocketAddress();
+	//Activeness 
+	m_pServerPacket->clientInfo.bActive = m_bClientActive;
+}
+
+void CClientApp::AddTextToServerDataPacket(std::string _srtText)
+{
+	//convert and add the string to the ServerDataPacket
+	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
+	{
+		strcpy_s(m_pServerPacket->cText, _srtText.c_str());
+	}
+}
+
+void CClientApp::AddUserNameToClientInfo(std::string _srtUserName)
+{
+	//Add user name to Client info
+	if (_srtUserName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
+	{
+		strcpy_s(m_pServerPacket->clientInfo.cUserName, _srtUserName.c_str());
+	}
 }

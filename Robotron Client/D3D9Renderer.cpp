@@ -32,9 +32,8 @@ CD3D9Renderer::CD3D9Renderer()
 
 	//Fonts
 	m_pTitleFont = 0;
-	m_pMenuSelectFont = 0;
-	m_pInGameFont = 0;
-	m_pDebugFont = 0;
+	m_pMenuFont	= 0;
+	m_pListFont = 0;
 	
 	// Map of Surfaces Setup
 	m_pSurfaceMap = 0;
@@ -73,12 +72,9 @@ bool CD3D9Renderer::Shutdown()
 	m_pTitleFont = 0;
 	m_pMenuFont->Release();
 	m_pMenuFont = 0;
-	m_pMenuSelectFont->Release();
-	m_pMenuSelectFont = 0;
-	m_pInGameFont->Release();
-	m_pInGameFont = 0;
-	m_pDebugFont->Release();
-	m_pDebugFont = 0;
+	m_pListFont->Release();
+	m_pListFont = 0;
+	
 
 	//Deallocate the Surface map
 	if (m_pSurfaceMap != 0)
@@ -221,11 +217,6 @@ bool CD3D9Renderer::DeviceCreation()
 	return false;
 }
 
-/***********************
-* SetRenderStates: Set the render states for the device
-* @author: Jc Fowles
-* @return: void
-********************/
 void CD3D9Renderer::SetRenderStates()
 {
 	//Set initial Lighting
@@ -384,13 +375,10 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	m_pSurfaceMap = new std::map < int, IDirect3DSurface9* >;
 	
 	//Create the various fonts to draw text to screen
-	CreateTextFont(18, 9, "Times New Roman", TEXT_DEBUG_INFO);
 	CreateTextFont(150, 150/2, "Times New Roman", TEXT_TITLE);
-	CreateTextFont(70, 20, "Times New Roman", TEXT_MAIN_MENU);
-	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU_SELECT);
-	CreateTextFont(18, 9, "Times New Roman", TEXT_IN_GAME);
-	CreateTextFont(18, 9, "Times New Roman", TEXT_LIST);
-	CreateTextFont(18, 9, "Times New Roman", TEXT_LIST_SELECT);
+	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU);
+	CreateTextFont(26, 13, "Times New Roman", TEXT_LIST);
+	
 
 	return true;
 }
@@ -892,20 +880,20 @@ void CD3D9Renderer::EndRender()
 * @return: void
 ********************/
 void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYPos, D3DCOLOR _color)
-{
-	//Return the Font Description
-	D3DXFONT_DESCA fontDesc;
-	m_pDebugFont->GetDescA(&fontDesc);
-
-	//Create the text space as a RECT based on the string length and character sizes
-	RECT rect = { _iXPos, _iYPos, _iXPos + (_strInfo.length() * (fontDesc.Width + 3)), (_iYPos + fontDesc.Height + 3) };
-
-	m_pDebugFont->DrawTextA(NULL,				//Not used
-						_strInfo.c_str(),		//The String to draw to the screen
-						-1,						//String is null terminated
-						&rect,					//RECT to draw the text into
-						DT_TOP | DT_LEFT,		//Top justified and left Aligned
-						_color);				//The color of text
+{//TO DO:
+//	//Return the Font Description
+//	D3DXFONT_DESCA fontDesc;
+//	m_pDebugFont->GetDescA(&fontDesc);
+//
+//	//Create the text space as a RECT based on the string length and character sizes
+//	RECT rect = { _iXPos, _iYPos, _iXPos + (_strInfo.length() * (fontDesc.Width + 3)), (_iYPos + fontDesc.Height + 3) };
+//
+//	m_pDebugFont->DrawTextA(NULL,				//Not used
+//						_strInfo.c_str(),		//The String to draw to the screen
+//						-1,						//String is null terminated
+//						&rect,					//RECT to draw the text into
+//						DT_TOP | DT_LEFT,		//Top justified and left Aligned
+//						_color);				//The color of text
 }
 
 /***********************
@@ -1070,7 +1058,7 @@ void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 * @param: uiHeight: Height of the font to be created
 * @param: uiWidth: Width of the font to be created
 * @param: _strFontType: Type of the font to be created
-* @param: _textType: TO DO
+* @param: _textType: Type of font to create, and where to save it
 * @return: void
 ********************/
 void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType)
@@ -1100,30 +1088,14 @@ void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontTy
 		{
 			m_pTitleFont = pFont;
 		}break;
-		case TEXT_MAIN_MENU:
+		case TEXT_MENU:
 		{
 			m_pMenuFont = pFont;
-		}break;
-		case TEXT_MENU_SELECT:
-		{
-			m_pMenuSelectFont = pFont;
 		}break;
 		case TEXT_LIST:
 		{
 			m_pListFont = pFont;
 		}
-		case TEXT_LIST_SELECT:
-		{
-			m_pListSelectFont = pFont;
-		}
-		case TEXT_IN_GAME:
-		{
-			m_pInGameFont = pFont;
-		}break;
-		case TEXT_DEBUG_INFO:
-		{
-			m_pDebugFont = pFont;
-		}break;
 		default:
 			break;
 	}
@@ -1134,10 +1106,12 @@ void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontTy
 * @author: Jc Fowles
 * @parameter: _strText: Text to be rendered on screen
 * @parameter: _rect: Rectangle to draw text in
-* @parameter: _color: Color to make the Text
+* @parameter: DWORD _color: Color to make the Text
+* @parameter: eTextType _textType: Text type used to select the correct font style
+* @parameter: DWORD _Format: Text format
 * @return: void
 ********************/
-void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType)
+void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format)
 {
 	//Get the font pointer based on text type
 	ID3DXFont* pFont = FontSelect(_textType);
@@ -1152,13 +1126,11 @@ void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, e
 		static_cast<D3DCOLOR>(_color);
 
 		pFont->DrawTextA(NULL,						//Not used
-			_strText.c_str(),			//The String to draw to the screen
-			-1,							//String is null terminated
-			&_rect,						//RECT to draw the text into
-			DT_BOTTOM |
-			DT_CENTER |
-			DT_SINGLELINE,				//Bottom justified and Center Aligned
-			_color);					//The color of text
+						 _strText.c_str(),			//The String to draw to the screen
+						 -1,						//String is null terminated
+						 &_rect,					//RECT to draw the text into
+						 _Format,					//Text box format
+						 _color);					//The color of text
 
 	}
 }
@@ -1232,36 +1204,15 @@ ID3DXFont* CD3D9Renderer::FontSelect(eTextType _textType)
 		pFont = m_pTitleFont;
 	}break;
 
-	case TEXT_MAIN_MENU:
+	case TEXT_MENU:
 	{
 		pFont = m_pMenuFont;
 	}break;
-
-	case TEXT_MENU_SELECT:
-	{
-		pFont = m_pMenuSelectFont;
-	}break;
-
+	
 	case TEXT_LIST:
 	{
 		pFont = m_pListFont;
 	}break;
-
-	case TEXT_LIST_SELECT:
-	{
-		pFont = m_pListSelectFont;
-	}break;
-
-	case TEXT_IN_GAME:
-	{
-		pFont = m_pInGameFont;
-	}break;
-
-	case TEXT_DEBUG_INFO:
-	{
-		pFont = m_pDebugFont;
-	}break;
-
 	default:
 		break;
 	}

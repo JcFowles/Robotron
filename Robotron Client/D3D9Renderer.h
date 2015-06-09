@@ -12,6 +12,7 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
+//TO DO ifdef and comments transfer
 
 //Library Includes
 #include <map>
@@ -69,7 +70,7 @@ public:
 
 	virtual void RenderDebugOutput(std::string _strInfo,int _iXPos, int _iYPos, D3DCOLOR _color);
 
-	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType);
+	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format);
 	
 	virtual void CD3D9Renderer::SetBackgroundColor(DWORD _Color);
 
@@ -96,9 +97,9 @@ private:
 	virtual bool DeviceCreation();
 	
 	/***********************
-	* SetRenderStates: TO DO: Description
+	* SetRenderStates: Set the render states for the device
 	* @author: Jc Fowles
-	* @return: void: TO DO: Description
+	* @return: void
 	********************/
 	virtual void SetRenderStates();
 		
@@ -136,11 +137,8 @@ protected:
 
 	ID3DXFont* m_pTitleFont;
 	ID3DXFont* m_pMenuFont;
-	ID3DXFont* m_pMenuSelectFont;
-	ID3DXFont* m_pInGameFont;
-	ID3DXFont* m_pDebugFont;
 	ID3DXFont* m_pListFont;
-	ID3DXFont* m_pListSelectFont;
+	
 
 	bool m_bSpecular;
 

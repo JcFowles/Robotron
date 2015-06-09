@@ -134,13 +134,43 @@ private:
 	void ProcessFind();
 	
 	/***********************
+	* ProcessFind: Process the JOIN_REQUEST message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessJoinRequest();
+
+	/***********************
+	* ProcessFind: Process the DEFAULT message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessDefault();
+
+	/***********************
 	* AddTextToClientDataPacket: Convert passed in data to a ClientDataPacket
 	* @author: Jc Fowles
-	* @param: std::string _srtData: String Data to be converted
+	* @param: std::string _srtText: String Data to be converted
 	* @return: void
 	********************/
 	void AddTextToClientDataPacket(std::string _srtText);
+	
+	/***********************
+	* AddHostNameToServerInfo: Add the Host name to server info
+	* @author: Jc Fowles
+	* @param: std::string _srtHostName: Host name to be added
+	* @return: void
+	********************/
+	void AddHostNameToServerInfo(std::string _srtHostName);
 
+	/***********************
+	* AddServerToServerInfo: Add the server name to server info
+	* @author: Jc Fowles
+	* @Parameter: std::string _srtServerName: Server name to be added
+	* @return: void: 
+	********************/
+	void AddServerToServerInfo(std::string _srtServerName);
+	
 	/***********************
 	* WideStringToString: Convert a Wide string to a standard string
 	* @author: Jc Fowles
@@ -149,6 +179,13 @@ private:
 	********************/
 	std::string WideStringToString(wchar_t* _wstr);
 	
+	/***********************
+	* SetServerInfo: Set the Server info of the packet before sending
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void SetServerInfo();
+
 	//Member Variables
 public:
 
@@ -172,8 +209,9 @@ private:
 	ClientDataPacket* m_pClientPacket;
 	std::queue<ServerDataPacket>* m_pServerDataQueue;
 	static CMySemaphore s_Mutex;
+	bool m_bHaveHost;
 
-	std::map< std::string, sockaddr_in>* m_pMapClients;
+	//std::map< std::string, sockaddr_in>* m_pMapClients;
 
 	std::string m_strHostClient;
 	

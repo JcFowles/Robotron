@@ -27,6 +27,8 @@ CServer::~CServer()
 	m_pMapClients = 0;
 	delete m_HostClientInfo;
 	m_HostClientInfo = 0;
+	delete m_pMapActiveClients;
+	m_pMapActiveClients = 0;
 
 }
 
@@ -36,6 +38,7 @@ bool CServer::Initialise()
 	m_bWaitOnRecieve = false;
 	//Initialise the map of client addresses
 	m_pMapClients = new std::map < std::string, sockaddr_in > ;
+	m_pMapActiveClients = new std::map < std::string, bool >;
 	m_HostClientInfo = new std::pair < std::string, sockaddr_in > ;
 
 	//Free up the memory
@@ -121,6 +124,8 @@ bool CServer::SendData(ClientDataPacket* _pDataToSend)
 		ClientDataPacket packetToSend = *_pDataToSend;
 		int iBytesToSend = sizeof(packetToSend) + 1;
 
+
+
 		//Convert server data packet to a char pointer so that it is able to be sent
 		char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
 
@@ -193,32 +198,32 @@ bool CServer::SendData(std::string _strUser, ClientDataPacket* _pDataToSend)
 
 bool CServer::SendData(ClientDataPacket* _pDataToSend, sockaddr_in _socAddrToSendTo)
 {
-		//Create and get size of the packet to be sent
-		ClientDataPacket packetToSend = *_pDataToSend;
-		int iBytesToSend = sizeof(packetToSend) + 1;
+	//Create and get size of the packet to be sent
+	ClientDataPacket packetToSend = *_pDataToSend;
+	int iBytesToSend = sizeof(packetToSend) + 1;
+	
+	//Convert server data packet to a char pointer so that it is able to be sent
+	char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
 
-		//Convert server data packet to a char pointer so that it is able to be sent
-		char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
+	//Send data
+	int iNumBytes = sendto( m_hServerSocket,									// socket to send through.
+							cpPacketToSend,										// data to send
+							iBytesToSend,										// number of bytes to send
+							0,													// flags
+							reinterpret_cast<sockaddr*>(&_socAddrToSendTo),		// address to be filled with packet target
+							sizeof(_socAddrToSendTo)							// size of the above address struct.
+							);
 
-		//Send data
-		int iNumBytes = sendto(m_hServerSocket,									// socket to send through.
-			cpPacketToSend,										// data to send
-			iBytesToSend,										// number of bytes to send
-			0,													// flags
-			reinterpret_cast<sockaddr*>(&_socAddrToSendTo),	// address to be filled with packet target
-			sizeof(_socAddrToSendTo)							// size of the above address struct.
-			);
+	//check if data has been sent
+	if (iBytesToSend != iNumBytes)
+	{
+		//There was an error sending data from client to server
+		int iError = WSAGetLastError();
+		return false;
+	}
 
-		//check if data has been sent
-		if (iBytesToSend != iNumBytes)
-		{
-			//There was an error sending data from client to server
-			int iError = WSAGetLastError();
-			return false;
-		}
-
-		//client was found and message was send
-		return true;
+	//client was found and message was send
+	return true;
 
 }
 
@@ -230,7 +235,8 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 	char* cpReceivedData = new char[iBytesToReceive];
 	
 	//calculate the size of client address
-	int iSizeOfClientAddress = sizeof(m_ClientSocketAddress);
+	sockaddr_in socReceivedAddr;
+	int iSizeOfReceiveAddr = sizeof(socReceivedAddr);
 
 	struct timeval stucTimeValue;
 	if (m_bWaitOnRecieve) //Wait till you receive something
@@ -253,8 +259,8 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 										cpReceivedData,												// incoming packet to be filled
 										iBytesToReceive,											// length of incoming packet to be filled
 										0,															// flags
-										reinterpret_cast<sockaddr*>(&(m_ClientSocketAddress)),		// address to be filled with packet source
-										&(iSizeOfClientAddress)										// size of the above address struct.
+										reinterpret_cast<sockaddr*>(&(socReceivedAddr)),		// address to be filled with packet source
+										&(iSizeOfReceiveAddr)										// size of the above address struct.
 										);
 
 	if (iNumReceivedBytes < 0)
@@ -271,7 +277,7 @@ bool CServer::ReceiveData(ServerDataPacket* _pReceivedData)
 
 	//convert back to a Server Data Packet
 	*_pReceivedData = *(reinterpret_cast<ServerDataPacket*>(cpReceivedData));
-	_pReceivedData->socReceivedFrom = m_ClientSocketAddress;
+	_pReceivedData->clientInfo.clientSocAddr = socReceivedAddr;
 
 	//Clean up memory
 	delete cpReceivedData;
@@ -327,16 +333,98 @@ bool CServer::Broadcast(ClientDataPacket* _pDataToSend)
 
 }
 
-
 bool CServer::AddUser(std::string _UserName, sockaddr_in _ClientAddress)
 {
-	std::pair<std::map<std::string, sockaddr_in>::iterator, bool> MapIterater;
-
+	//Map of clients
+	std::pair<std::map<std::string, sockaddr_in>::iterator, bool> MapClientIter;
 	//Add passed in params to map of clients
-	MapIterater = m_pMapClients->insert(std::pair<std::string, sockaddr_in>(_UserName, _ClientAddress));
+	MapClientIter = m_pMapClients->insert(std::pair<std::string, sockaddr_in>(_UserName, _ClientAddress));
+
+	//Map of active clients
+	std::pair<std::map<std::string, bool>::iterator, bool> MapActiveClientIter;
+	MapActiveClientIter = m_pMapActiveClients->insert(std::pair<std::string, bool>(_UserName, false));
 
 	//Return the bool part(second)
 	//This will hold true if a new element was added 
 	//Or false if the element already exists
-	return MapIterater.second;
+	return MapClientIter.second;
+}
+
+void CServer::RemoveUser(std::string _UserName)
+{
+	m_pMapClients->erase(_UserName);
+	m_pMapActiveClients->erase(_UserName);
+}
+
+void CServer::RemoveAll()
+{
+	m_pMapClients->clear();
+	m_pMapActiveClients->clear();
+}
+
+void CServer::SetClientList(ClientDataPacket* _pDataToSend)
+{
+	//Reset list of users to empty names
+	for (int iUser = 0; iUser < NetworkValues::MAX_USERS; iUser++)
+	{
+		//Set the user name to nothing
+		std::string strText = "";
+		strcpy_s(_pDataToSend->serverInfo.cListOfClients[iUser], strText.c_str());
+	}
+
+	//Run through the list of clients
+	std::map< std::string, sockaddr_in>::iterator iterClient = m_pMapClients->begin();
+	std::map< std::string, sockaddr_in>::iterator iterClientEnd = m_pMapClients->end();
+	int iUser = 0;
+	while (iterClient != iterClientEnd)
+	{
+		std::string strText = iterClient->first;
+		if (strText.length() < NetworkValues::MAX_NAME_LENGTH)
+		{
+			//Set the user name in the active client list in the server info to the current user in the map of active clients
+			strcpy_s(_pDataToSend->serverInfo.cListOfClients[iUser], strText.c_str());
+		}
+
+		//Get next clients user name
+		iterClient++;
+		//Increment the iUser
+		iUser++;
+	}
+}
+
+void CServer::SetActiveClientList(ClientDataPacket* _pDataToSend)
+{
+	//Reset the list of active clients
+	for (int iUser = 0; iUser < NetworkValues::MAX_USERS; iUser++)
+	{
+		//Set the user name to nothing
+		std::string strText = "";
+		//Set the user name in the active client list in the server info to an empty sting
+		strcpy_s(_pDataToSend->serverInfo.activeClientList[iUser].cUserName, strText.c_str());
+
+		//Set the active-ness of the user in the active client list in the server info to false
+		_pDataToSend->serverInfo.activeClientList[iUser].bActive = false;
+	}
+
+	//Run through the map of active clients
+	std::map< std::string, bool>::iterator iterClient = m_pMapActiveClients->begin();
+	std::map< std::string, bool>::iterator iterClientEnd = m_pMapActiveClients->end();
+	int iUser = 0;
+	while (iterClient != iterClientEnd)
+	{
+		std::string strText = iterClient->first;
+		if (strText.length() < NetworkValues::MAX_NAME_LENGTH)
+		{
+			//Set the user name in the active client list in the server info to the current user in the map of active clients
+			strcpy_s(_pDataToSend->serverInfo.activeClientList[iUser].cUserName, strText.c_str());
+		}
+
+		//Set the active-ness of the current user in the active client list in the server info to the activeness of the client in the map
+		_pDataToSend->serverInfo.activeClientList[iUser].bActive = iterClient->second;
+		
+		//Get next clients user name
+		iterClient++;
+		//Increment the iUser
+		iUser++;
+	}
 }

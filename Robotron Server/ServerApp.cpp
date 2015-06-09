@@ -45,8 +45,8 @@ CServerApp::~CServerApp(void)
 	m_pClientPacket = 0;
 	delete m_pServerDataQueue;
 	m_pServerDataQueue = 0;
-	delete m_pMapClients;
-	m_pMapClients = 0;
+	/*delete m_pMapClients;
+	m_pMapClients = 0;*/
 }
 
 CServerApp& CServerApp::GetInstance()
@@ -79,17 +79,19 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	//Initialise member variables
 	m_pServer = new CServer();
 	VALIDATE(m_pServer->Initialise());
+	m_bHaveHost = false;
 	m_pServerDataQueue = new std::queue < ServerDataPacket >;
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
-	//Initialise the map of client addresses
-	m_pMapClients = new std::map < std::string, sockaddr_in > ;
-
+	
+	//Set Server info on creation
+	SetServerInfo();
+	
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CServerApp::ReceiveDataThread, (this));
 
 	m_pClientPacket->packetType = PT_CREATE;
-	m_pClientPacket->socReceivedFrom = m_pServer->GetServerSocketAddress();
+	m_pClientPacket->serverInfo.serverSocAddr = m_pServer->GetServerSocketAddress();
 	//Send back the the server name and Host client names to be checked against
 	std::string strTextToSend = m_strServerName + ":" + m_strHostClient;
 	AddTextToClientDataPacket(strTextToSend);
@@ -101,8 +103,7 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 }
 
 void CServerApp::Process()
-{
-	
+{	
 	ProcessReceiveData();
 }
 
@@ -123,15 +124,6 @@ bool CServerApp::RenderSingleFrame()
 	Process();
 
 	return true;
-}
-
-void CServerApp::AddTextToClientDataPacket(std::string _srtText)
-{
-	//convert and add the string to the ServerDataPacket
-	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
-	{
-		strcpy_s(m_pClientPacket->cText, _srtText.c_str());
-	}
 }
 
 void CServerApp::ReceiveDataThread()
@@ -183,9 +175,18 @@ void CServerApp::ProcessReceiveData()
 		
 		switch (m_pServerPacket->packetType)
 		{
+		case PT_DEFAULT:
+		{
+			ProcessDefault();
+		}
+			break;
 		case PT_CREATE:
 		{
-			ProcessCreation();
+			//only process creation if you have no host
+			if (m_bHaveHost == false)
+			{
+				ProcessCreation();
+			}
 		}
 			break;
 		case PT_FIND:
@@ -193,6 +194,33 @@ void CServerApp::ProcessReceiveData()
 			ProcessFind();
 		}
 			break;
+		case PT_JOIN_REQUEST:
+		{
+			ProcessJoinRequest();
+		}
+			break;
+		case PT_LEAVE:
+		{
+			std::string strUserName(m_pServerPacket->clientInfo.cUserName);
+			//TO DO:
+			//If in game state
+			//Before remove - send to all users that he has left
+			m_pServer->RemoveUser(strUserName);
+		}
+		break;
+		case PT_QUIT:
+		{
+			std::string strUserName(m_pServerPacket->clientInfo.cUserName);
+			if ((strUserName == m_pServer->GetHostClientInfo()->first) &&
+				(m_pServerPacket->clientInfo.clientSocAddr.sin_addr.S_un.S_addr == m_pServer->GetHostClientInfo()->second.sin_addr.S_un.S_addr)) //Compare two socket address are equal
+			{
+				//TO DO:
+				//If in game state
+				//Before remove - send to all users that server will close
+				m_pServer->RemoveAll();
+				m_pServer->SetActive(false);
+			}
+		}
 		default:
 			break;
 		}
@@ -212,24 +240,64 @@ void CServerApp::ProcessCreation()
 
 		//Give the server the host clients information
 		//So that the server knows who its hosting client is
-		m_pServer->SetHostClientInfo(m_strHostClient, m_pServerPacket->socReceivedFrom);
+		m_pServer->SetHostClientInfo(m_strHostClient, m_pServerPacket->clientInfo.clientSocAddr);
 
 		//Add the client to the map of clients
-		m_pServer->AddUser(m_strHostClient, m_pServerPacket->socReceivedFrom);
+		m_pServer->AddUser(m_strHostClient, m_pServerPacket->clientInfo.clientSocAddr);
 		
+		//This server now has its host
+		m_bHaveHost = true;
+
 	}
 	
 }
 
 void CServerApp::ProcessFind()
 {
+	//Create find message to send
 	m_pClientPacket->packetType = PT_FIND;
-	AddTextToClientDataPacket(m_strServerName);
-	m_pClientPacket->iNum = m_pMapClients->size();
-
-	m_pServer->SendData(m_pClientPacket, m_pServerPacket->socReceivedFrom);
+	
+	//Add server info to client packet
+	SetServerInfo();
+	//Send message
+	m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
 }
 
+void CServerApp::ProcessJoinRequest()
+{
+	//Initialize and create join request message
+	m_pClientPacket->packetType = PT_JOIN_REQUEST;
+	m_pClientPacket->bSuccess = false;
+	
+	//Try add user and its socket address to the map of clients
+	if (m_pServer->AddUser(m_pServerPacket->clientInfo.cUserName, m_pServerPacket->clientInfo.clientSocAddr))
+	{
+		m_pClientPacket->bSuccess = true;
+	}
+	else
+	{
+		//User name already in use
+		std::string strError = "<KW>INVALID_USERNAME";
+		AddTextToClientDataPacket(strError);
+	}
+			
+	//Add server info to client packet
+	SetServerInfo();
+	//Send message
+	m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
+}
+
+void CServerApp::ProcessDefault()
+{
+	//Create default message
+	m_pClientPacket->packetType = PT_DEFAULT;
+	//Add server info to client packet
+	SetServerInfo();
+	//Send message
+	m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
+}
+
+//String manipulation
 std::string CServerApp::WideStringToString(wchar_t* _wstr)
 {
 	//Convert the Wide String to a standard string
@@ -248,3 +316,48 @@ std::string CServerApp::WideStringToString(wchar_t* _wstr)
 	return strConverted;
 }
 
+
+//Packet manipulations
+void CServerApp::SetServerInfo()
+{
+	/*<SERVER_INFO>*/
+	//Server Name
+	AddServerToServerInfo(m_strServerName);
+	//Host Name
+	AddHostNameToServerInfo(m_strHostClient);
+	//Socket address
+	m_pClientPacket->serverInfo.serverSocAddr = m_pServer->GetServerSocketAddress();
+	//Number of clients
+	m_pClientPacket->serverInfo.iNumClients = m_pServer->GetNumClients();
+	//Client list
+	m_pServer->SetClientList(m_pClientPacket);
+	//Active Client List
+	m_pServer->SetActiveClientList(m_pClientPacket);
+}
+
+void CServerApp::AddServerToServerInfo(std::string _srtServerName)
+{
+	//Add Server name to the server info of the Client packet
+	if (_srtServerName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
+	{
+		strcpy_s(m_pClientPacket->serverInfo.cServerName, _srtServerName.c_str());
+	}
+}
+
+void CServerApp::AddHostNameToServerInfo(std::string _srtHostName)
+{
+	//Add host name to the server info of the Client packet
+	if (_srtHostName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
+	{
+		strcpy_s(m_pClientPacket->serverInfo.cHostName, _srtHostName.c_str());
+	}
+}
+
+void CServerApp::AddTextToClientDataPacket(std::string _srtText)
+{
+	//convert and add the string to the ServerDataPacket
+	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
+	{
+		strcpy_s(m_pClientPacket->cText, _srtText.c_str());
+	}
+}

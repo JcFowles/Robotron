@@ -94,6 +94,39 @@ public:
 	* @return: bool: if successfully added, false returned if user name already exists
 	********************/
 	bool AddUser(std::string _UserName, sockaddr_in _ClientAddress);
+		
+	/***********************
+	* RemoveUser: Remove the passed in user from the map of clients
+	* @author: Jc Fowles
+	* @Parameter: std::string _UserName: User name of the client to be removed
+	* @return: void:
+	********************/
+	void RemoveUser(std::string _UserName);
+	
+	/***********************
+	* RemoveAll: remove all clients from the map of clients
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void RemoveAll();
+
+	/***********************
+	* SetClientList: Set the list of clients in the server info of the client packet. 
+	*				 To prevent old client lists being sent
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to edit before sending
+	* @return: void:
+	********************/
+	void SetClientList(ClientDataPacket* _pDataToSend);
+
+	/***********************
+	* SetActiveClientList: Set the list of active clients in the server info of the client packet.
+	*					   To prevent old client lists being sent
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to edit before sending
+	* @return: void:
+	********************/
+	void SetActiveClientList(ClientDataPacket* _pDataToSend);
 
 	/***********************
 	* getActive: Return weather the server is active
@@ -133,7 +166,7 @@ public:
 	********************/
 	sockaddr_in GetServerSocketAddress() const { return m_ServerSocketAddress; }
 
-	
+	int GetNumClients() const { return m_pMapClients->size(); }
 	
 	//Member variables
 public:
@@ -145,10 +178,10 @@ private:
 
 	SOCKET m_hServerSocket;
 	sockaddr_in m_ServerSocketAddress;
-	sockaddr_in m_ClientSocketAddress;
+	//sockaddr_in m_ClientSocketAddress;
 
 	std::map< std::string, sockaddr_in>* m_pMapClients;
-
+	std::map< std::string, bool>* m_pMapActiveClients;
 	std::pair<std::string, sockaddr_in>* m_HostClientInfo;
 
 	

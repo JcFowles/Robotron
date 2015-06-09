@@ -48,11 +48,14 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		}break;
 
 		//Closing the window
+		case WM_CLOSE:
+		case WM_QUIT:
 		case WM_DESTROY:
 		{
 			//Send message to close the entire application
-			PostQuitMessage(0);
+			CClientApp::GetInstance().PreQuit();
 			CClientApp::GetInstance().DestroyInstance();
+			PostQuitMessage(0);
 			return 0;
 		}break;
 		
@@ -76,26 +79,27 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		//***MOUSE***
 		case WM_LBUTTONDOWN:
 		{
-			//TO DO
+			//Left mouse button is down
 			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = true;
 
 		}break;
 
 		case WM_LBUTTONUP:
 		{
+			//Left mouse button is up
 			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = false;
-			//TO DO
+			
 		}break;
 		
 		case WM_RBUTTONDOWN:
 		{
-			//TO DO
+			//Right mouse button is down
 			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = true;
 		}break;
 
 		case WM_RBUTTONUP:
 		{
-			//TO DO
+			//Right mouse button is up
 			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = false;
 		}break;
 		
@@ -233,7 +237,9 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	}
 
 	//Destroy the game instance
+	rClientApp.PreQuit();
 	rClientApp.DestroyInstance();
+	
 	
     // return this part of the WM_QUIT message to Windows
     return msg.wParam;

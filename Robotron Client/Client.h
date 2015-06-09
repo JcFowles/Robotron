@@ -93,11 +93,20 @@ public:
 	sockaddr_in GetClientSocketAddress() const { return m_ClientSocketAddress; }
 	
 	/***********************
-	* FindServers: Broadcast to find all active servers
+	* GetServerSocketAddress: Return the socket address of the sever
 	* @author: Jc Fowles
+	* @return: sockaddr_in: The socket address of the sever
+	********************/
+	sockaddr_in GetServerSocketAddress() const { return m_ServerSocketAddress; }
+	
+	/***********************
+	* SetServerSocketAddress: Set the socket address of the sever
+	* @author: Jc Fowles
+	* @Parameter: sockaddr_in _serverSocAddr: socket address to store as the server socket address
 	* @return: void:
 	********************/
-	void FindServers();
+	void SetServerSocketAddress(sockaddr_in _serverSocAddr) { m_ServerSocketAddress = _serverSocAddr; }
+	
 
 	//Member variables
 public:

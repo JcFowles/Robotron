@@ -53,6 +53,8 @@ enum eHostStates
 };
 
 
+
+
 #define VALIDATE(a) if (!a) return (false)
 
 #endif //__APP_DEFINES_H__

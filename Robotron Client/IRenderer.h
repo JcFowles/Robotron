@@ -72,7 +72,7 @@ public:
 	virtual void EndRender() = 0;
 	virtual void RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYPos, D3DCOLOR _color) = 0;;
 	
-	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType) = 0;
+	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format) = 0;
 
 	virtual void SetBackgroundColor(DWORD _Color) = 0;
 

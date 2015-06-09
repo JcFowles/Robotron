@@ -29,7 +29,7 @@
 // Types
 typedef long VertexType;
 
-//Enumerators defining primative types for DirectX9
+//Enumerators defining primitive types for DirectX9
 enum eIGPrimitiveType
 {
 	INVALID_IGPT,
@@ -61,12 +61,9 @@ enum eColorType
 enum eTextType
 {
 	TEXT_TITLE,
-	TEXT_MAIN_MENU,
-	TEXT_MENU_SELECT,
-	TEXT_LIST,
-	TEXT_LIST_SELECT,
-	TEXT_IN_GAME,
-	TEXT_DEBUG_INFO
+	TEXT_MENU,
+	TEXT_LIST
+	
 };
 
 //Light Parameters

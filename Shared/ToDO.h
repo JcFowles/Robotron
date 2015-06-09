@@ -13,4 +13,12 @@
 * join server
 */
 
-/*Prevent buffer over run when converting datapacket sructs*/
+/*Prevent buffer over run when converting datapacket structs*/
+
+/*Menu selection not in rects??*/
+
+/*stop empty names*/
+
+/*Server full - Race to user name*/
+
+//bool checkSockaddr(sockaddr_in const &a, sockaddr_in const &b) { return a.sin_addr.S_un.S_addr == b.sin_addr.S_un.S_addr; }

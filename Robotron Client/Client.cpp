@@ -33,7 +33,7 @@ bool CClient::Initialise()
 	bool bSuccess = false;
 	ZeroMemory(&m_ClientSocketAddress, sizeof(m_ClientSocketAddress));
 	
-	//Initiates use of the Winsock DLL by a process
+	//Initiates use of the Win sock DLL by a process
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 	{
@@ -69,11 +69,11 @@ bool CClient::Initialise()
 		{
 			//Set Client socket to be able to broadcast
 			bool bBroadcastVal = true;
-			if (	setsockopt(m_hClientSocket,
-					SOL_SOCKET,
-					SO_BROADCAST,
-					(char*)&bBroadcastVal,
-					sizeof(bBroadcastVal)) == -1)
+			if (setsockopt( m_hClientSocket,
+							SOL_SOCKET,
+							SO_BROADCAST,
+							(char*)&bBroadcastVal,
+							sizeof(bBroadcastVal)) == -1)
 			{
 				//Error Setting client socket to be able to broadcast
 				closesocket(m_hClientSocket);
@@ -94,16 +94,7 @@ bool CClient::Initialise()
 		//if we got to this point it meant we have failed to bind
 		//Therefore try another port number
 	}
-
-	//TO DO THIS SHOULD BE MOVED
-
-	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress));
-	//setup address structure
-	m_ServerSocketAddress.sin_family = AF_INET;
-	m_ServerSocketAddress.sin_port = htons(NetworkValues::DEFAULT_SERVER_PORT);
-	//m_ServerSocketAddress.sin_addr.S_un.S_addr = INADDR_ANY;
-	inet_pton(AF_INET, NetworkValues::ipAddUPD, &m_ServerSocketAddress.sin_addr);
-	
+		
 	//Return success
 	return bSuccess;
 }
@@ -117,13 +108,13 @@ bool CClient::SendData(ServerDataPacket* _pDataToSend)
 	char* cpPacketToSend = reinterpret_cast<char*>(&packetToSend);
 	
 	//Send data
-	int iNumSendBytes = sendto( m_hClientSocket,									// socket to send through.
-							cpPacketToSend,											// data to send
-							iBytesToSend,											// number of bytes to send
-							0,														// flags
-							reinterpret_cast<sockaddr*>(&m_ServerSocketAddress),	// address to be filled with packet target
-							sizeof(m_ServerSocketAddress)							// size of the above address struct.
-							);
+	int iNumSendBytes = sendto( m_hClientSocket,										// socket to send through.
+								cpPacketToSend,											// data to send
+								iBytesToSend,											// number of bytes to send
+								0,														// flags
+								reinterpret_cast<sockaddr*>(&m_ServerSocketAddress),	// address to be filled with packet target
+								sizeof(m_ServerSocketAddress)							// size of the above address struct.
+								);
 
 	//check if data has been sent
 	if (iBytesToSend != iNumSendBytes)
@@ -144,7 +135,8 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 	char* cpReceivedData = new char[iBytesToReceive];
 
 	//calculate the size of client address
-	int iSizeOfClientAddress = sizeof(m_ServerSocketAddress);
+	sockaddr_in socReceivedAddr;
+	int iSizeOfRecieveAddr = sizeof(socReceivedAddr);
 
 	struct timeval stucTimeValue;
 	if (m_bWaitOnRecieve) //Wait till you receive something
@@ -167,8 +159,8 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 										cpReceivedData,												// incoming packet to be filled
 										iBytesToReceive,											// length of incoming packet to be filled
 										0,															// flags
-										reinterpret_cast<sockaddr*>(&(m_ServerSocketAddress)),		// address to be filled with packet source
-										&(iSizeOfClientAddress)										// size of the above address struct.
+										reinterpret_cast<sockaddr*>(&(socReceivedAddr)),			// address to be filled with packet source
+										&(iSizeOfRecieveAddr)										// size of the above address struct.
 										);
 
 	if (iNumReceivedBytes < 0)
@@ -183,8 +175,11 @@ bool CClient::ReceiveData(ClientDataPacket* _pReceivedData)
 		return false;
 	}
 
+
+
 	//convert back to a Server Data Packet
 	*_pReceivedData = *(reinterpret_cast<ClientDataPacket*>(cpReceivedData));
+	_pReceivedData->serverInfo.serverSocAddr = socReceivedAddr;
 
 	//Clean up memory
 	delete cpReceivedData;
@@ -239,7 +234,3 @@ bool CClient::Broadcast(ServerDataPacket* _pDataToSend)
 
 }
 
-void CClient::FindServers()
-{
-
-}
