@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph DataVirtualized="True" Layout="Sugiyama" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="(Name=&quot;std::_Tree&lt;std::_Tmap_traits&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt;,bool,std::less&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; &gt;,std::allocator&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt; &gt;,0&gt; &gt;::_Lmost&quot; @5 Type=&quot;std::_Tree_node&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt;,void *&gt; * &amp;&quot; @2)" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="34.5483333333334,360.1575,63.9933333333333,25.96" CodeSchemaProperty_IsExternal="True" Label="_Tree" SourceLocation="(Assembly=&quot;file:///c:/program files (x86)/microsoft visual studio 12.0/vc/include/xtree&quot; StartLineNumber=2122 StartCharacterOffset=0 EndLineNumber=2122 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+      <Category Ref="ExternalCallStackEntry" />
+    </Node>
+    <Node Id="(Name=0fb78f50 @1 @2)" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="364.086666666667,302.51,82.9166666666667,25.96" CodeSchemaProperty_IsExternal="True" Label="0fb78f50">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="ExternalCallStackEntry" />
+    </Node>
+    <Node Id="(Name=CClient::ReceiveData @3 Type=bool OverloadingParameters=[(Type=&quot;ClientDataPacket *&quot; Name=_pReceivedData)] @2)" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="340.096666666667,115.295,100.896666666667,25.96" Label="ReceiveData" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/client.cpp&quot; StartLineNumber=154 StartCharacterOffset=0 EndLineNumber=154 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="(Name=CClientApp::ProcessMenuSelection @3 @7 OverloadingParameters=[(Type=&quot;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt;&quot; Name=_strMenuItem)] @2)" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="163.178333333333,230.59,154.733333333333,25.96" Label="ProcessMenuSelection" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=326 StartCharacterOffset=0 EndLineNumber=326 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@10" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="348.04,230.59,115.01,25.96" Label="JoinMenuDraw" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=885 StartCharacterOffset=0 EndLineNumber=885 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@11" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="202.58,172.9425,75.93,25.96" Label="Process" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=194 StartCharacterOffset=0 EndLineNumber=194 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@12" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="312.746666666667,57.6475,137.596666666667,25.96" Label="ReceiveDataThread" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=1250 StartCharacterOffset=0 EndLineNumber=1250 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@13" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="0,230.59,133.09,25.96" Label="SetActiveClientList" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron server/server.cpp&quot; StartLineNumber=404 StartCharacterOffset=0 EndLineNumber=404 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@15" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="84.8016666666667,57.6475,83.4866666666667,25.96" Label="WinMain" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron server/sourceserver.cpp&quot; StartLineNumber=169 StartCharacterOffset=0 EndLineNumber=169 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@16" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="198.801666666667,57.6475,83.4866666666667,25.96" Label="WinMain" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/sourceclient.cpp&quot; StartLineNumber=229 StartCharacterOffset=0 EndLineNumber=229 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@17" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="61.9683333333333,115.295,79.1533333333333,25.96" Label="Initialise" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron server/serverapp.cpp&quot; StartLineNumber=88 StartCharacterOffset=0 EndLineNumber=88 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@4" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="171.128333333333,115.295,138.833333333333,25.96" Label="RenderSingleFrame" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=1149 StartCharacterOffset=0 EndLineNumber=1149 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@6" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="34.5483333333334,302.51,63.9933333333333,25.96" CodeSchemaProperty_IsExternal="True" Label="_Tree" SourceLocation="(Assembly=&quot;file:///c:/program files (x86)/microsoft visual studio 12.0/vc/include/xtree&quot; StartLineNumber=1211 StartCharacterOffset=0 EndLineNumber=1211 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+      <Category Ref="ExternalCallStackEntry" />
+    </Node>
+    <Node Id="@8" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="48.2916666666667,172.9425,106.506666666667,25.96" Label="SetServerInfo" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron server/serverapp.cpp&quot; StartLineNumber=335 StartCharacterOffset=0 EndLineNumber=335 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="@9" Category="CodeSchema_CallStackUnresolvedMethod" Bounds="308.861666666667,172.9425,63.3666666666667,25.96" Label="Draw" SourceLocation="(Assembly=&quot;file:///h:/github/robotron/robotron client/clientapp.cpp&quot; StartLineNumber=768 StartCharacterOffset=0 EndLineNumber=768 EndCharacterOffset=0)">
+      <Category Ref="CallStackEntry" />
+      <Category Ref="CodeSchema_SourceLocation" />
+    </Node>
+    <Node Id="ExternalCodeRootNode" Category="ExternalCallStackEntry" Bounds="194.051666666667,0,92.9866666666667,25.96" Label="External Code">
+      <Category Ref="CallStackEntry" />
+    </Node>
+  </Nodes>
+  <Links>
+    <Link Source="@10" Target="(Name=0fb78f50 @1 @2)" Category="CallStackIndirectCall" Bounds="405.545002832295,256.54999206543,7.84155929522967E-06,36.9600134277346" Label="External Code" LabelBounds="409.545006753075,267.049999203624,72.9866666666667,15.96" />
+    <Link Source="@11" Target="(Name=CClientApp::ProcessMenuSelection @3 @7 OverloadingParameters=[(Type=&quot;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt;&quot; Name=_strMenuItem)] @2)" Category="CallStackDirectCall" Bounds="240.54500579834,198.902500610352,0,22.6874914550781" />
+    <Link Source="@12" Target="(Name=CClient::ReceiveData @3 Type=bool OverloadingParameters=[(Type=&quot;ClientDataPacket *&quot; Name=_pReceivedData)] @2)" Category="CallStackDirectCall" Bounds="383.571455381904,83.607498626709,3.55882425195136,22.7952203949493" />
+    <Link Source="@13" Target="@6" Category="CallStackDirectCall" Bounds="66.5449981689453,256.54999206543,0,36.9600134277344" />
+    <Link Source="@15" Target="@17" Category="CallStackDirectCall" Bounds="110.754848252757,83.607498626709,10.161112934388,23.4305168565767" />
+    <Link Source="@16" Target="@4" Category="CallStackDirectCall" Bounds="240.544998168945,83.607498626709,2.8421709430404E-14,22.6875028991699" />
+    <Link Source="@17" Target="@8" Category="CallStackDirectCall" Bounds="101.545003890991,141.255001525879,0,22.6874990844726" />
+    <Link Source="@4" Target="@11" Category="CallStackDirectCall" Bounds="240.544999886792,141.255001525879,3.00259131336134E-06,22.6874990844727" />
+    <Link Source="@4" Target="@9" Category="CallStackDirectCall" Bounds="263.061152739641,141.255001525879,47.1705087214265,27.1926185833254" />
+    <Link Source="@6" Target="(Name=&quot;std::_Tree&lt;std::_Tmap_traits&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt;,bool,std::less&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; &gt;,std::allocator&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt; &gt;,0&gt; &gt;::_Lmost&quot; @5 Type=&quot;std::_Tree_node&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt;,void *&gt; * &amp;&quot; @2)" Category="CallStackDirectCall" Bounds="66.5449981689453,328.470005493164,0,22.6874914550781" />
+    <Link Source="@8" Target="@13" Category="CallStackDirectCall" Bounds="79.0964327539568,198.902500610352,14.5679147059359,23.9943886066216" />
+    <Link Source="@9" Target="@10" Category="CallStackDirectCall" Bounds="355.180504012535,198.902500610352,28.9956215605985,25.7157608270448" />
+    <Link Source="ExternalCodeRootNode" Target="@12" Category="CallStackIndirectCall" Bounds="272.292776113626,25.9599995422363,69.1738111083249,28.2815405144443" />
+    <Link Source="ExternalCodeRootNode" Target="@15" Category="CallStackIndirectCall" Bounds="160.244929362531,25.9599995422363,54.6316525958213,27.6261240614108" />
+    <Link Source="ExternalCodeRootNode" Target="@16" Category="CallStackIndirectCall" Bounds="240.544998168945,25.9599995422363,0,22.6874990844727" />
+  </Links>
+  <Categories>
+    <Category Id="CallStackDirectCall" Label="Call Stack direct call" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Call Stack direct call" OutgoingActionLabel="Call Stack direct call" />
+    <Category Id="CallStackEntry" Label="Call Stack Entry" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Call Stack Entry" />
+    <Category Id="CallStackIndirectCall" Label="Call Stack indirect call" CanBeDataDriven="True" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Call Stack indirect call" OutgoingActionLabel="Call Stack indirect call" />
+    <Category Id="CodeSchema_CallStackUnresolvedMethod" Label="Unresolved Method" CanBeDataDriven="True" DefaultAction="Microsoft.AllOutBoundLinks" IsProviderRoot="False" NavigationActionLabel="Unresolved Method" />
+    <Category Id="CodeSchema_SourceLocation" Label="Source Location" Icon="File" />
+    <Category Id="ExternalCallStackEntry" Label="External Call Stack Entry" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="External Call Stack Entry" />
+  </Categories>
+  <Properties>
+    <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CanLinkedNodesBeDataDriven" Label="CanLinkedNodesBeDataDriven" Description="CanLinkedNodesBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsExternal" Label="Is External" Description="Flag indicating whether this node is considered external" DataType="System.Boolean" />
+    <Property Id="DataVirtualized" Label="Data Virtualized" Description="If true, the graph can contain nodes and links that represent data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
+    <Property Id="DefaultAction" Label="DefaultAction" Description="DefaultAction" DataType="System.String" />
+    <Property Id="Expression" DataType="System.String" />
+    <Property Id="GroupLabel" DataType="System.String" />
+    <Property Id="Icon" DataType="System.String" />
+    <Property Id="IncomingActionLabel" Label="IncomingActionLabel" Description="IncomingActionLabel" DataType="System.String" />
+    <Property Id="IsEnabled" DataType="System.Boolean" />
+    <Property Id="IsProviderRoot" Label="IsProviderRoot" Description="IsProviderRoot" DataType="System.Boolean" />
+    <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
+    <Property Id="LabelBounds" DataType="System.Windows.Rect" />
+    <Property Id="Layout" DataType="System.String" />
+    <Property Id="NavigationActionLabel" Label="NavigationActionLabel" Description="NavigationActionLabel" DataType="System.String" />
+    <Property Id="OutgoingActionLabel" Label="OutgoingActionLabel" Description="OutgoingActionLabel" DataType="System.String" />
+    <Property Id="SourceLocation" Label="Start Line Number" DataType="Microsoft.VisualStudio.GraphModel.CodeSchema.SourceLocation" />
+    <Property Id="TargetType" DataType="System.Type" />
+    <Property Id="Value" DataType="System.String" />
+    <Property Id="ValueLabel" DataType="System.String" />
+    <Property Id="Visibility" Label="Visibility" Description="Defines whether a node in the graph is visible or not" DataType="System.Windows.Visibility" />
+  </Properties>
+  <QualifiedNames>
+    <Name Id="Assembly" Label="Assembly" ValueType="Uri" />
+    <Name Id="IsUnresolved" Label="Is Unresolved" ValueType="System.String" />
+    <Name Id="Name" Label="Name" ValueType="System.String" />
+    <Name Id="OverloadingParameters" Label="Parameter" ValueType="Microsoft.VisualStudio.GraphModel.GraphNodeIdCollection" Formatter="NameValueNoEscape" />
+    <Name Id="Type" Label="Type" ValueType="System.Object" />
+  </QualifiedNames>
+  <IdentifierAliases>
+    <Alias n="1" Uri="Assembly=msvcr120d.dll" />
+    <Alias n="2" Id="IsUnresolved=True" />
+    <Alias n="3" Uri="Assembly=Robotron Client.exe" />
+    <Alias n="4" Id="(Name=CClientApp::RenderSingleFrame @3 Type=bool @2)" />
+    <Alias n="5" Uri="Assembly=Robotron Server.exe" />
+    <Alias n="6" Id="(Name=&quot;std::_Tree&lt;std::_Tmap_traits&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt;,bool,std::less&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; &gt;,std::allocator&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt; &gt;,0&gt; &gt;::begin&quot; @5 Type=&quot;std::_Tree_iterator&lt;std::_Tree_val&lt;std::_Tree_simple_types&lt;std::pair&lt;std::basic_string&lt;char,std::char_traits&lt;char&gt;,std::allocator&lt;char&gt; &gt; const ,bool&gt; &gt; &gt; &gt;&quot; @2)" />
+    <Alias n="7" Id="Type=void" />
+    <Alias n="8" Id="(Name=CServerApp::SetServerInfo @5 @7 @2)" />
+    <Alias n="9" Id="(Name=CClientApp::Draw @3 @7 @2)" />
+    <Alias n="10" Id="(Name=CClientApp::JoinMenuDraw @3 @7 @2)" />
+    <Alias n="11" Id="(Name=CClientApp::Process @3 @7 @2)" />
+    <Alias n="12" Id="(Name=CClientApp::ReceiveDataThread @3 @7 @2)" />
+    <Alias n="13" Id="(Name=CServer::SetActiveClientList @5 @7 OverloadingParameters=[(Type=&quot;ClientDataPacket *&quot; Name=_pDataToSend)] @2)" />
+    <Alias n="14" Id="Type=int" />
+    <Alias n="15" Id="(Name=WinMain @5 @14 OverloadingParameters=[(Type=&quot;HINSTANCE__ *&quot; Name=_hInstance),(Type=&quot;HINSTANCE__ *&quot; Name=_hPrevInstance),(Type=&quot;char *&quot; Name=_lpCmdline),(@14 Name=_iCmdshow)] @2)" />
+    <Alias n="16" Id="(Name=WinMain @3 @14 OverloadingParameters=[(Type=&quot;HINSTANCE__ *&quot; Name=_hInstance),(Type=&quot;HINSTANCE__ *&quot; Name=_hPrevInstance),(Type=&quot;char *&quot; Name=_lpCmdline),(@14 Name=_iCmdshow)] @2)" />
+    <Alias n="17" Id="(Name=CServerApp::Initialise @5 Type=bool OverloadingParameters=[(Type=&quot;HWND__ *&quot; Name=_hWnd),(@14 Name=_iScreenWidth),(@14 Name=_iScreenHeight),(Type=&quot;wchar_t * *&quot; Name=_pCmdArgs)] @2)" />
+  </IdentifierAliases>
+  <Styles>
+    <Style TargetType="Link" GroupLabel="Current Call Stack Link" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('CurrentCallStackCall')" />
+      <Setter Property="Stroke" Value="#FFD93701" />
+      <Setter Property="Weight" Value="1" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Call Stack Indirect Link" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('CallStackIndirectCall')" />
+      <Setter Property="Stroke" Value="#FFB8B8B8" />
+      <Setter Property="StrokeDashArray" Value="4 1" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Call Stack Direct Link" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('CallStackDirectCall')" />
+      <Setter Property="Stroke" Value="#FFB8B8B8" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="External And Current" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('ExternalCallStackEntry') And HasCategory('CurrentCallStackEntry')" />
+      <Setter Property="Background" Value="#FFFFF8F0" />
+      <Setter Property="Stroke" Value="#FFCE5100" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Current Call Stack Node" ValueLabel="True">
+      <Condition Expression="HasCategory('CurrentCallStackEntry') And !HasCategory('QueryResult')" />
+      <Setter Property="Background" Value="#FFFFE3C6" />
+      <Setter Property="Stroke" Value="#FFD93701" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="External Call Stack Entry" ValueLabel="True">
+      <Condition Expression="HasCategory('ExternalCallStackEntry')" />
+      <Setter Property="Background" Value="#FFF7F7F7" />
+      <Setter Property="StrokeDashArray" Value="1 3" />
+      <Setter Property="Foreground" Value="#FFA5A5A5" />
+      <Setter Property="Stroke" Value="#FFA5A5A5" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Results" ValueLabel="True">
+      <Condition Expression="HasCategory('QueryResult')" />
+      <Setter Property="Background" Value="#FFBCFFBE" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Assembly" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Assembly')" />
+      <Setter Property="Background" Value="#FF094167" />
+      <Setter Property="Stroke" Value="#FF094167" />
+      <Setter Property="Icon" Value="CodeSchema_Assembly" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Namespace" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Namespace')" />
+      <Setter Property="Background" Value="#FF0E619A" />
+      <Setter Property="Stroke" Value="#FF0E619A" />
+      <Setter Property="Icon" Value="CodeSchema_Namespace" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Interface" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Interface')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Interface" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Struct" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Struct')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Struct" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Enumeration" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Enum')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Enum" />
+      <Setter Property="LayoutSettings" Value="List" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Delegate" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Delegate')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Delegate" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Class" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Type')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Class" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Property" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Property')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Property" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Method" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Method') Or HasCategory('CodeSchema_CallStackUnresolvedMethod')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Method" />
+      <Setter Property="LayoutSettings" Value="List" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Event" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Event')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Event" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Field')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Field" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Out Parameter" ValueLabel="Has category">
+      <Condition Expression="CodeSchemaProperty_IsOut = 'True'" />
+      <Setter Property="Icon" Value="CodeSchema_OutParameter" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Parameter" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Parameter')" />
+      <Setter Property="Icon" Value="CodeSchema_Parameter" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Local Variable" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_LocalExpression')" />
+      <Setter Property="Icon" Value="CodeSchema_LocalExpression" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Externals" ValueLabel="Has category">
+      <Condition Expression="HasCategory('Externals')" />
+      <Setter Property="Background" Value="#FF424242" />
+      <Setter Property="Stroke" Value="#FF424242" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Inherits From" ValueLabel="Has category">
+      <Condition Expression="HasCategory('InheritsFrom')" />
+      <Setter Property="Stroke" Value="#FF00A600" />
+      <Setter Property="StrokeDashArray" Value="2 0" />
+      <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Implements" ValueLabel="Has category">
+      <Condition Expression="HasCategory('Implements')" />
+      <Setter Property="Stroke" Value="#8000A600" />
+      <Setter Property="StrokeDashArray" Value="2 2" />
+      <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Calls" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Calls')" />
+      <Setter Property="Stroke" Value="#FFFF00FF" />
+      <Setter Property="StrokeDashArray" Value="2 0" />
+      <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Function Pointer" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_FunctionPointer')" />
+      <Setter Property="Stroke" Value="#FFFF00FF" />
+      <Setter Property="StrokeDashArray" Value="2 2" />
+      <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Field Reference" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_FieldReference')" />
+      <Setter Property="Stroke" Value="#FF00AEEF" />
+      <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Inherits From" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('InheritsFrom') And Target.HasCategory('CodeSchema_Class')" />
+      <Setter Property="TargetDecorator" Value="OpenArrow" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Implements" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('Implements') And Target.HasCategory('CodeSchema_Interface')" />
+      <Setter Property="TargetDecorator" Value="OpenArrow" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Field Read" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="Target.HasCategory('CodeSchema_Field') And HasCategory('CodeSchema_FieldRead')" />
+      <Setter Property="StrokeDashArray" Value="2 2" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Comment Link" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="Source.HasCategory('Comment')" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Cursor Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsCursorLocation" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Disabled Breakpoint Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="DisabledBreakpointCount" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Enabled Breakpoint Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="EnabledBreakpointCount" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Instruction Pointer Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsInstructionPointerLocation" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Current Callstack Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsCurrentCallstackFrame" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Comment" ValueLabel="Has comment">
+      <Condition Expression="HasCategory('Comment')" />
+      <Setter Property="Background" Value="#FFFFFACD" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="NodeRadius" Value="2" />
+      <Setter Property="MaxWidth" Value="250" />
+    </Style>
+  </Styles>
+</DirectedGraph>

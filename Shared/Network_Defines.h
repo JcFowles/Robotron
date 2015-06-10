@@ -35,7 +35,7 @@ namespace NetworkValues
 	unsigned const MAX_SERVER_PORT = 61000;
 	unsigned const DEFAULT_CLIENT_PORT = 60000;
 	unsigned const MAX_CLIENT_PORT = 60020; // 4 more than max users, why?? potential broken port maybe?
-	unsigned const MAX_USERS = 2;
+	unsigned const MAX_USERS = 16;
 	//IP address of UDP server
 	const char ipAddUPD[INET_ADDRSTRLEN] = "127.0.0.1";
 	unsigned const MAX_CHAR_LENGTH = 255;

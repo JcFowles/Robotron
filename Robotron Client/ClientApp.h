@@ -404,7 +404,8 @@ private:
 	* @return:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
-	
+
+
 
 
 	//Member Variables

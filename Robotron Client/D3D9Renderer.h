@@ -81,6 +81,7 @@ public:
 
 	//Creators
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo);
+	virtual void FillRectColor(DWORD _Color, RECT _rect);
 	//virtual void CreateTextFont();
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType);
 	virtual int CreateStaticBuffer(	VertexType _VertexType,

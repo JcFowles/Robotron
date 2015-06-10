@@ -169,7 +169,17 @@ private:
 	* @Parameter: std::string _srtServerName: Server name to be added
 	* @return: void: 
 	********************/
-	void AddServerToServerInfo(std::string _srtServerName);
+	
+	
+	
+	
+	/***********************
+	* AddServerToServerInfo: TO DO:
+	* @author: Jc Fowles
+	* @Parameter: std::string _srtServerName: TO DO:
+	* @return: void: 
+	********************/
+		void AddServerToServerInfo(std::string _srtServerName);
 	
 	/***********************
 	* WideStringToString: Convert a Wide string to a standard string

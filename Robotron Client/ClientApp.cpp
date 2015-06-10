@@ -549,6 +549,13 @@ void CClientApp::MultiPlayerMenuSelect(std::string _strMenuItem)
 		}
 	}
 
+	//Back button was clicked
+	if (_strMenuItem == "\t Back")
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+
 	//Switch on which text rect was clicked on, 
 	//Then clear the screen and set the game state
 	switch (iMenuItem)
@@ -565,13 +572,6 @@ void CClientApp::MultiPlayerMenuSelect(std::string _strMenuItem)
 		m_pRenderManager->Clear(true, true, false);
 		m_eMenuState = MS_HOST_GAME;
 	}break;
-
-	case 2: //BACK
-	{
-		m_pRenderManager->Clear(true, true, false);
-		m_eMenuState = MS_MAIN;
-	}break;
-
 	default:
 		break;
 	}
@@ -592,7 +592,7 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 			std::map< std::string, ServerInfo>::iterator iterServertEnd = m_pMapActiveServers->end();
 			while (iterServer != iterServertEnd)
 			{
-				if (_strMenuItem == iterServer->first) //Yes a server name was selected
+				if (_strMenuItem == "\t"+iterServer->first) //Yes a server name was selected
 				{			
 					//Check if server is full
 					if (m_pClientPacket->serverInfo.iNumClients < NetworkValues::MAX_USERS)
@@ -608,7 +608,7 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 				iterServer++;
 			}
 		}
-		if (_strMenuItem == "Back")
+		if (_strMenuItem == "\t Back")
 		{
 			m_pRenderManager->Clear(true, true, false);
 			m_eMenuState = MS_MULTI_PLAYER;
@@ -619,7 +619,7 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 	{
 		
 
-		if (_strMenuItem == "Back")
+		if (_strMenuItem == "\t Back")
 		{
 			m_pRenderManager->Clear(true, true, false);
 			m_eHostState = HS_SERVER_NAME;
@@ -648,17 +648,18 @@ void CClientApp::OptionsMenuSelect(std::string _strMenuItem)
 		}
 	}
 
+	//Back button was clicked
+	if (_strMenuItem == "\t Back")
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+
 	//Switch on which text rect was clicked on, 
 	//Then clear the screen and set the game state
 	switch (iMenuItem)
 	{
 	case 0:
-		break;
-	case 1: //Back
-	{
-		m_pRenderManager->Clear(true, true, false);
-		m_eMenuState = MS_MAIN;
-	}
 		break;
 	default:
 		break;
@@ -677,17 +678,18 @@ void CClientApp::InstructMenuSelect(std::string _strMenuItem)
 		}
 	}
 
+	//Back button was clicked
+	if (_strMenuItem == "\t Back")
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+
 	//Switch on which text rect was clicked on, 
 	//Then clear the screen and set the game state
 	switch (iMenuItem)
 	{
 	case 0:
-		break;
-	case 1: //Back
-	{
-		m_pRenderManager->Clear(true, true, false);
-		m_eMenuState = MS_MAIN;
-	}
 		break;
 	default:
 		break;
@@ -797,8 +799,8 @@ void CClientApp::MainMenuDraw()
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
-	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+	dwTextFormat = DT_CENTER | DT_TOP | DT_SINGLELINE ;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, true, dwTextFormat);
 
 	////***MAIN MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
@@ -832,9 +834,9 @@ void CClientApp::MultiPlayerMenuDraw()
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (uiFontHeight + 10);
-	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+	iYPos = m_iScreenHeight - (2*uiFontHeight);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::JoinMenuDraw()
@@ -870,6 +872,21 @@ void CClientApp::JoinMenuDraw()
 		}
 		else //Servers found
 		{
+
+			//Server Headings
+			iYPos += (uiFontHeight + 1);
+			//Render server name
+			dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+			RenderText("\tServer Name", iYPos, TEXT_LIST, false, dwTextFormat);
+			//Render host of server
+			dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+			RenderText("\tServer Host", iYPos, TEXT_LIST, false, dwTextFormat);
+			//Render Number of clients in server
+			dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+			RenderText("Player Count  .", iYPos, TEXT_LIST, false, dwTextFormat);
+
+
+
 			//Print the list of found servers
 			uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
 			std::map< std::string, ServerInfo >::iterator iterServer = m_pMapActiveServers->begin();
@@ -877,27 +894,36 @@ void CClientApp::JoinMenuDraw()
 			while (iterServer != iterServertEnd)
 			{
 				iYPos += (uiFontHeight + 1);
-				//Render server name
-				dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-				RenderText(iterServer->first, iYPos, TEXT_LIST, true, dwTextFormat);
-				//Render host of server
-				dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
-				std::string strHostName(iterServer->second.cHostName);
-				RenderText(strHostName, iYPos, TEXT_LIST, true, dwTextFormat);
-				//Render Number of clients in server
-				dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE;
+				//Calculate server Fullness
 				std::string strNumClients = std::to_string(iterServer->second.iNumClients);
 				std::string strMaxClients = std::to_string(NetworkValues::MAX_USERS);
 				std::string strFullness;
+				bool bSelectable = false;
 				if (iterServer->second.iNumClients >= NetworkValues::MAX_USERS) //Server is full
 				{
 					strFullness = "FULL";
+					//Server full therefor not selectable
+					bSelectable = false;
 				}
 				else
 				{
 					strFullness = strNumClients + "/" + strMaxClients;
+					//Server not full therefor selectable
+					bSelectable = true;
 				}
-				RenderText(strFullness, iYPos, TEXT_LIST, true, dwTextFormat);
+				
+				//Render server name
+				dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+				RenderText("\t" + iterServer->first, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
+				//Render host of server
+				dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+				std::string strHostName(iterServer->second.cHostName);
+				RenderText(strHostName, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
+				//Render Number of clients in server
+				dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+								
+				//Render Server fullness
+				RenderText(strFullness + "\t.", iYPos, TEXT_LIST, bSelectable, dwTextFormat);
 				
 				//Go to next one in the list
 				iterServer++;
@@ -907,8 +933,8 @@ void CClientApp::JoinMenuDraw()
 				
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos = m_iScreenHeight - (uiFontHeight + 10);
-		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 				
 	}
 		break;
@@ -935,8 +961,8 @@ void CClientApp::JoinMenuDraw()
 		//Render back button
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos = m_iScreenHeight - (uiFontHeight + 10);
-		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_DONE:
@@ -981,8 +1007,8 @@ void CClientApp::HostMenuDraw()
 
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos = m_iScreenHeight - (uiFontHeight + 10);
-		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_USER_NAME:
@@ -999,8 +1025,8 @@ void CClientApp::HostMenuDraw()
 
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos = m_iScreenHeight - (uiFontHeight + 10);
-		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-		RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_DONE:
@@ -1029,11 +1055,21 @@ void CClientApp::LobbyMenuDraw()
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200;
 	
-	RenderText("Multi Player Lobby", iYPos, TEXT_MENU, false, dwTextFormat);
+	RenderText("Multi-player Lobby", iYPos, TEXT_MENU, false, dwTextFormat);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos += uiFontHeight;
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	iYPos += uiFontHeight;
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\tPlayers", iYPos, TEXT_LIST, false, dwTextFormat);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("Ready", iYPos, TEXT_LIST, false, dwTextFormat);
+
+	std::string ReadyButton;
 
 	//Get list of users
-	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos += 200 - uiFontHeight;
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	iYPos += uiFontHeight;
 	for (int i = 0; i < NetworkValues::MAX_USERS; i++)
 	{
 		std::string strUserName(m_pClientPacket->serverInfo.cListOfClients[i]);
@@ -1042,8 +1078,8 @@ void CClientApp::LobbyMenuDraw()
 		{
 			iYPos += uiFontHeight + 1;
 			//Render client names
-			dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-			RenderText(strUserName, iYPos, TEXT_LIST, false, dwTextFormat);
+			dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+			RenderText("\t"+strUserName, iYPos, TEXT_LIST, false, dwTextFormat);
 			//Render if they are ready or not
 			std::string strReady;
 			if (m_pClientPacket->serverInfo.activeClientList[i].bActive)
@@ -1057,7 +1093,30 @@ void CClientApp::LobbyMenuDraw()
 			dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 			RenderText(strReady, iYPos, TEXT_LIST, false, dwTextFormat);
 		}
+
+		//Checking the active clients state to set the ready button
+		if (strUserName == m_strUserName)
+		{
+			if (m_pClientPacket->serverInfo.activeClientList[i].bActive)
+			{
+				ReadyButton = "I am Ready";
+			}
+			else
+			{
+				ReadyButton = "I am Not Ready";
+			}
+		}
 	}
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText(ReadyButton, iYPos, TEXT_MENU, true, dwTextFormat);
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	
 }
 
@@ -1084,7 +1143,7 @@ void CClientApp::OptionsMenuDraw()
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos = m_iScreenHeight - (uiFontHeight + 10);
 	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::InstructionMenuDraw()
@@ -1109,7 +1168,7 @@ void CClientApp::InstructionMenuDraw()
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos = m_iScreenHeight - (uiFontHeight + 10);
 	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-	RenderText("Back", iYPos, TEXT_MENU, true, dwTextFormat);
+	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::ExitMenuDraw()
@@ -1187,9 +1246,11 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	{
 		TextColor = D3DCOLOR_XRGB(255, 50, 0);
 
+		int yPos = m_MousePosition.y;
+
 		//If you hover over a click-able text
-		if (m_MousePosition.y >= Rect.top &&
-			m_MousePosition.y <= Rect.bottom)
+		if (yPos >= Rect.top &&
+			yPos <= Rect.bottom)
 		{
 			//Change its color signifying that its click-able
 			TextColor = D3DCOLOR_XRGB(255, 185, 0);
@@ -1206,10 +1267,11 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 		}
 
 	}
-
+	DWORD BackCOlorColor = D3DCOLOR_XRGB(255, 255, 255);
+	m_pRenderManager->FillRectColor(BackCOlorColor, Rect);
 	//Render the title 
 	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
-
+	
 }
 
 void CClientApp::OpenServerApp()

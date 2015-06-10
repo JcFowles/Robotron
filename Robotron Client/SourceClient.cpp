@@ -201,6 +201,12 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	const int kiWidth = 1000; 
 	const int kiHeight = 1000;
 	
+	RECT rect = { 0, 0, kiWidth, kiWidth };
+	AdjustWindowRect(&rect, WS_VISIBLE | WS_CAPTION |
+		WS_BORDER | WS_SYSMENU, false);
+	int screenWidth = rect.right - rect.left;
+	int screenHeight = rect.bottom - rect.top;
+
 	//This holds Windows event messages
 	MSG msg;
 
@@ -208,14 +214,14 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	ZeroMemory(&msg, sizeof(MSG));
 	
 	//Create and register the window
-	HWND hWnd = CreateAndRegisterWindow(_hInstance, kiWidth, kiHeight, L"Robotron");
+	HWND hWnd = CreateAndRegisterWindow(_hInstance, screenWidth, screenHeight, L"Robotron");
 		
 	// display the window on the screen
     ShowWindow(hWnd, _iCmdshow);
 	
 	//Create and initialize the Direct3D Device
 	CClientApp& rClientApp = CClientApp::GetInstance();
-	rClientApp.Initialise(hWnd, kiWidth, kiHeight);
+	rClientApp.Initialise(hWnd, screenWidth, screenHeight);
 	
 
 

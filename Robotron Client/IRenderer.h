@@ -51,7 +51,9 @@ public:
 	//Font Sizes
 	virtual int GetFontHeight(eTextType _textType) = 0;
 	virtual int GetFontWidth(eTextType _textType) = 0;
-		
+
+
+	virtual void FillRectColor(DWORD _Color, RECT _rect) = 0;
 	//Setters
 	virtual void SetWorldMatrix(D3DXMATRIX& _rWorld) = 0;
 	virtual void SetViewMatrix(D3DXMATRIX& _rView) = 0;

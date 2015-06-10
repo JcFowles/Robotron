@@ -1051,6 +1051,13 @@ void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 	m_pDevice->ColorFill(pBackBuffer, 0, _Color);
 }
 
+void CD3D9Renderer::FillRectColor(DWORD _Color, RECT _rect)
+{
+	IDirect3DSurface9* pBackBuffer;
+	m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+	m_pDevice->ColorFill(pBackBuffer, &_rect, _Color);
+}
+
 /***********************
 * CreateTextFont: Create the text font to be rendered to the screen
 * @author: Jc Fowles
