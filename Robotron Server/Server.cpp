@@ -350,6 +350,54 @@ bool CServer::AddUser(std::string _UserName, sockaddr_in _ClientAddress)
 	return MapClientIter.second;
 }
 
+bool CServer::SetActiveClient(std::string _UserName, bool _bActive)
+{
+	//Find the client in the map of clients
+	std::map< std::string, bool>::iterator iterClient;
+	iterClient = m_pMapActiveClients->find(_UserName);
+
+	//If found user found, then iterClients wont be the end of the map
+	if (iterClient != m_pMapActiveClients->end())
+	{
+		iterClient->second = _bActive;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+
+}
+
+bool CServer::AllActive()
+{
+	//Set all active to true
+	bool bAllActive = true;
+	if (m_pMapActiveClients->size() < 1)
+	{
+		bAllActive = false;
+	}
+
+	//Send to all clients 
+	std::map< std::string, bool>::iterator iterClient = m_pMapActiveClients->begin();
+	std::map< std::string, bool>::iterator iterClientEnd = m_pMapActiveClients->end();
+	while (iterClient != iterClientEnd)
+	{
+		//If any client is not active 
+		if (iterClient->second == false)
+		{
+			//set all active to false
+			bAllActive = false;
+		}
+		//Check next in map
+		iterClient++;
+	}
+
+	//Return all active
+	return bAllActive;
+}
+
 void CServer::RemoveUser(std::string _UserName)
 {
 	m_pMapClients->erase(_UserName);

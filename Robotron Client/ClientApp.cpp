@@ -30,8 +30,11 @@ CClientApp::~CClientApp(void)
 
 	delete m_pClock;
 	m_pClock = 0;
-	delete[] m_bIsClicked;
-	m_bIsClicked = 0;
+
+	m_pInputManager->Shutdown();
+	delete m_pInputManager;
+	m_pInputManager = 0;
+
 	delete[] m_bIsKeyDown;
 	m_bIsKeyDown = 0;
 
@@ -106,7 +109,7 @@ void CClientApp::DestroyInstance()
 
 }
 
-bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
+bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 {
 	//Initialise Window variables
 	m_hWnd = _hWnd;
@@ -135,17 +138,13 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	
 	m_strInstructions.push_back("Game Instructions");
 	
-
 	m_strExitOptions.push_back("Yes - Close The Game");
 	m_strExitOptions.push_back("No - Take Me Back");
 	
 	m_eGameState = GS_MENU;
 	m_eHostState = HS_DEFAULT;
 	m_eMenuState = MS_MAIN;
-	//Initialize the mouse boolean array
-	m_bIsClicked = new bool[10];
-	//Set all values to false
-	memset(m_bIsClicked, false, 10);
+
 	//Initialize the key down boolean array
 	m_bIsKeyDown = new bool[255];
 	//Set all key downs to false
@@ -175,6 +174,12 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 	bool bFullScreen = false;
 	VALIDATE(m_pRenderManager->Initialise(_iScreenWidth, _iScreenHeight, _hWnd, bFullScreen));
 
+	
+
+	//Initialise the the input manager
+	m_pInputManager = new CInputManager();
+	VALIDATE(m_pInputManager->Initialise(_hInstance, m_hWnd, m_iScreenWidth, m_iScreenHeight));
+
 	return true;
 
 }
@@ -182,16 +187,22 @@ bool CClientApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
 void CClientApp::Process()
 {
 	
+	m_pInputManager->ProcessInput();
 	
 	switch (m_eGameState)
 	{
 	case GS_MENU:
 	{
-		//If a menu item has been clicked 
-		//Process it
-		if (m_bMenuClicked)
+		//Menu selected on mouse click down
+		//Process the selected menu item on mouse click up
+		if (m_strClickedMenu != "")
+		{
+			int c = 9;
+		}
+		if (m_pInputManager->GetControlState().bActivate == false) 
 		{
 			ProcessMenuSelection(m_strClickedMenu);
+			m_strClickedMenu = "";
 		}
 
 
@@ -355,6 +366,11 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 		HostMenuSelect(_strMenuItem);
 
 	}break;
+
+	case MS_LOBBY:
+	{
+		LobbyMenuSelect(_strMenuItem);
+	}
 
 	case MS_OPTIONS:
 	{
@@ -603,7 +619,6 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 						m_pClient->SetServerSocketAddress(m_pSelectedServer->second.serverSocAddr);
 						m_eHostState = HS_USER_NAME;
 					}
-
 				}
 				iterServer++;
 			}
@@ -618,7 +633,6 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 	case HS_USER_NAME:
 	{
 		
-
 		if (_strMenuItem == "\t Back")
 		{
 			m_pRenderManager->Clear(true, true, false);
@@ -633,6 +647,41 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 		break;
 	default:
 		break;
+	}
+}
+
+void CClientApp::LobbyMenuSelect(std::string _strMenuItem)
+{
+	if (_strMenuItem == "\t Back")
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
+	}
+
+	if (_strMenuItem == "Ready")
+	{
+		//Send Request to server to update status to active
+		
+		//Add Client info to server packet
+		SetClientInfo();
+		//other Aspects of message to send
+		m_pServerPacket->packetType = PT_ACTIVE;
+		m_pServerPacket->bSuccess = true;
+		//Send message
+		m_pClient->SendData(m_pServerPacket);
+	}
+
+	if (_strMenuItem == "Cancel")
+	{
+		//Send Request to server to update status to active
+
+		//Add Client info to server packet
+		SetClientInfo();
+		//other Aspects of message to send
+		m_pServerPacket->packetType = PT_ACTIVE;
+		m_pServerPacket->bSuccess = false;
+		//Send message
+		m_pClient->SendData(m_pServerPacket);
 	}
 }
 
@@ -794,20 +843,20 @@ void CClientApp::Draw()
 
 void CClientApp::MainMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
 	//***TITLE***
 	dwTextFormat = DT_CENTER | DT_TOP | DT_SINGLELINE ;
-	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, true, dwTextFormat);
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	////***MAIN MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos += 200 - (uiFontHeight + 1);
+	iYPos += 220 - (uiFontHeight + 10);
 	for (unsigned int i = 0; i < m_strMainMenuOptions.size(); i++)
 	{
-		iYPos += (uiFontHeight + 1);
+		iYPos += (uiFontHeight + 40);
 		RenderText(m_strMainMenuOptions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 
@@ -815,7 +864,7 @@ void CClientApp::MainMenuDraw()
 
 void CClientApp::MultiPlayerMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -841,7 +890,7 @@ void CClientApp::MultiPlayerMenuDraw()
 
 void CClientApp::JoinMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -912,19 +961,20 @@ void CClientApp::JoinMenuDraw()
 					bSelectable = true;
 				}
 				
-				//Render server name
-				dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-				RenderText("\t" + iterServer->first, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
+				
 				//Render host of server
 				dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 				std::string strHostName(iterServer->second.cHostName);
 				RenderText(strHostName, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
 				//Render Number of clients in server
 				dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-								
 				//Render Server fullness
-				RenderText(strFullness + "\t.", iYPos, TEXT_LIST, bSelectable, dwTextFormat);
+				RenderText(strFullness, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
 				
+				//Render server name
+				dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+				RenderText("\t" + iterServer->first, iYPos, TEXT_LIST, bSelectable, dwTextFormat);
+
 				//Go to next one in the list
 				iterServer++;
 			}
@@ -978,7 +1028,7 @@ void CClientApp::JoinMenuDraw()
 void CClientApp::HostMenuDraw()
 {
 
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -1043,7 +1093,7 @@ void CClientApp::HostMenuDraw()
 
 void CClientApp::LobbyMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -1084,11 +1134,11 @@ void CClientApp::LobbyMenuDraw()
 			std::string strReady;
 			if (m_pClientPacket->serverInfo.activeClientList[i].bActive)
 			{
-				strReady = "Ready";
+				strReady = "[x]";
 			}
 			else
 			{
-				strReady = "Not Ready";
+				strReady = "[  ]";
 			}
 			dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 			RenderText(strReady, iYPos, TEXT_LIST, false, dwTextFormat);
@@ -1099,17 +1149,17 @@ void CClientApp::LobbyMenuDraw()
 		{
 			if (m_pClientPacket->serverInfo.activeClientList[i].bActive)
 			{
-				ReadyButton = "I am Ready";
+				ReadyButton = "Cancel";
 			}
 			else
 			{
-				ReadyButton = "I am Not Ready";
+				ReadyButton = "Ready";
 			}
 		}
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	iYPos = m_iScreenHeight - (2*(uiFontHeight + 10));
 	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 	RenderText(ReadyButton, iYPos, TEXT_MENU, true, dwTextFormat);
 
@@ -1122,7 +1172,7 @@ void CClientApp::LobbyMenuDraw()
 
 void CClientApp::OptionsMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -1148,7 +1198,7 @@ void CClientApp::OptionsMenuDraw()
 
 void CClientApp::InstructionMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -1173,7 +1223,7 @@ void CClientApp::InstructionMenuDraw()
 
 void CClientApp::ExitMenuDraw()
 {
-	int iYPos = (m_iScreenHeight / 8);
+	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
 
@@ -1216,8 +1266,8 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 {
 	//Create the text space as a RECT
 	RECT Rect;
-	Rect.left = 0;
-	Rect.right = m_iScreenWidth;
+	Rect.left = 10;
+	Rect.right = m_iScreenWidth-10;
 	Rect.top = _iYPos;
 	int uiFontHeight = m_pRenderManager->GetFontHeight(_TextType);
 	Rect.bottom = (Rect.top + uiFontHeight);
@@ -1245,30 +1295,28 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 	if (_bSelectable)
 	{
 		TextColor = D3DCOLOR_XRGB(255, 50, 0);
-
-		int yPos = m_MousePosition.y;
-
+								
 		//If you hover over a click-able text
-		if (yPos >= Rect.top &&
-			yPos <= Rect.bottom)
+		if (m_pInputManager->GetMousePos().y >= Rect.top	&&
+			m_pInputManager->GetMousePos().y <= Rect.bottom &&
+			m_pInputManager->GetMousePos().x <= Rect.right	&&
+			m_pInputManager->GetMousePos().x >= Rect.left
+			)
+
 		{
 			//Change its color signifying that its click-able
 			TextColor = D3DCOLOR_XRGB(255, 185, 0);
 			//If the text was clicked
-			if (m_bIsClicked[MK_LBUTTON])
+			if (m_pInputManager->GetControlState().bActivate)
 			{
 				//Set menu clicked to true
 				m_bMenuClicked = true;
 				//Save which menu has been clicked
 				m_strClickedMenu = _strText;
-				//Set Left mouse button to false
-				m_bIsClicked[MK_LBUTTON] = false;
 			}
 		}
-
 	}
-	DWORD BackCOlorColor = D3DCOLOR_XRGB(255, 255, 255);
-	m_pRenderManager->FillRectColor(BackCOlorColor, Rect);
+
 	//Render the title 
 	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
 	
@@ -1379,7 +1427,26 @@ void CClientApp::ProcessReceiveData()
 		{
 			ProcessJoinRequest();
 		}
+			break;
+
+		case PT_GAME_START:
+		{
+			//Game has started set game state to play
+			m_eGameState = GS_PLAY;
+		}
+		case PT_LEAVE:
+		{
+			std::string strUserName(m_pClientPacket->cText);
+			//So and So has left
 		
+		}
+			break;
+		case PT_QUIT:
+		{
+			//Server has quit 
+			m_eGameState = GS_MENU;
+			m_eMenuState = MS_MAIN;
+		}
 		
 		default:
 			break;
@@ -1429,23 +1496,6 @@ void CClientApp::ProcessCreation()
 
 void CClientApp::ProcessServerFind()
 {
-
-	//TO DO: Redo this
-	//Store info from received packet
-	//std::string strServerDetails = m_pClientPacket->cText;
-	//
-	//if (m_pClientPacket->iNum >= NetworkValues::MAX_USERS)
-	//{
-	//	//Server is full
-	//	strServerDetails += " - FULL";
-	//}
-	//else
-	//{
-	//	//Server not full
-	//	strServerDetails += " - " + std::to_string(m_pClientPacket->iNum);
-	//	strServerDetails += "/" + std::to_string(NetworkValues::MAX_USERS);
-	//}
-
 	//Add server to multimap of servers 
 	AddServer(m_pClientPacket->serverInfo.cServerName, m_pClientPacket->serverInfo);
 }
@@ -1514,6 +1564,7 @@ void CClientApp::RequestUserList()
 void CClientApp::SetClientInfo()
 {
 	/*<CLIENT_INFO>*/
+	//TO DO ZeroMemory
 	//User Name
 	AddUserNameToClientInfo(m_strUserName);
 	//Client Socket address
@@ -1541,3 +1592,5 @@ void CClientApp::AddUserNameToClientInfo(std::string _srtUserName)
 		strcpy_s(m_pServerPacket->clientInfo.cUserName, _srtUserName.c_str());
 	}
 }
+
+

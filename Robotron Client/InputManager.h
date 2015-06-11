@@ -1,10 +1,14 @@
+//TO DO
 #pragma once
 
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "DXGuid.lib" )
 
-
+//library include
 #include <dinput.h>
+
+//local include
+#include "..\shared\App_Defines.h"
 
 //http://www.rastertek.com/dx10tut13.html
 
@@ -13,30 +17,40 @@ class CInputManager
 public:
 	CInputManager();
 	~CInputManager();
-
-	bool Initialise(HINSTANCE _hInstance, HWND _hWnd);
+	
+	void Shutdown();
+	bool Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
+	bool InitialiseKeyBoard(HWND _hWnd);
+	bool InitialiseMouse(HWND _hWnd);
 	bool ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuffer, int _iBufferSize);
-	bool Shutdown();
+	
+	void ProcessInput();
+	void ProcessMouse();
+	void ProcessKeyBoard();
 
+
+	POINT GetMousePos();
+	PlayControls GetControlState() { return m_playControls; };
+	void SetControlState(PlayControls _PlayCont){ m_playControls = _PlayCont; };
 	//Member variables
 public :
+	
+private:
+
+	HWND m_hWnd;
+	int m_iScreenWidth;
+	int m_iScreenHeight;
+
 	IDirectInput8* m_pDirectInput;
 
 	IDirectInputDevice8* m_pDIKeyboard;
-	IDirectInputDevice8* m_pDIMouse;
-
-	unsigned char m_cKeyStateBuffer[256];
-	DIMOUSESTATE m_mouseState;
-
-	int m_iScreenWidth;
-	int m_iScreenHeight;
-	//int m_iMouseX, m_iMouseY;
-
-	POINT m_MousePos;
-
-private:
-	HWND m_hWnd;
-
+	unsigned char m_cKeyStateBuffer[AppDefines::BUFFER_SIZE];
 	
+	IDirectInputDevice8* m_pDIMouse;
+	DIMOUSESTATE m_mouseState;
+	POINT m_MousePos;
+	
+	PlayControls m_playControls;
+
 };
 

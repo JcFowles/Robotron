@@ -197,13 +197,16 @@ bool CD3D9Renderer::DeviceCreation()
 		return false;
 	}
 
+	RECT clientRect;
+	GetClientRect(m_hWindow, &clientRect);
+
 	//Set The D3D present parameters
 	d3dpp.BackBufferFormat = displayMode.Format;
 	d3dpp.BackBufferCount = 1;
 	d3dpp.EnableAutoDepthStencil = TRUE;
 	d3dpp.hDeviceWindow = m_hWindow;
-	d3dpp.BackBufferHeight = m_iScreenHeight;
-	d3dpp.BackBufferWidth = m_iScreenWidth;
+	d3dpp.BackBufferHeight = clientRect.bottom;
+	d3dpp.BackBufferWidth = clientRect.right;
 	d3dpp.Windowed = !m_bFullscreen;
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	
@@ -360,7 +363,7 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 		//Device creation failed
 		return false;
 	}
-
+	
 	SetRenderStates();
 	
 	SetMaterial();

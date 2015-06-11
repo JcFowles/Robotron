@@ -24,6 +24,7 @@
 #include "Client.h"
 #include "IRenderer.h"
 #include "D3D9Renderer.h"
+#include "InputManager.h"
 #include "../Shared/Clock.h"
 #include "../Shared/App_Defines.h"
 
@@ -32,7 +33,7 @@ class CClientApp
 {
 	//Member Function
 public:
-
+		
 	/***********************
 	* GetInstance: Returns a reference to the singleton ClientApp object, if one does not exist create one
 	* @author: Jc Fowles
@@ -65,11 +66,12 @@ public:
 	* Initialize: Initializes the ClientApp instance
 	* @author: Jc Fowles
 	* @parameter: _hWnd: Handle to the window
+	* @parameter: _hInstance: Handle to the window instance
 	* @parameter: _iScreenWidth: Width to the window
 	* @parameter: _iScreenHeight: Height to the window
 	* @return: bool: Successful Initialization
 	********************/
-	bool Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
+	bool Initialise(HINSTANCE _hInstance ,HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
 
 	/***********************
 	* Process: Process the the ClientApp instance
@@ -290,29 +292,7 @@ public:
 	* @return: void:
 	********************/
 	void ProcessServerFind();
-
-	/***********************
-	* SetMousePos: Set mouse position / Save the position of the mouse
-	* @author: Jc Fowles
-	* @Parameter: POINT _MousePosition: Mouse position, XY screen coordinates 
-	* @return: void:
-	********************/
-	void SetMousePos(POINT _MousePosition){ m_MousePosition = _MousePosition; };
-	
-	/***********************
-	* GetMousePos: Get the mouse position
-	* @author: Jc Fowles
-	* @return: POINT: The Mouse position, XY screen coordinates
-	********************/
-	POINT GetMousePos(){ return m_MousePosition; };
-
-	/***********************
-	* IsMouseClicked: Return the bool array of mouse buttons, used as a getter and setter
-	* @author: Jc Fowles
-	* @return: bool*: bool array of mouse buttons.
-	********************/
-	bool* IsMouseClicked() const { return m_bIsClicked; }
-	
+		
 	/***********************
 	* IsKeyDown: Return the bool array of keyboard keys, used as a getter and setter
 	* @author: Jc Fowles
@@ -380,6 +360,14 @@ public:
 	* @return: void:
 	********************/
 	void AddUserNameToClientInfo(std::string _srtUserName);
+		
+	/***********************
+	* LobbySelect: TO DO:
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: TO DO:
+	* @return: void: 
+	********************/
+	void LobbyMenuSelect(std::string _strMenuItem);
 
 protected:
 
@@ -431,13 +419,15 @@ private:
 	std::vector<std::string> m_strOptionsMenu;
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
-	POINT m_MousePosition;
-	bool* m_bIsClicked;
 	bool m_bMenuClicked;
 	std::string m_strClickedMenu;
+
+	POINT m_MousePosition;
+	//bool* m_bIsClicked;
 	bool* m_bIsKeyDown;
 	
-
+	CInputManager* m_pInputManager;
+	
 	//Networking variables
 	CClient* m_pClient;
 	bool m_bIsHost;
@@ -462,12 +452,7 @@ private:
 		
 	//Graphic Variables
 	IRenderer* m_pRenderManager;
-	
 
-
-	
-	
-	
 };
 
 #endif //__CLIENT_APP_H__

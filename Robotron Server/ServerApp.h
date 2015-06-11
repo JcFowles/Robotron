@@ -211,6 +211,7 @@ private:
 	static CServerApp* s_pServerApp;
 	CClock* m_pClock;
 	std::string m_strServerName;
+	bool m_bGameStart;
 
 	//Networking Variables
 	CServer* m_pServer;
@@ -221,8 +222,7 @@ private:
 	static CMySemaphore s_Mutex;
 	bool m_bHaveHost;
 
-	//std::map< std::string, sockaddr_in>* m_pMapClients;
-
+	
 	std::string m_strHostClient;
 	
 

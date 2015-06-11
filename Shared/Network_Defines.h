@@ -48,6 +48,8 @@ enum ePacketType
 	PT_CREATE,
 	PT_FIND,
 	PT_JOIN_REQUEST,
+	PT_ACTIVE,
+	PT_GAME_START,
 	PT_LEAVE,
 	PT_QUIT
 };

@@ -24,6 +24,11 @@
 
 //Local Includes
 
+namespace AppDefines
+{
+	unsigned const BUFFER_SIZE = 256;
+};
+
 enum eMenuStates
 {
 	//Main menu
@@ -52,6 +57,15 @@ enum eHostStates
 	HS_DONE
 };
 
+struct PlayControls
+{
+	bool bUpPress;
+	bool bDownPress;
+	bool bLeftPress;
+	bool bRightPress;
+	bool bActivate;
+	bool bEscape;
+};
 
 
 

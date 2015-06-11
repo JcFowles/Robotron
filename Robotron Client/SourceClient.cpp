@@ -38,7 +38,9 @@
 ********************/
 LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lParam)
 {
-
+	RECT rcClient;                 // client area rectangle 
+	POINT ptClientUL;              // client upper left corner 
+	POINT ptClientLR;              // client lower right corner 
 	//Process the given message
     switch(_uiMsg)
     {
@@ -73,44 +75,7 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 			CClientApp::GetInstance().IsKeyDown()[_wParam] = true;
 			CClientApp::GetInstance().ProcessInputs(_wParam);
 			
-
-		}break;
-
-		//***MOUSE***
-		case WM_LBUTTONDOWN:
-		{
-			//Left mouse button is down
-			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = true;
-
-		}break;
-
-		case WM_LBUTTONUP:
-		{
-			//Left mouse button is up
-			CClientApp::GetInstance().IsMouseClicked()[MK_LBUTTON] = false;
-			
-		}break;
-		
-		case WM_RBUTTONDOWN:
-		{
-			//Right mouse button is down
-			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = true;
-		}break;
-
-		case WM_RBUTTONUP:
-		{
-			//Right mouse button is up
-			CClientApp::GetInstance().IsMouseClicked()[MK_RBUTTON] = false;
-		}break;
-		
-		case WM_MOUSEMOVE:
-		{
-			POINT MousePos; 
-			MousePos.x = GET_X_LPARAM(_lParam);
-			MousePos.y = GET_Y_LPARAM(_lParam);
-			CClientApp::GetInstance().SetMousePos(MousePos);
-		}break;
-	
+		}break;	
     }
 
 	 //Handles any messages the switch statement doesn't
@@ -201,11 +166,12 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	const int kiWidth = 1000; 
 	const int kiHeight = 1000;
 	
-	RECT rect = { 0, 0, kiWidth, kiWidth };
+	RECT rect = { 0, 0, kiWidth, kiHeight };
 	AdjustWindowRect(&rect, WS_VISIBLE | WS_CAPTION |
 		WS_BORDER | WS_SYSMENU, false);
 	int screenWidth = rect.right - rect.left;
 	int screenHeight = rect.bottom - rect.top;
+	
 
 	//This holds Windows event messages
 	MSG msg;
@@ -219,12 +185,23 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 	// display the window on the screen
     ShowWindow(hWnd, _iCmdshow);
 	
+	HANDLE hConsole_c = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	
+	//Get the Client rect
+	GetClientRect(hWnd, &rect);
+	screenWidth = rect.right - rect.left;
+	screenHeight = rect.bottom - rect.top;
+
 	//Create and initialize the Direct3D Device
 	CClientApp& rClientApp = CClientApp::GetInstance();
-	rClientApp.Initialise(hWnd, screenWidth, screenHeight);
+	rClientApp.Initialise(_hInstance, hWnd, screenWidth, screenHeight);
 	
-
-
+	//Setting the cursor
+	POINT point = { kiWidth / 2, kiHeight/2 };
+	ClientToScreen(hWnd, &point);
+	SetCursorPos(point.x, point.y);
+	ShowCursor(true);
+	
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))

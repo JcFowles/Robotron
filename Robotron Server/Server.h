@@ -168,6 +168,8 @@ public:
 
 	int GetNumClients() const { return m_pMapClients->size(); }
 	
+	bool SetActiveClient(std::string _UserName, bool _bActive);
+	bool AllActive();
 	//Member variables
 public:
 	

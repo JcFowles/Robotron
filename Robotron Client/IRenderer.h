@@ -98,6 +98,7 @@ public:
 									) = 0;
 	
 	
+	
 private:
 	//Disallow copies
 	IRenderer(const IRenderer& _kr);

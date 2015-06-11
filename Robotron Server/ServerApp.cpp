@@ -32,6 +32,15 @@ CServerApp::~CServerApp(void)
 	
 	//Networking
 	
+	//Add server info to client packet
+	SetServerInfo();
+	//Send to all so so has left
+	m_pClientPacket->packetType = PT_QUIT;
+
+	//Send message
+	m_pServer->SendData(m_pClientPacket);
+	m_pServer->RemoveAll();
+
 	//Make sure the the client is set to inactive
 	m_pServer->SetActive(false);
 	//Join the threads
@@ -75,6 +84,7 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	//Store the server arguments
 	m_strServerName = WideStringToString(_pCmdArgs[1]);
 	m_strHostClient = WideStringToString(_pCmdArgs[2]);
+	m_bGameStart = false;
 
 	//Initialise member variables
 	m_pServer = new CServer();
@@ -105,6 +115,22 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 void CServerApp::Process()
 {	
 	ProcessReceiveData();
+
+	//if all are ready Send game start
+	if (m_pServer->AllActive())
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_GAME_START;
+		
+		//Send message
+		m_pServer->SendData(m_pClientPacket);
+
+		//Set Game to start
+		m_bGameStart = true;
+	}
+
 }
 
 void CServerApp::Draw()
@@ -194,17 +220,35 @@ void CServerApp::ProcessReceiveData()
 			ProcessFind();
 		}
 			break;
+					
 		case PT_JOIN_REQUEST:
 		{
 			ProcessJoinRequest();
 		}
 			break;
+
+		case PT_ACTIVE:
+		{
+			std::string strUserName(m_pServerPacket->clientInfo.cUserName);
+			//Set the active-ness based on the bSuccess value
+			m_pServer->SetActiveClient(strUserName, m_pServerPacket->bSuccess);
+					
+
+		}
+			break;
+
 		case PT_LEAVE:
 		{
 			std::string strUserName(m_pServerPacket->clientInfo.cUserName);
-			//TO DO:
-			//If in game state
-			//Before remove - send to all users that he has left
+			
+			//Add server info to client packet
+			SetServerInfo();
+			//Send to all so so has left
+			m_pClientPacket->packetType = PT_LEAVE;
+			AddTextToClientDataPacket(strUserName);
+			
+			//Send message
+			m_pServer->SendData(m_pClientPacket);
 			m_pServer->RemoveUser(strUserName);
 		}
 		break;
@@ -214,9 +258,13 @@ void CServerApp::ProcessReceiveData()
 			if ((strUserName == m_pServer->GetHostClientInfo()->first) &&
 				(m_pServerPacket->clientInfo.clientSocAddr.sin_addr.S_un.S_addr == m_pServer->GetHostClientInfo()->second.sin_addr.S_un.S_addr)) //Compare two socket address are equal
 			{
-				//TO DO:
-				//If in game state
-				//Before remove - send to all users that server will close
+				//Add server info to client packet
+				SetServerInfo();
+				//Send to all so so has left
+				m_pClientPacket->packetType = PT_QUIT;
+				
+				//Send message
+				m_pServer->SendData(m_pClientPacket);
 				m_pServer->RemoveAll();
 				m_pServer->SetActive(false);
 			}
@@ -254,13 +302,15 @@ void CServerApp::ProcessCreation()
 
 void CServerApp::ProcessFind()
 {
-	//Create find message to send
-	m_pClientPacket->packetType = PT_FIND;
-	
-	//Add server info to client packet
-	SetServerInfo();
-	//Send message
-	m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
+	if (m_bGameStart == false)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Create find message to send
+		m_pClientPacket->packetType = PT_FIND;
+		//Send message
+		m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
+	}
 }
 
 void CServerApp::ProcessJoinRequest()

@@ -93,6 +93,8 @@ public:
 									eIGIndexType _eIndexType,
 									void* _pIndices
 									);
+
+	
 private:
 	
 	virtual bool DeviceCreation();
@@ -113,12 +115,15 @@ private:
 	ID3DXFont* FontSelect(eTextType _textType);
 	
 	
+	
+	
 	//Member Variables
 protected:
 
 	HWND m_hWindow;
 	IDirect3D9* m_pDirect3D;
 	IDirect3DDevice9* m_pDevice;
+	
 	D3DCOLOR m_ClearColor;
 
 	int m_iScreenWidth;
@@ -145,5 +150,6 @@ protected:
 
 	D3DCOLOR m_color;
 
+	
 };
 
