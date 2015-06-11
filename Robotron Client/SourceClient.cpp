@@ -38,9 +38,6 @@
 ********************/
 LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lParam)
 {
-	RECT rcClient;                 // client area rectangle 
-	POINT ptClientUL;              // client upper left corner 
-	POINT ptClientLR;              // client lower right corner 
 	//Process the given message
     switch(_uiMsg)
     {

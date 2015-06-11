@@ -303,6 +303,9 @@ void CClientApp::ProcessInputs(int _iInput)
 				case MS_MAIN:
 					break;
 				case MS_SINGLE_PLAYER:
+				{
+					ProcessSinglePlayer(_iInput);
+				}
 					break;
 				case MS_MULTI_PLAYER:
 					break;
@@ -348,10 +351,7 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 
 	case MS_SINGLE_PLAYER:
 	{
-		//TO DO
-		m_pRenderManager->Clear(true, true, false);
-		m_eGameState = GS_PLAY;
-		m_bIsHost = true;
+		SinglePlayerSelect(_strMenuItem);
 		
 	}break;
 
@@ -389,6 +389,24 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 
 	default:
 		break;
+	}
+
+}
+
+void CClientApp::ProcessSinglePlayer(int _iInput)
+{
+	if (_iInput == 13)	//Enter Key
+	{
+		//Send Creation
+		m_strServerName = "Single";
+		OpenServerApp();
+
+
+	}
+	else
+	{
+		//Continue processing text input
+		ProcessTextInput(&m_strUserName, _iInput);
 	}
 
 }
@@ -517,6 +535,7 @@ void CClientApp::MainMenuSelect(std::string _strMenuItem)
 	{
 		m_pRenderManager->Clear(true, true, false);
 		m_eMenuState = MS_SINGLE_PLAYER;
+		m_bsinglePlayer = true;
 
 	}break;
 
@@ -524,6 +543,7 @@ void CClientApp::MainMenuSelect(std::string _strMenuItem)
 	{
 		m_pRenderManager->Clear(true, true, false);
 		m_eMenuState = MS_MULTI_PLAYER;
+		m_bsinglePlayer = false;
 
 	}break;
 
@@ -550,6 +570,17 @@ void CClientApp::MainMenuSelect(std::string _strMenuItem)
 
 	default:
 		break;
+	}
+}
+
+void CClientApp::SinglePlayerSelect(std::string _strMenuItem)
+{
+	
+	//Back button was clicked
+	if (_strMenuItem == "\t Back")
+	{
+		m_pRenderManager->Clear(true, true, false);
+		m_eMenuState = MS_MAIN;
 	}
 }
 
@@ -658,7 +689,7 @@ void CClientApp::LobbyMenuSelect(std::string _strMenuItem)
 		m_eMenuState = MS_MAIN;
 	}
 
-	if (_strMenuItem == "Ready")
+	if (_strMenuItem == "\t Ready")
 	{
 		//Send Request to server to update status to active
 		
@@ -671,7 +702,7 @@ void CClientApp::LobbyMenuSelect(std::string _strMenuItem)
 		m_pClient->SendData(m_pServerPacket);
 	}
 
-	if (_strMenuItem == "Cancel")
+	if (_strMenuItem == "\t Cancel")
 	{
 		//Send Request to server to update status to active
 
@@ -796,7 +827,7 @@ void CClientApp::Draw()
 		case MS_SINGLE_PLAYER:
 		{
 			//TO DO: Start a single player instance
-			// StartSinglePlayerDraw();
+			SinglePlayerMenuDraw();
 		}break;
 		case MS_MULTI_PLAYER:
 		{
@@ -862,6 +893,24 @@ void CClientApp::MainMenuDraw()
 
 }
 
+void CClientApp::SinglePlayerMenuDraw()
+{
+	int iYPos = (m_iScreenHeight / 16);
+	DWORD dwTextFormat;
+	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+	//***TITLE***
+	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+
+	//User name
+	EnterUserName(iYPos);
+
+
+
+
+}
+
 void CClientApp::MultiPlayerMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 16);
@@ -875,10 +924,10 @@ void CClientApp::MultiPlayerMenuDraw()
 	//***Multiplayer MENU***
 	//get font height 
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos += 200 - (uiFontHeight + 1);
+	iYPos += 300 - (uiFontHeight + 50);
 	for (unsigned int i = 0; i < m_strMultiPlayerOptions.size(); i++)
 	{
-		iYPos += (uiFontHeight + 1);
+		iYPos += (uiFontHeight + 50);
 		RenderText(m_strMultiPlayerOptions[i], iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 
@@ -1047,36 +1096,23 @@ void CClientApp::HostMenuDraw()
 	{
 		//***Host MENU***
 		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos += 200; 
+		iYPos += 250; 
 		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 		RenderText("Enter Server Name: ", iYPos, TEXT_MENU, false, dwTextFormat);
 
 		//Render the server name
-		iYPos += (uiFontHeight + 100);
+		iYPos += (uiFontHeight + 150);
 		RenderText(m_strServerName, iYPos, TEXT_MENU, false, dwTextFormat);
 
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		iYPos = m_iScreenHeight - (2 * uiFontHeight);
 		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
 		break;
 	case HS_USER_NAME:
 	{
-		//***Host MENU***
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos += 200; 
-		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
-		RenderText("Enter User Name: ", iYPos, TEXT_MENU, false, dwTextFormat);
-
-		//render user name
-		iYPos += (uiFontHeight + 100);
-		RenderText(m_strUserName, iYPos, TEXT_MENU, false, dwTextFormat);
-
-		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos = m_iScreenHeight - (uiFontHeight + 10);
-		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
+		EnterUserName(iYPos);
 	}
 		break;
 	case HS_DONE:
@@ -1089,6 +1125,24 @@ void CClientApp::HostMenuDraw()
 
 	
 
+}
+
+void CClientApp::EnterUserName(int _iYPos)
+{
+	//***Host MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	_iYPos += 250;
+	DWORD dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText("Enter User Name: ", _iYPos, TEXT_MENU, false, dwTextFormat);
+
+	//render user name
+	_iYPos += (uiFontHeight + 150);
+	RenderText(m_strUserName, _iYPos, TEXT_MENU, false, dwTextFormat);
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	_iYPos = m_iScreenHeight - (2 * uiFontHeight);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\t Back", _iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
 void CClientApp::LobbyMenuDraw()
@@ -1159,12 +1213,12 @@ void CClientApp::LobbyMenuDraw()
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (2*(uiFontHeight + 10));
-	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-	RenderText(ReadyButton, iYPos, TEXT_MENU, true, dwTextFormat);
+	iYPos = m_iScreenHeight - (3*(uiFontHeight + 1));
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\t "+ReadyButton, iYPos, TEXT_MENU, true, dwTextFormat);
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (uiFontHeight + 10);
+	iYPos = m_iScreenHeight - (2*uiFontHeight);
 	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	
@@ -1472,15 +1526,18 @@ void CClientApp::ProcessCreation()
 		//If the received packet has the same values that was sent 
 		//when the server was run, then send back to that server that 
 		//This client is its host
-		m_pServerPacket->packetType = PT_CREATE;
-		std::string strTextToSend = "<KW>HOST";
-		AddTextToServerDataPacket(strTextToSend);
-		
+				
 		//Set the server socket address to the server that replied correctly
 		m_pClient->SetServerSocketAddress(m_pClientPacket->serverInfo.serverSocAddr);
 		
 		//Add Client info to server packet
 		SetClientInfo();
+		//Set up the message
+		m_pServerPacket->packetType = PT_CREATE;
+		//send whether in single player mode or Multiplayer mode
+		m_pServerPacket->bSuccess = m_bsinglePlayer;
+		std::string strTextToSend = "<KW>HOST";
+		AddTextToServerDataPacket(strTextToSend);
 		//Send message 
 		m_pClient->SendData(m_pServerPacket);
 

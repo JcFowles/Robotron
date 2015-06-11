@@ -85,7 +85,8 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	m_strServerName = WideStringToString(_pCmdArgs[1]);
 	m_strHostClient = WideStringToString(_pCmdArgs[2]);
 	m_bGameStart = false;
-
+	m_bSinglePlayer = false;
+ 
 	//Initialise member variables
 	m_pServer = new CServer();
 	VALIDATE(m_pServer->Initialise());
@@ -124,11 +125,28 @@ void CServerApp::Process()
 		//Send to all so so has left
 		m_pClientPacket->packetType = PT_GAME_START;
 		
-		//Send message
-		m_pServer->SendData(m_pClientPacket);
+		//Single player
+		if (m_bSinglePlayer == true)
+		{
+			//Send message
+			m_pServer->SendData(m_pClientPacket);
+			//Set Game to start
+			m_bGameStart = true;
+		}
+		else //Multiplayer
+		{
+			//If more than 2 players are in the lobby
+			if (m_pServer->GetNumClients() > 2)
+			{
+				//Send message
+				m_pServer->SendData(m_pClientPacket);
+				//Set Game to start
+				m_bGameStart = true;
+			}
 
-		//Set Game to start
-		m_bGameStart = true;
+		}
+		
+		
 	}
 
 }
@@ -284,6 +302,10 @@ void CServerApp::ProcessCreation()
 
 	if (strCreation == "<KW>HOST")
 	{
+
+		//Set whether server will be set to a multiplayer or single player server
+		m_bSinglePlayer = m_pServerPacket->bSuccess;
+
 		//Client has sent back that it is this servers host
 
 		//Give the server the host clients information

@@ -212,6 +212,7 @@ private:
 	CClock* m_pClock;
 	std::string m_strServerName;
 	bool m_bGameStart;
+	bool m_bSinglePlayer;
 
 	//Networking Variables
 	CServer* m_pServer;

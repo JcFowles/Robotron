@@ -106,6 +106,14 @@ public:
 	void ProcessHostGame(int _iInput);
 
 	/***********************
+	* ProcessSinglePlayer: Process the Single player menu
+	* @author: Jc Fowles
+	* @Parameter: int _iInput: The ascii value of the user input
+	* @return: void:
+	********************/
+	void ProcessSinglePlayer(int _iInput);
+
+	/***********************
 	* ProcessMenuSelection: process the menu selection
 	* @author: Jc Fowles
 	* @Parameter: std::string _strMenuItem: which menu was seleceted
@@ -126,6 +134,13 @@ public:
 	* @return: void: 
 	********************/
 	void MainMenuDraw();
+	
+	/***********************
+	* SinglePlayerMenuDraw: Draw the Single player menu
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void SinglePlayerMenuDraw();
 	
 	/***********************
 	* StartMenuDraw: Draw the Multi player menu
@@ -393,7 +408,8 @@ private:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
 
-
+	void SinglePlayerSelect(std::string _strMenuItem);
+	void EnterUserName(int _iYpos);
 
 
 	//Member Variables
@@ -419,14 +435,14 @@ private:
 	std::vector<std::string> m_strOptionsMenu;
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
+	bool m_bsinglePlayer;
 	bool m_bMenuClicked;
 	std::string m_strClickedMenu;
 
-	POINT m_MousePosition;
-	//bool* m_bIsClicked;
+	//Inputs
+	CInputManager* m_pInputManager;
 	bool* m_bIsKeyDown;
 	
-	CInputManager* m_pInputManager;
 	
 	//Networking variables
 	CClient* m_pClient;
