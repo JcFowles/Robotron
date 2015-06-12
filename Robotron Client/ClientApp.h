@@ -21,12 +21,11 @@
 #include <thread>
 
 //Local Includes
+#include "Game.h"
 #include "Client.h"
-#include "IRenderer.h"
 #include "D3D9Renderer.h"
 #include "InputManager.h"
-#include "../Shared/Clock.h"
-#include "../Shared/App_Defines.h"
+
 
 
 class CClientApp
@@ -425,7 +424,8 @@ private:
 	
 	//Game Variables
 	static CClientApp* s_pClientApp;
-	CClock* m_pClock;
+	CGame* m_pGame;
+	
 	eGameStates m_eGameState;
 	eMenuStates m_eMenuState;
 	eHostStates m_eHostState;

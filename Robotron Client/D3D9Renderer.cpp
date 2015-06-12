@@ -297,14 +297,13 @@ void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 	D3DLIGHT9 D3DLight;   
 	//Clear memory of light use
 	ZeroMemory(&D3DLight, sizeof(D3DLight));
-
-
+	
 	if (_pLightParameter.iID == 1)
 	{
 		int c = 9;
 	}
-	//Set Light parameters
 	
+	//Set Light parameters
 	D3DLight.Type = _pLightParameter.eLightType;
 	//All Light Types
 	D3DLight.Ambient = _pLightParameter.colorAmbient;
@@ -357,31 +356,39 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	m_iScreenHeight = _iHeight;
 	m_hWindow = _hWindow;
 	m_bFullscreen = _bFullscreen;
-			
+
 	if (!DeviceCreation())
 	{
 		//Device creation failed
 		return false;
 	}
-	
+
 	SetRenderStates();
-	
+
 	SetMaterial();
-	
+
 	//Set Clear color to deep purple
 	SetClearColour(1.0f, 20.0f / 255.0f, 147.0f / 255.0f);
 
 	//Create a Container for Static Buffers
-	m_pvectBuffer = new std::vector < CStaticBuffer* >;
-	
+	m_pvectBuffer = new std::vector < CStaticBuffer* > ;
+
 	//Create map for all the Surfaces
-	m_pSurfaceMap = new std::map < int, IDirect3DSurface9* >;
-	
+	m_pSurfaceMap = new std::map < int, IDirect3DSurface9* > ;
+
 	//Create the various fonts to draw text to screen
-	CreateTextFont(150, 150/2, "Times New Roman", TEXT_TITLE);
+	CreateTextFont(150, 150 / 2, "Times New Roman", TEXT_TITLE);
 	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU);
 	CreateTextFont(26, 13, "Times New Roman", TEXT_LIST);
-	
+
+	//TO DO: Lights
+	ZeroMemory(&m_pDirectionalLight, sizeof(m_pDirectionalLight));
+	m_pDirectionalLight.Type = D3DLIGHT_DIRECTIONAL;
+	m_pDirectionalLight.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	m_pDirectionalLight.Direction = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+
+	m_pDevice->SetLight(0, &m_pDirectionalLight);
+	m_pDevice->LightEnable(0, true);
 
 	return true;
 }
@@ -399,7 +406,17 @@ void CD3D9Renderer::SetMaterial()
 	D3DMaterial.Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);  //Reflect All Ambient light color 
 	D3DMaterial.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Ambient light color 
 	m_pDevice->SetMaterial(&D3DMaterial);
+}
 
+void CD3D9Renderer::SetMaterial(DWORD _Color)
+{	
+	D3DXCOLOR D3DColor = D3DXCOLOR(_Color);
+	D3DMATERIAL9 D3DMaterial;
+	ZeroMemory(&D3DMaterial, sizeof(D3DMaterial));
+	D3DMaterial.Diffuse = D3DColor;  
+	D3DMaterial.Ambient = D3DColor;  
+	D3DMaterial.Specular = D3DColor; 
+	m_pDevice->SetMaterial(&D3DMaterial);
 }
 
 /***********************
@@ -927,7 +944,7 @@ void CD3D9Renderer::CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookA
 void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar)
 {
 	//Calculate aspect ratio
-	float fAspectRatio = (float)(m_iScreenWidth / m_iScreenHeight);
+	float fAspectRatio = ((float)m_iScreenWidth / (float)m_iScreenHeight);
 
 	//Calculate the Projection matrix of the D3D Device
 	D3DXMatrixPerspectiveFovLH( &m_matProjection,

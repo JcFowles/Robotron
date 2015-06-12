@@ -141,11 +141,32 @@ private:
 	void ProcessJoinRequest();
 
 	/***********************
+	* ProcessActive: Process the ACTIVE message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessActive();
+
+	/***********************
 	* ProcessFind: Process the DEFAULT message
 	* @author: Jc Fowles
 	* @return: void:
 	********************/
 	void ProcessDefault();
+
+	/***********************
+	* ProcessLeave: Process the LEAVE message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessLeave();
+
+	/***********************
+	* ProcessQuit: Process the QUIT message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessQuit();
 
 	/***********************
 	* AddTextToClientDataPacket: Convert passed in data to a ClientDataPacket
@@ -154,6 +175,7 @@ private:
 	* @return: void
 	********************/
 	void AddTextToClientDataPacket(std::string _srtText);
+	
 	
 	/***********************
 	* AddHostNameToServerInfo: Add the Host name to server info
@@ -164,22 +186,12 @@ private:
 	void AddHostNameToServerInfo(std::string _srtHostName);
 
 	/***********************
-	* AddServerToServerInfo: Add the server name to server info
-	* @author: Jc Fowles
-	* @Parameter: std::string _srtServerName: Server name to be added
-	* @return: void: 
-	********************/
-	
-	
-	
-	
-	/***********************
 	* AddServerToServerInfo: TO DO:
 	* @author: Jc Fowles
 	* @Parameter: std::string _srtServerName: TO DO:
 	* @return: void: 
 	********************/
-		void AddServerToServerInfo(std::string _srtServerName);
+	void AddServerToServerInfo(std::string _srtServerName);
 	
 	/***********************
 	* WideStringToString: Convert a Wide string to a standard string
@@ -196,6 +208,13 @@ private:
 	********************/
 	void SetServerInfo();
 
+	
+	
+	void SetGameState(ClientDataPacket* _pDataToSend);
+
+	bool AddUser(std::string _UserName, PlayerStates _playerStates);
+
+	
 	//Member Variables
 public:
 
@@ -222,10 +241,12 @@ private:
 	std::queue<ServerDataPacket>* m_pServerDataQueue;
 	static CMySemaphore s_Mutex;
 	bool m_bHaveHost;
-
-	
+		
 	std::string m_strHostClient;
 	
+	//TO DO move to class sever game
+	//Game Variables
+	std::map<std::string, PlayerStates>* m_pMapPlayerStates;
 
 };
 

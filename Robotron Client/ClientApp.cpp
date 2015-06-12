@@ -28,8 +28,9 @@ CClientApp::~CClientApp(void)
 {
 	//Game
 
-	delete m_pClock;
-	m_pClock = 0;
+	
+	delete m_pGame;
+	m_pGame = 0;
 
 	m_pInputManager->Shutdown();
 	delete m_pInputManager;
@@ -72,7 +73,7 @@ CClientApp::~CClientApp(void)
 
 CClientApp& CClientApp::GetInstance()
 {
-	//Create the game instance if it doesnt exist 
+	//Create the Client instance if it doesnt exist 
 	if (s_pClientApp == 0)
 	{
 		s_pClientApp = new CClientApp();
@@ -102,11 +103,9 @@ void CClientApp::PreQuit()
 }
 
 void CClientApp::DestroyInstance()
-{
-	
+{	
 	delete s_pClientApp;
 	s_pClientApp = 0;
-
 }
 
 bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth, int _iScreenHeight)
@@ -119,8 +118,6 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	//Initialise Game Variables
 	m_bIsHost = false;
 	m_bServerCreated = false;
-	m_pClock = new CClock();
-	VALIDATE(m_pClock->Initialise());
 	m_strClickedMenu = "";
 	m_bMenuClicked = false;
 	//If adding or changing stings here go set states Dependant
@@ -208,27 +205,14 @@ void CClientApp::Process()
 
 		switch (m_eMenuState)
 		{
-		case MS_MAIN:
-			break;
-		case MS_SINGLE_PLAYER:
-			break;
-		case MS_MULTI_PLAYER:
-			break;
-		case MS_OPTIONS:
-			break;
-		case MS_INSTRUCTIONS:
-			break;
-		case MS_EXIT:
-			break;
+		
 		case MS_JOIN_GAME:
 		{
 			switch (m_eHostState)
 			{
-			case HS_DEFAULT:
-				break;
 			case HS_SERVER_NAME:
 			{
-				//If m_strActiveServers didnt need to be processed remove then
+				//If m_strActiveServers didnt need to be processed remove them
 				if (m_bMenuClicked == false)
 				{
 					//Clear server list
@@ -239,10 +223,6 @@ void CClientApp::Process()
 				FindServers();
 			}
 				break;
-			case HS_USER_NAME:
-				break;
-			case HS_DONE:
-				break;
 			default:
 				break;
 			}
@@ -252,12 +232,6 @@ void CClientApp::Process()
 		{
 			switch (m_eHostState)
 			{
-			case HS_DEFAULT:
-				break;
-			case HS_SERVER_NAME:
-				break;
-			case HS_USER_NAME:
-				break;
 			case HS_DONE:
 			{
 				//open server app
@@ -281,6 +255,9 @@ void CClientApp::Process()
 	}
 		break;
 	case GS_PLAY:
+	{
+		m_pGame->Process();
+	}
 		break;
 	default:
 		break;
@@ -288,6 +265,8 @@ void CClientApp::Process()
 
 	//process received data
 	ProcessReceiveData();
+	
+	
 
 
 }
@@ -399,9 +378,9 @@ void CClientApp::ProcessSinglePlayer(int _iInput)
 	{
 		//Send Creation
 		m_strServerName = "Single";
+		
+		//Open the Server
 		OpenServerApp();
-
-
 	}
 	else
 	{
@@ -685,8 +664,17 @@ void CClientApp::LobbyMenuSelect(std::string _strMenuItem)
 {
 	if (_strMenuItem == "\t Back")
 	{
+		//Send message to server that I have left
+		//Add Client info to server packet
+		SetClientInfo();
+		//other Aspects of message to send
+		m_pServerPacket->packetType = PT_LEAVE;
+		//Send message
+		m_pClient->SendData(m_pServerPacket);
+		
 		m_pRenderManager->Clear(true, true, false);
 		m_eMenuState = MS_MAIN;
+		m_eHostState = HS_DEFAULT;
 	}
 
 	if (_strMenuItem == "\t Ready")
@@ -863,6 +851,9 @@ void CClientApp::Draw()
 	}
 		break;
 	case GS_PLAY:
+	{
+		m_pGame->Draw();
+	}
 		break;
 	
 	}
@@ -905,9 +896,6 @@ void CClientApp::SinglePlayerMenuDraw()
 
 	//User name
 	EnterUserName(iYPos);
-
-
-
 
 }
 
@@ -1176,7 +1164,7 @@ void CClientApp::LobbyMenuDraw()
 	iYPos += uiFontHeight;
 	for (int i = 0; i < NetworkValues::MAX_USERS; i++)
 	{
-		std::string strUserName(m_pClientPacket->serverInfo.cListOfClients[i]);
+		std::string strUserName(m_pClientPacket->serverInfo.activeClientList[i].cUserName);
 
 		if (strUserName != "")
 		{
@@ -1396,7 +1384,7 @@ void CClientApp::OpenServerApp()
 
 		//TO DO: hide server
 		std::string strTextToSend = m_strServerName + " " + m_strUserName;
-		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_NORMAL);
+		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_MINIMIZE);
 		//int iError = 42;
 		//m_bIsHost = true;
 		if (iError < 32) //Server exe opened successfully
@@ -1486,7 +1474,39 @@ void CClientApp::ProcessReceiveData()
 		case PT_GAME_START:
 		{
 			//Game has started set game state to play
-			m_eGameState = GS_PLAY;
+			//Create and Initialise the game
+			m_pGame = &(CGame::GetInstance());
+
+			std::vector<PlayerStates> tempPlayerStates;
+			//Set it to a value higher than allowed
+			int PlayerIndex = NetworkValues::MAX_USERS + 1;
+
+
+			for (int i = 0; i < NetworkValues::MAX_USERS; i++)
+			{
+				std::string strPlayerName(m_pClientPacket->currentGameState.PlayerInfo[i].cPLayerName);
+				if (strPlayerName != "")
+				{
+
+					tempPlayerStates.push_back(m_pClientPacket->currentGameState.PlayerInfo[i]);
+				}
+				if (strPlayerName == m_strUserName)
+				{
+					PlayerIndex = i;
+				}
+			}
+			
+			if (m_pGame->Initialise(m_pRenderManager, tempPlayerStates, PlayerIndex))
+			{
+				m_eGameState = GS_PLAY;
+			}
+			else
+			{
+				bool GameUnableToInitialise = true;
+				assert(GameUnableToInitialise);
+			}
+
+			
 		}
 		case PT_LEAVE:
 		{
@@ -1546,6 +1566,18 @@ void CClientApp::ProcessCreation()
 
 		//Set the menu state to lobby
 		m_eMenuState = MS_LOBBY;
+		
+		//If single player active
+		if (m_bsinglePlayer)
+		{
+			//Add Client info to server packet
+			SetClientInfo();
+			//other Aspects of message to send
+			m_pServerPacket->packetType = PT_ACTIVE;
+			m_pServerPacket->bSuccess = true;
+			//Send message
+			m_pClient->SendData(m_pServerPacket);
+		}
 
 	}
 

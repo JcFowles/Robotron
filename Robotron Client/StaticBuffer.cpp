@@ -179,6 +179,16 @@ bool CStaticBuffer::Initialise(IDirect3DDevice9* _pDevice,
 	{
 		return false;
 	}
+
+	//Set set the stream source to 0, and set the vertex buffer to m_pVertexBuffer
+	_pDevice->SetStreamSource(0, m_pVertexBuffer, 0, m_iStride);
+
+	//Set the FVF
+	_pDevice->SetFVF(m_dwFvf);
+
+	//Set the active static buffer to this buffer ID
+	s_iActiveStaticBuffer = m_iID;
+
 	
 	//Return Initialise true
 	return true;
@@ -208,7 +218,7 @@ void CStaticBuffer::Render(IDirect3DDevice9* _pDevice)
 	if(m_pIndexBuffer != 0)
 	{
 		//If using a Index buffer
-		//Set the Indices to the Indexbuffer
+		//Set the Indices to the Index buffer
 		_pDevice->SetIndices(m_pIndexBuffer);
 		//Draw the index primitives
 		
@@ -216,7 +226,7 @@ void CStaticBuffer::Render(IDirect3DDevice9* _pDevice)
 	}
 	else
 	{
-		//If using a vertex buffer draw all the primatives
+		//If using a vertex buffer draw all the primitives
 		_pDevice->DrawPrimitive(GetD3DPT(), 0, GetNumPrimitives());
 	}
 }

@@ -56,6 +56,7 @@ public:
 
 	virtual void SetLights(D3DLightParameter _pLightParameter);
 	virtual void SetMaterial();
+	virtual void SetMaterial(DWORD _Color);
 
 	virtual void SetSpecularEnable(bool _bEnable);
 	virtual void SetAmbient(D3DCOLOR _Color);
@@ -145,6 +146,7 @@ protected:
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
 	
+	D3DLIGHT9 m_pDirectionalLight;
 
 	bool m_bSpecular;
 

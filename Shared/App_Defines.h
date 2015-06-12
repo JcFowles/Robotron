@@ -67,7 +67,12 @@ struct PlayControls
 	bool bEscape;
 };
 
-
+struct float3
+{
+	float x;
+	float y;
+	float z;
+};
 
 #define VALIDATE(a) if (!a) return (false)
 

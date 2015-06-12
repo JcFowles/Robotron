@@ -109,16 +109,7 @@ public:
 	* @return: void:
 	********************/
 	void RemoveAll();
-
-	/***********************
-	* SetClientList: Set the list of clients in the server info of the client packet. 
-	*				 To prevent old client lists being sent
-	* @author: Jc Fowles
-	* @Parameter: ClientDataPacket * _pDataToSend: Packet to edit before sending
-	* @return: void:
-	********************/
-	void SetClientList(ClientDataPacket* _pDataToSend);
-
+	
 	/***********************
 	* SetActiveClientList: Set the list of active clients in the server info of the client packet.
 	*					   To prevent old client lists being sent
@@ -166,9 +157,12 @@ public:
 	********************/
 	sockaddr_in GetServerSocketAddress() const { return m_ServerSocketAddress; }
 
-	int GetNumClients() const { return m_pMapClients->size(); }
+	int GetNumClients() const { return m_pMapClientInfo->size(); }
 	
 	bool SetActiveClient(std::string _UserName, bool _bActive);
+
+	std::map< std::string, ClientInfo>* getMap() { return m_pMapClientInfo; };
+
 	bool AllActive();
 	//Member variables
 public:
@@ -180,10 +174,8 @@ private:
 
 	SOCKET m_hServerSocket;
 	sockaddr_in m_ServerSocketAddress;
-	//sockaddr_in m_ClientSocketAddress;
-
-	std::map< std::string, sockaddr_in>* m_pMapClients;
-	std::map< std::string, bool>* m_pMapActiveClients;
+	
+	std::map< std::string, ClientInfo>* m_pMapClientInfo;
 	std::pair<std::string, sockaddr_in>* m_HostClientInfo;
 
 	

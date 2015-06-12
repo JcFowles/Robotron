@@ -65,7 +65,8 @@ public:
 	virtual void SetSpecularEnable(bool _bEnable) = 0;
 	virtual void SetAmbient(D3DCOLOR _Color) = 0;
 
-	virtual void SetMaterial() = 0;;
+	virtual void SetMaterial() = 0;
+	virtual void SetMaterial(DWORD _Color) = 0;
 
 	//Render
 	virtual void Render(unsigned int _uiStaticId) = 0;

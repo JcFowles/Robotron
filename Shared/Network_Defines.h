@@ -28,6 +28,7 @@
 
 //Local Includes
 #include "../Shared/MySemaphore.h"
+#include "../Shared/App_Defines.h"
 
 namespace NetworkValues
 {
@@ -54,12 +55,20 @@ enum ePacketType
 	PT_QUIT
 };
 
+struct PlayerStates
+{
+	char cPLayerName[NetworkValues::MAX_NAME_LENGTH + 1];
+	float3 f3Positions;
+	//Other states ie shooting, health, points etc
+};
+
 struct ClientInfo
 {
 	sockaddr_in clientSocAddr;
 	sockaddr_in ServerSocAddr;
 	char cUserName[NetworkValues::MAX_NAME_LENGTH + 1];
 	bool bActive;
+	
 };
 
 //Data structure to send to Server received 
@@ -74,6 +83,7 @@ struct ServerDataPacket
 struct ActiveClient
 {
 	char cUserName[NetworkValues::MAX_NAME_LENGTH + 1];
+
 	bool bActive;
 };
 
@@ -83,7 +93,6 @@ struct ServerInfo
 	/*<SERVER_INFO>*/
 	char cServerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	char cHostName[NetworkValues::MAX_NAME_LENGTH + 1];
-	char cListOfClients[NetworkValues::MAX_USERS][NetworkValues::MAX_NAME_LENGTH + 1];
 	ActiveClient activeClientList[NetworkValues::MAX_USERS];
 	int iNumClients;
 	sockaddr_in serverSocAddr;
@@ -94,6 +103,8 @@ struct GameState
 	//TO DO
 	//list of enemies , positions, etc
 	//List of players with there positions etc
+	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
+	
 };
 
 //Data structure to send to client
