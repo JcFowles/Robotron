@@ -205,11 +205,30 @@ void CClientApp::Process()
 
 		switch (m_eMenuState)
 		{
-		
+		case MS_MAIN:
+		{
+			if (m_bMenuClicked == false)
+			{
+				//Clear server list
+				m_pMapActiveServers->clear();
+				//Clear the selected server as well
+				ZeroMemory(m_pSelectedServer, sizeof(m_pSelectedServer));
+			}
+		}break;
 		case MS_JOIN_GAME:
 		{
 			switch (m_eHostState)
 			{
+			case HS_DEFAULT:
+			{
+				if (m_bMenuClicked == false)
+				{
+					//Clear server list
+					m_pMapActiveServers->clear();
+					//Clear the selected server as well
+					ZeroMemory(m_pSelectedServer, sizeof(m_pSelectedServer));
+				}
+			}break;
 			case HS_SERVER_NAME:
 			{
 				//If m_strActiveServers didnt need to be processed remove them
@@ -217,6 +236,7 @@ void CClientApp::Process()
 				{
 					//Clear server list
 					m_pMapActiveServers->clear();
+					
 				}
 
 				//Broadcast to find servers
@@ -1511,8 +1531,7 @@ void CClientApp::ProcessReceiveData()
 		case PT_LEAVE:
 		{
 			std::string strUserName(m_pClientPacket->cText);
-			//So and So has left
-		
+			m_pGame->RemovePlayer(strUserName);
 		}
 			break;
 		case PT_QUIT:

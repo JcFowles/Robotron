@@ -33,6 +33,8 @@ void CGame::DestroyInstance()
 
 bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Players, int _iIndexOfClientPlayer)
 {	
+	m_pPlayers = new std::vector < PlayerStates > ;
+	*m_pPlayers = _Players;
 
 	if (_iIndexOfClientPlayer > NetworkValues::MAX_USERS)
 	{
@@ -153,4 +155,19 @@ CMesh* CGame::CreateCubeMesh(float _fCubeSize)
 	meshCube->CreateStaticBuffer();
 	//Return the mesh
 	return meshCube;
+}
+
+void CGame::RemovePlayer(std::string _strPlayerName)
+{
+	for (unsigned int iPlayer = 0; iPlayer < m_pPlayerObj->size(); iPlayer++)
+	{
+		std::string strNameCheck((*m_pPlayers)[iPlayer].cPLayerName);
+
+		if (strNameCheck == _strPlayerName)
+		{			
+			m_pPlayerObj->erase(m_pPlayerObj->begin() + iPlayer);
+			m_pPlayers->erase(m_pPlayers->begin() + iPlayer);
+		}
+
+	}
 }
