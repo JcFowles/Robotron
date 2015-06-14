@@ -38,7 +38,6 @@ public:
 
 
 	CMesh* CreateCubeMesh(float _fCubeSize);
-	void RemovePlayer(std::string _strPlayerName);
 
 private:
 	//Disallowing copies and extra constructions
@@ -57,7 +56,6 @@ private:
 	C3DObject* m_pPlayer;
 
 	std::vector<C3DObject* >* m_pPlayerObj;
-	std::vector<PlayerStates>* m_pPlayers;
 
 	CMesh* m_pCubeMesh;
 
