@@ -96,7 +96,7 @@ void CCameraStatic::SetType(bool _bFirstPerson)
 }
 
 /***********************
-* SetCamera: Set up the camera in the correct postion and correct target
+* SetCamera: Set up the camera in the correct position and correct target
 * @author: Jc Fowles
 * @parameter: _vecTarget: Target vector of the avatar
 * @parameter: _vecPosition: Position vector of the avatar
@@ -104,7 +104,7 @@ void CCameraStatic::SetType(bool _bFirstPerson)
 * @parameter: _vecLook: Look direction vector of the avatar
 * @return: void
 ********************/
-void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecUp, D3DXVECTOR3 _vecLook)
+void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecUp)
 {
 	if (m_bFirstPerson)
 	//First person view
@@ -118,19 +118,17 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		m_VecUp = _vecUp;
 	}
 	else
-	//Third person view
+	//Top down view 
 	{
 		//set target to be the avatar
 		m_vecTarget = _vecPosition;
 		
-		//Set position back apon the look vector of the avatar
-		m_vecPosition = _vecPosition;
-		m_vecPosition += -_vecLook*m_f3PCDistBehind;
+		//Set position directly 100 unit above (on Y-axis) past in position
+		D3DXVECTOR3 AddHeight = { 0.0f, 100.0f, 1.0f,  };
+		m_vecPosition += AddHeight;
 		
-		//Set position slighly higher than the avatar
-		m_vecPosition += _vecUp * m_f3PCDistUp;
 		//Which way is up for the avatar
-		m_VecUp = _vecUp;
+		m_VecUp = {0.0f,0.0f,1.0f};
 	}
 
 }

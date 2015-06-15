@@ -80,21 +80,28 @@ public:
 	void Process();
 
 	/***********************
-	* ProcessInputs: Process User inputs
+	* ProcessTextInputs: Process User text inputs
 	* @author: Jc Fowles
 	* @Parameter: int _iInput: The ascii value of the input
 	* @return: void: 
 	********************/
-	void ProcessInputs(int _iInput);
+	void ProcessTextInputs(int _iInput);
+
+	/***********************
+	* ProcessGameInput: Process User inputs for the game and send them to server
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessGameInput();
 	
 	/***********************
-	* ProcessTextInput: Process text with user input
+	* ConvertTextInput: convert passed in ascii input values into a standard sting 
 	* @author: Jc Fowles
-	* @Parameter: std::string * _pstrText: Pointer to string of text to be processed
+	* @Parameter: std::string * _pstrText: Standard string for ascii value to be added to 
 	* @Parameter: int _iInput: The ascii value of the input
 	* @return: void:
 	********************/
-	void ProcessTextInput(std::string* _pstrText, int _iInput);
+	void ConvertTextInput(std::string* _pstrText, int _iInput);
 	
 	/***********************
 	* ProcessHostGame: Process the Host game menu

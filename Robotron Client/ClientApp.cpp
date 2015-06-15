@@ -184,6 +184,9 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 void CClientApp::Process()
 {
 	
+	//Reset the player inputs
+	m_pInputManager->ResetInputStates();
+	//Process the Player the inputs
 	m_pInputManager->ProcessInput();
 	
 	switch (m_eGameState)
@@ -196,7 +199,7 @@ void CClientApp::Process()
 		{
 			int c = 9;
 		}
-		if (m_pInputManager->GetControlState().bActivate == false) 
+		if (m_pInputManager->GetInputStates().bActivate == false) 
 		{
 			ProcessMenuSelection(m_strClickedMenu);
 			m_strClickedMenu = "";
@@ -256,7 +259,9 @@ void CClientApp::Process()
 		break;
 	case GS_PLAY:
 	{
+		//TO DO game process
 		m_pGame->Process();
+		ProcessGameInput();		
 	}
 		break;
 	default:
@@ -271,7 +276,22 @@ void CClientApp::Process()
 
 }
 
-void CClientApp::ProcessInputs(int _iInput)
+void CClientApp::ProcessGameInput()
+{
+	//Set server info
+	SetClientInfo();
+	//Set up message
+	m_pServerPacket->packetType = PT_INPUT;
+
+	//get the player input states
+	m_pServerPacket->PlayerInputs = m_pInputManager->GetInputStates();
+
+	//Send the inputs
+	m_pClient->SendData(m_pServerPacket);
+
+}
+
+void CClientApp::ProcessTextInputs(int _iInput)
 {
 	switch (m_eGameState)
 	{
@@ -279,20 +299,10 @@ void CClientApp::ProcessInputs(int _iInput)
 		{
 			switch (m_eMenuState)
 			{
-				case MS_MAIN:
-					break;
 				case MS_SINGLE_PLAYER:
 				{
 					ProcessSinglePlayer(_iInput);
 				}
-					break;
-				case MS_MULTI_PLAYER:
-					break;
-				case MS_OPTIONS:
-					break;
-				case MS_INSTRUCTIONS:
-					break;
-				case MS_EXIT:
 					break;
 				case MS_JOIN_GAME:
 				//fall though
@@ -305,11 +315,6 @@ void CClientApp::ProcessInputs(int _iInput)
 					break;
 			}
 		}
-			break;
-		case GS_PLAY:
-			break;
-		default:
-			break;
 	}
 	
 
@@ -385,7 +390,7 @@ void CClientApp::ProcessSinglePlayer(int _iInput)
 	else
 	{
 		//Continue processing text input
-		ProcessTextInput(&m_strUserName, _iInput);
+		ConvertTextInput(&m_strUserName, _iInput);
 	}
 
 }
@@ -409,7 +414,7 @@ void CClientApp::ProcessHostGame(int _iInput)
 				else
 				{
 					//Continue processing text input
-					ProcessTextInput(&m_strServerName, _iInput);
+					ConvertTextInput(&m_strServerName, _iInput);
 				}
 			}
 			
@@ -440,7 +445,7 @@ void CClientApp::ProcessHostGame(int _iInput)
 			else
 			{
 				//Continue processing text input
-				ProcessTextInput(&m_strUserName, _iInput);
+				ConvertTextInput(&m_strUserName, _iInput);
 			}
 		}
 			break;
@@ -451,7 +456,7 @@ void CClientApp::ProcessHostGame(int _iInput)
 	}
 }
 
-void CClientApp::ProcessTextInput(std::string* _strText, int _iInput)
+void CClientApp::ConvertTextInput(std::string* _strText, int _iInput)
 {
 	std::string strTemp;
 	strTemp = *_strText;
@@ -1339,17 +1344,17 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 		TextColor = D3DCOLOR_XRGB(255, 50, 0);
 								
 		//If you hover over a click-able text
-		if (m_pInputManager->GetMousePos().y >= Rect.top	&&
-			m_pInputManager->GetMousePos().y <= Rect.bottom &&
-			m_pInputManager->GetMousePos().x <= Rect.right	&&
-			m_pInputManager->GetMousePos().x >= Rect.left
+		if (m_pInputManager->GetInputStates().CursorPos.y >= Rect.top	&&
+			m_pInputManager->GetInputStates().CursorPos.y <= Rect.bottom &&
+			m_pInputManager->GetInputStates().CursorPos.x <= Rect.right	&&
+			m_pInputManager->GetInputStates().CursorPos.x >= Rect.left
 			)
 
 		{
 			//Change its color signifying that its click-able
 			TextColor = D3DCOLOR_XRGB(255, 185, 0);
 			//If the text was clicked
-			if (m_pInputManager->GetControlState().bActivate)
+			if (m_pInputManager->GetInputStates().bActivate)
 			{
 				//Set menu clicked to true
 				m_bMenuClicked = true;

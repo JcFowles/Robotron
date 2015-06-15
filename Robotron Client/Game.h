@@ -5,7 +5,7 @@
 
 //Local includes
 #include "../Shared/Network_Defines.h"
-#include "../Shared/Clock.h"
+//#include "../Shared/Clock.h"
 #include "IRenderer.h"
 #include "Terrain.h"
 #include "Mesh.h"
@@ -37,7 +37,7 @@ public:
 	void RenderSingleFrame();
 
 
-	CMesh* CreateCubeMesh(float _fCubeSize);
+	CMesh* CreatePlayerMesh(float _fCubeSize);
 
 private:
 	//Disallowing copies and extra constructions
@@ -49,15 +49,13 @@ private:
 private:
 	
 	IRenderer* m_pRenderManager;
-
-	CClock* m_pClock;
+		
 	static CGame* s_pGame;
+	
+	std::map<std::string, C3DObject*>* m_plistPlayers;
+	std::pair<std::string, C3DObject>* m_pClientAvatar;
 
-	C3DObject* m_pPlayer;
-
-	std::vector<C3DObject* >* m_pPlayerObj;
-
-	CMesh* m_pCubeMesh;
+	CMesh* m_pPlayerMesh;
 
 	CTerrain* m_pTerrain;
 	CCameraStatic* m_pCamera;

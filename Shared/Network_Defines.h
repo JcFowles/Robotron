@@ -52,7 +52,9 @@ enum ePacketType
 	PT_ACTIVE,
 	PT_GAME_START,
 	PT_LEAVE,
-	PT_QUIT
+	PT_QUIT,
+
+	PT_INPUT
 };
 
 struct PlayerStates
@@ -78,6 +80,7 @@ struct ServerDataPacket
 	bool bSuccess;
 	ePacketType packetType;
 	ClientInfo clientInfo;
+	InputStates PlayerInputs;
 };
 
 struct ActiveClient

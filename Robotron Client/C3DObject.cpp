@@ -82,6 +82,7 @@ void C3DObject::Draw(IRenderer* _pRendererManager)
 {
 	//Calculates the World Matrix for this 3D Object
 	CalcWorldMatrix(_pRendererManager);
+	//TO DO: member variable the color ect
 	DWORD dwMatColor = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
 	_pRendererManager->SetMaterial(dwMatColor);
 	m_pMesh->Draw();

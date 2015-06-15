@@ -57,7 +57,7 @@ enum eHostStates
 	HS_DONE
 };
 
-struct PlayControls
+struct InputStates
 {
 	bool bUpPress;
 	bool bDownPress;
@@ -65,6 +65,7 @@ struct PlayControls
 	bool bRightPress;
 	bool bActivate;
 	bool bEscape;
+	POINT CursorPos;
 };
 
 struct float3

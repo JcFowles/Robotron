@@ -70,7 +70,7 @@ LRESULT CALLBACK WindowProc(HWND _hWnd, UINT _uiMsg, WPARAM _wParam, LPARAM _lPa
 		{
 			//Set the IsKeyDown bool of this key to true
 			CClientApp::GetInstance().IsKeyDown()[_wParam] = true;
-			CClientApp::GetInstance().ProcessInputs(_wParam);
+			CClientApp::GetInstance().ProcessTextInputs(_wParam);
 			
 		}break;	
     }

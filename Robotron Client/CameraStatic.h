@@ -34,8 +34,7 @@ public:
 	void SetType(bool _bFirstPerson);
 	void SetCamera( D3DXVECTOR3 _vecTarget,
 					D3DXVECTOR3 _vecPosition, 
-					D3DXVECTOR3 _vecUp,
-					D3DXVECTOR3 _vecLook);
+					D3DXVECTOR3 _vecUp);
 
 	//Getters
 	bool GetCameraType();

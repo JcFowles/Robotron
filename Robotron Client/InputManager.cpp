@@ -47,12 +47,12 @@ bool CInputManager::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWid
 	//Initialise member variable
 	m_hWnd = _hWnd;
 	//Initialise the player controls
-	m_playControls.bUpPress = false;
-	m_playControls.bDownPress = false;
-	m_playControls.bLeftPress = false;
-	m_playControls.bRightPress = false;
-	m_playControls.bActivate = false;
-	m_playControls.bEscape = false;
+	m_InputStates.bUpPress = false;
+	m_InputStates.bDownPress = false;
+	m_InputStates.bLeftPress = false;
+	m_InputStates.bRightPress = false;
+	m_InputStates.bActivate = false;
+	m_InputStates.bEscape = false;
 
 	//Local variable
 	HRESULT hResult;
@@ -200,25 +200,35 @@ void CInputManager::ProcessMouse()
 	//TO DO Control remap
 	if (m_mouseState.rgbButtons[0] & 0x80)
 	{
-		m_playControls.bActivate = true;
+		m_InputStates.bActivate = true;
 	}
 	else
 	{
-		m_playControls.bActivate = false;
+		m_InputStates.bActivate = false;
 	}
+
+	m_InputStates.CursorPos = m_MousePos;
 }
 
 void CInputManager::ProcessKeyBoard()
 {
 	//TO DO remapping
-	((m_cKeyStateBuffer[DIK_W] & 0x80))		 ? (m_playControls.bUpPress = true)		: (m_playControls.bUpPress = false);
-	((m_cKeyStateBuffer[DIK_S] & 0x80))		 ? (m_playControls.bDownPress = true)	: (m_playControls.bDownPress = false);
-	((m_cKeyStateBuffer[DIK_A] & 0x80))		 ? (m_playControls.bLeftPress = true)	: (m_playControls.bLeftPress = false);
-	((m_cKeyStateBuffer[DIK_D] & 0x80))		 ? (m_playControls.bRightPress = true)	: (m_playControls.bRightPress = false);
-	((m_cKeyStateBuffer[DIK_ESCAPE] & 0x80)) ? (m_playControls.bEscape = true)		: (m_playControls.bEscape = false);
+	((m_cKeyStateBuffer[DIK_W] & 0x80))		 ? (m_InputStates.bUpPress = true)		: (m_InputStates.bUpPress = false);
+	((m_cKeyStateBuffer[DIK_S] & 0x80))		 ? (m_InputStates.bDownPress = true)	: (m_InputStates.bDownPress = false);
+	((m_cKeyStateBuffer[DIK_A] & 0x80))		 ? (m_InputStates.bLeftPress = true)	: (m_InputStates.bLeftPress = false);
+	((m_cKeyStateBuffer[DIK_D] & 0x80))		 ? (m_InputStates.bRightPress = true)	: (m_InputStates.bRightPress = false);
+	((m_cKeyStateBuffer[DIK_ESCAPE] & 0x80)) ? (m_InputStates.bEscape = true)		: (m_InputStates.bEscape = false);
 }
 
-POINT CInputManager::GetMousePos()
+void CInputManager::ResetInputStates()
 {
-	return m_MousePos;
+	m_InputStates.bActivate = false;
+	m_InputStates.bEscape = false;
+	
+	m_InputStates.bLeftPress = false;
+	m_InputStates.bRightPress = false;
+	m_InputStates.bUpPress = false;
+	m_InputStates.bDownPress = false;
+
+	m_InputStates.CursorPos = { 0, 0 };
 }

@@ -10,6 +10,7 @@
 //local include
 #include "..\shared\App_Defines.h"
 
+//TO DO : remove comment
 //http://www.rastertek.com/dx10tut13.html
 
 class CInputManager
@@ -29,9 +30,9 @@ public:
 	void ProcessKeyBoard();
 
 
-	POINT GetMousePos();
-	PlayControls GetControlState() { return m_playControls; };
-	void SetControlState(PlayControls _PlayCont){ m_playControls = _PlayCont; };
+	InputStates GetInputStates() { return m_InputStates; };
+	void SetInputStates(InputStates _PlayCont){ m_InputStates = _PlayCont; };
+	void ResetInputStates();
 	//Member variables
 public :
 	
@@ -50,7 +51,7 @@ private:
 	DIMOUSESTATE m_mouseState;
 	POINT m_MousePos;
 	
-	PlayControls m_playControls;
+	InputStates m_InputStates;
 
 };
 

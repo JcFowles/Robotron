@@ -9,8 +9,6 @@ CGame::CGame()
 
 CGame::~CGame()
 {
-	delete m_pClock;
-	m_pClock = 0;
 	delete m_pTerrain;
 	m_pTerrain = 0;
 }
@@ -40,13 +38,10 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	}
 
 	m_iNumberPlayers = _Players.size();
-	m_pPlayerObj = new std::vector < C3DObject* > ;
-
+	
+	m_plistPlayers = new std::map < std::string, C3DObject* > ;
 	m_pRenderManager = _RenderManager;
-
-	m_pClock = new CClock();
-	VALIDATE(m_pClock->Initialise());
-
+		
 	//Set up the projection matrix	
 	m_pRenderManager->CalculateProjectionMatrix(D3DXToRadian(45), 0.01f, 100000.0f);
 
@@ -59,49 +54,68 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 
 	//Create the Camera
 	m_pCamera = new CCameraStatic();
+	//Get the position of the client player and set the static camera to that position only 100 units above it
 	D3DXVECTOR3 D3DPosition = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y + 100, _Players[_iIndexOfClientPlayer].f3Positions.z };
+	//And then set the look at vector of the camera to look at the client players position
 	D3DXVECTOR3 D3DLookAt = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y, _Players[_iIndexOfClientPlayer].f3Positions.z };
-	m_pCamera->Initialise(D3DPosition, D3DLookAt, true);
+	m_pCamera->Initialise(D3DPosition, D3DLookAt, false);
 	m_pCamera->Process(m_pRenderManager);
 
-	//Create Mesh
-	m_pCubeMesh = CreateCubeMesh(1.0f);
+	//Create player mesh Mesh
+	m_pPlayerMesh = CreatePlayerMesh(1.0f);
 	
 	
 	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
 	{
+		//Create player avatar
+		C3DObject* tempAvatar = new C3DObject();
+		//Initialise the player avatar Object with the Cube Mesh and set its coordinates
+		tempAvatar->Initialise(m_pPlayerMesh, _Players[iPlayer].f3Positions.x, _Players[iPlayer].f3Positions.y, _Players[iPlayer].f3Positions.z);
+	
+		std::string strPlayerName(_Players[iPlayer].cPLayerName);
 
-		//Create Cube
-		C3DObject* tempPlayerObj = new C3DObject();
-		//Initialise the Cube Object with the Cube Mesh and set its coordinates
-		tempPlayerObj->Initialise(m_pCubeMesh, _Players[iPlayer].f3Positions.x, _Players[iPlayer].f3Positions.y, _Players[iPlayer].f3Positions.z);
+		//Add the player and its avatar to the list of players
+		m_plistPlayers->insert(std::pair<std::string, C3DObject*>(strPlayerName, tempAvatar));
 
-		m_pPlayerObj->push_back(tempPlayerObj);
+		//Initialise pointer to the clients avatar
+		if (iPlayer == _iIndexOfClientPlayer)
+		{
+			m_pClientAvatar = &(std::pair<std::string, C3DObject>(strPlayerName, *tempAvatar));
+		}
+
 	}
 
 	return true;
-
-	
+		
 }
 
 void CGame::Process()
 {
-	//Process clock and get the delta tick
-	m_pClock->Process();
-	float fDT = m_pClock->GetDeltaTick();
-
+	//Set the Position of the Camera
+	m_pCamera->SetCamera(*(m_pClientAvatar->second.GetTarget()), *(m_pClientAvatar->second.GetPosition()), *(m_pClientAvatar->second.GetUp()));
 	m_pCamera->Process(m_pRenderManager);
+		
 }
 
 void CGame::Draw()
 {
-	m_pTerrain->Draw(m_pRenderManager);
 
-	for (unsigned int iPlayer = 0; iPlayer < m_pPlayerObj->size(); iPlayer++)
-	{
-		(*m_pPlayerObj)[iPlayer]->Draw(m_pRenderManager);
-	}
+	//Draw every passed in from the server
+	m_pTerrain->Draw(m_pRenderManager);
 		
+	//Loop through all players
+	std::map< std::string, C3DObject*>::iterator iterPlayer = m_plistPlayers->begin();
+	std::map< std::string, C3DObject*>::iterator iterPlayerEnd = m_plistPlayers->end();
+	while (iterPlayer != iterPlayerEnd)
+	{
+		//Draw the player avatar
+		iterPlayer->second->Draw(m_pRenderManager);
+
+		iterPlayer++;
+	}
+
+	
+
 }
 
 /***********************
@@ -110,7 +124,7 @@ void CGame::Draw()
 * @parameter: float _fCubeSize: Size of cube
 * @return: CMesh*: Pointer to a created Cube mesh
 ********************/
-CMesh* CGame::CreateCubeMesh(float _fCubeSize)
+CMesh* CGame::CreatePlayerMesh(float _fCubeSize)
 {
 	//Create the Cube mesh
 	CMesh* meshCube = new CMesh(m_pRenderManager);
