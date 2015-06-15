@@ -17,10 +17,10 @@
 #include <stdlib.h>
 
 // Local Includes
-#include "IRenderer.h"
-#include "StaticBuffer.h"
-#include "VertexColor.h"
-#include "VertexNormal.h"
+#include "../Shared/IRenderer.h"
+#include "../Shared/StaticBuffer.h"
+#include "../Shared/VertexColor.h"
+#include "../Shared/VertexNormal.h"
 
 #pragma once
 class CTerrain

@@ -40,6 +40,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	m_iNumberPlayers = _Players.size();
 	
 	m_plistPlayers = new std::map < std::string, C3DObject* > ;
+	m_pClientAvatar = new std::pair < std::string, C3DObject* > ;
 	m_pRenderManager = _RenderManager;
 		
 	//Set up the projection matrix	
@@ -80,7 +81,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 		//Initialise pointer to the clients avatar
 		if (iPlayer == _iIndexOfClientPlayer)
 		{
-			m_pClientAvatar = &(std::pair<std::string, C3DObject>(strPlayerName, *tempAvatar));
+			m_pClientAvatar = &(std::pair<std::string, C3DObject*>(strPlayerName, tempAvatar));
 		}
 
 	}
@@ -92,7 +93,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 void CGame::Process()
 {
 	//Set the Position of the Camera
-	m_pCamera->SetCamera(*(m_pClientAvatar->second.GetTarget()), *(m_pClientAvatar->second.GetPosition()), *(m_pClientAvatar->second.GetUp()));
+	//m_pCamera->SetCamera(*(m_pClientAvatar->second->GetTarget()), *(m_pClientAvatar->second->GetPosition()), *(m_pClientAvatar->second->GetUp()));
 	m_pCamera->Process(m_pRenderManager);
 		
 }

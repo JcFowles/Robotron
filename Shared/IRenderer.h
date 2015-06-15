@@ -17,7 +17,7 @@
 #define __RENDERER_H__
 
 // Local Includes
-#include "../Shared/Graphics_Defines.h"
+#include "Graphics_Defines.h"
 
 // Prototypes
 class CVertexColor;

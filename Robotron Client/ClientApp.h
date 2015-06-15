@@ -23,7 +23,7 @@
 //Local Includes
 #include "Game.h"
 #include "Client.h"
-#include "D3D9Renderer.h"
+#include "../Shared/D3D9Renderer.h"
 #include "InputManager.h"
 
 

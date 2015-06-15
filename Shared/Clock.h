@@ -15,8 +15,6 @@
 //TO DO IFDEF
 
 // Library Includes
-//TO DO: WinSock Should not be here
-//#include <WinSock2.h>
 #include <windows.h>
 
 class CClock

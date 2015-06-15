@@ -14,8 +14,7 @@
 #pragma once
 
 //Local includes
-#include "IRenderer.h"
-//#include "Defines.h"
+#include "../shared/IRenderer.h"
 
 class CCamera
 {

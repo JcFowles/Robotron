@@ -17,7 +17,7 @@
 #define __STATICBUFFER_H__
 
 // Local Includes
-#include "../Shared/Graphics_Defines.h"
+#include "Graphics_Defines.h"
 #include "VertexColor.h"
 #include "VertexNormal.h"
 

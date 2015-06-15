@@ -2,18 +2,16 @@
 
 //Library include
 
-
 //Local includes
 #include "../Shared/Network_Defines.h"
-//#include "../Shared/Clock.h"
-#include "IRenderer.h"
-#include "Terrain.h"
-#include "Mesh.h"
-#include "C3DObject.h"
-#include "CameraStatic.h"
+#include "../Shared/Clock.h"
+#include "../Shared/IRenderer.h"
+#include "../Shared/Mesh.h"
+#include "../Shared/C3DObject.h"
 #include "../Shared/Graphics_Defines.h"
 #include "../Shared/App_Defines.h"
-
+#include "Terrain.h"
+#include "CameraStatic.h"
 
 
 class CGame
@@ -53,7 +51,7 @@ private:
 	static CGame* s_pGame;
 	
 	std::map<std::string, C3DObject*>* m_plistPlayers;
-	std::pair<std::string, C3DObject>* m_pClientAvatar;
+	std::pair<std::string, C3DObject*>* m_pClientAvatar;
 
 	CMesh* m_pPlayerMesh;
 

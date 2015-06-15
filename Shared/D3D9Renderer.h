@@ -18,7 +18,6 @@
 #include <map>
 
 //Local Includes
-#include "../Shared/Graphics_Defines.h"
 #include "IRenderer.h"
 #include "StaticBuffer.h"
 
