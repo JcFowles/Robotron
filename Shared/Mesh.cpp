@@ -15,79 +15,26 @@
 // Local Includes
 #include "Mesh.h"
 
-/***********************
-* CMesh: Contructor for Mesh class
-* @author: Jc Fowles
-* @parameter: _pRenderer: Pointer to the Renderer for this application
-* @return:
-********************/
-CMesh::CMesh(IRenderer* _pRenderManager)
+
+CMesh::CMesh(IRenderer* _pRenderManager, float _fSize)
 {
 	m_pRenderManager = _pRenderManager;
-	
-	//Set default Primative
+	m_fSize = _fSize;
+
+	//Set default Primitive type to triangle list
 	m_ePrimitiveType = IGPT_TRIANGLELIST;
 }
 
-/***********************
-* ~CMesh: Default Destructor for Mesh class
-* @author: Jc Fowles
-* @return:
-********************/
 CMesh::~CMesh()
 {
 
 }
 
-/***********************
-* SetPrimitiveType: Set the primitive type
-* @author: Jc Fowles
-* @parameter: _primType: Primitive type to be set as
-* @return: void
-********************/
-void CMesh::SetPrimitiveType(eIGPrimitiveType _primType)
-{
-	m_ePrimitiveType = _primType;
-}
-
-/***********************
-* AddVertex: Add a new vertex 
-* @author: Jc Fowles
-* @parameter: _vert: The new vertex with color to be added
-* @return: void
-********************/
-void CMesh::AddVertex(CVertexColor _vert)
-{
-	m_vecVertices.push_back(_vert);
-}
-
-/***********************
-* AddVertex: Overloaded AddVertex to Add a new vertexNormal
-* @author: Jc Fowles
-* @parameter: _vert: The new vertex with normals to be added
-* @return: void
-********************/
 void CMesh::AddVertex(CVertexNormal _vert)
 {
 	m_vecVerticesNormal.push_back(_vert);
-}
+};
 
-/***********************
-* SetIndexList: Set the index list
-* @author: Jc Fowles
-* @parameter: _vecIndices: The list of indices to be set
-* @return: void
-********************/
-void CMesh::SetIndexList(std::vector<int> _vecIndices)
-{
-	m_vecIndices = _vecIndices;
-}
-
-/***********************
-* CreateStaticBuffer: Creates the Static Buffer 
-* @author: Jc Fowles
-* @return: void
-********************/
 void CMesh::CreateStaticBuffer()
 {
 	eIGIndexType indexType;
@@ -131,15 +78,11 @@ void CMesh::CreateStaticBuffer()
 
 }
 
-/***********************
-* Draw: Draws the Mesh 
-* @author: JC Fowles
-* @return: void
-********************/
 void CMesh::Draw()
 {
 	//RenderManger to render the mesh with its unique buffer ID passed in
 	m_pRenderManager->Render(m_iBufferID);
 }
+
 
 

@@ -13,7 +13,7 @@
 //
 #pragma once
 
-#if !defined(__RENDERER_H__)
+#ifndef __RENDERER_H__
 #define __RENDERER_H__
 
 // Local Includes
@@ -65,8 +65,8 @@ public:
 	virtual void SetSpecularEnable(bool _bEnable) = 0;
 	virtual void SetAmbient(D3DCOLOR _Color) = 0;
 
-	virtual void SetMaterial() = 0;
-	virtual void SetMaterial(DWORD _Color) = 0;
+	virtual bool SetMaterial() = 0;
+	virtual bool SetMaterial(int _materialID) = 0;
 
 	//Render
 	virtual void Render(unsigned int _uiStaticId) = 0;
@@ -82,11 +82,10 @@ public:
 	//Matrices
 	virtual void CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp) = 0;
 	virtual void CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar) = 0;
-	virtual void CalculateOrthogonalMatrix(float _fNear, float _fFar) = 0;
-
+	
 	//Creators
+	virtual UINT CreateMaterial(MaterialValues _materialVal) = 0;
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo) = 0;
-	//virtual void CreateTextFont() = 0;
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType) = 0;
 	virtual int CreateStaticBuffer( VertexType _VertexType,
 									eIGPrimitiveType _ePrimitiveType,

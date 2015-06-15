@@ -12,7 +12,9 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
-//TO DO ifdef and comments transfer
+
+#ifndef __CD3D9RENDERER_H__
+#define __CD3D9RENDERER_H__
 
 //Library Includes
 #include <map>
@@ -26,11 +28,42 @@ class CD3D9Renderer : public IRenderer
 {
 	//Member Functions
 public:
+	/***********************
+	* CD3D9Renderer: Default Constructor for D3D9Renderer
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CD3D9Renderer();
+
+	/***********************
+	* ~CD3D9Renderer: Default Destructor for D3D9Renderer
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	virtual ~CD3D9Renderer();
 	
-	virtual bool Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen);
+	/***********************
+	* Shutdown: Shut down the device
+	* @author: Jc Fowles
+	* @parameter: _iWidth: The width of the screen
+	* @parameter: _iHeight: The height of the screen
+	* @parameter: _hWindow: Handle to the Window
+	* @parameter: _bFullscreen: Whether the screen is full screen or not
+	* @return: bool: Successful Initialization or not
+	********************/
 	virtual bool Shutdown();
+
+	/***********************
+	* Initialise: Initialise the D3D9 Renderer
+	* @author: Jc Fowles
+	* @parameter: _iWidth: The width of the screen
+	* @parameter: _iHeight: The height of the screen
+	* @parameter: _hWindow: Handle to the Window
+	* @parameter: _bFullscreen: Whether the screen is full screen or not
+	* @return: bool: Successful Initialization or not
+	********************/
+	virtual bool Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen);
+
 
 	//Getters
 	virtual D3DXMATRIX& GetProjectionMatrix();
@@ -54,9 +87,10 @@ public:
 	virtual void SetClearColour(float _fRed, float _fGreen, float _fBlue);
 
 	virtual void SetLights(D3DLightParameter _pLightParameter);
-	virtual void SetMaterial();
-	virtual void SetMaterial(DWORD _Color);
+	virtual bool SetMaterial();
+	virtual bool SetMaterial(int _materialID);
 
+	
 	virtual void SetSpecularEnable(bool _bEnable);
 	virtual void SetAmbient(D3DCOLOR _Color);
 
@@ -77,12 +111,11 @@ public:
 	//Matrices
 	virtual void CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp);
 	virtual void CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar);
-	virtual void CalculateOrthogonalMatrix(float _fNear, float _fFar);
-
+	
 	//Creators
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo);
+	virtual UINT CreateMaterial(MaterialValues _materialVal);
 	virtual void FillRectColor(DWORD _Color, RECT _rect);
-	//virtual void CreateTextFont();
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType);
 	virtual int CreateStaticBuffer(	VertexType _VertexType,
 									eIGPrimitiveType _ePrimitiveType,
@@ -94,6 +127,7 @@ public:
 									void* _pIndices
 									);
 
+	
 	
 private:
 	
@@ -139,12 +173,20 @@ protected:
 	std::vector< CStaticBuffer* >* m_pvectBuffer;
 
 	std::map<int, IDirect3DSurface9*>* m_pSurfaceMap;
+
+	std::map<int, D3DMATERIAL9>* m_pMaterialMap;
+	
+
 	UINT m_iSurfaceKeyCount;
+
+	UINT m_iMaterialKeyCount;
 
 	ID3DXFont* m_pTitleFont;
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
 	
+
+
 	D3DLIGHT9 m_pDirectionalLight;
 
 	bool m_bSpecular;
@@ -154,3 +196,4 @@ protected:
 	
 };
 
+#endif //__CD3D9RENDERER_H__

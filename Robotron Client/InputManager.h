@@ -1,5 +1,20 @@
-//TO DO
+//
+// Bachelor of Software Engineering
+// Media Design School 
+// Auckland
+// New Zealand 
+// 
+// (c) 2005 - 2015 Media Design School 
+// 
+// File Name : CInputManager.h
+// Description : Header file containing declarations for InputManager Class
+// Author : Jc Fowles 
+// Mail : Jc.Fowles@mediadesign.school.nz 
+//
 #pragma once
+
+#ifndef __CINPUTMANAGER_H__
+#define __CINPUTMANAGER_H__
 
 #pragma comment( lib, "dinput8.lib" )
 #pragma comment( lib, "DXGuid.lib" )
@@ -18,8 +33,7 @@ class CInputManager
 public:
 	CInputManager();
 	~CInputManager();
-	
-	void Shutdown();
+		
 	bool Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth, int _iScreenHeight);
 	bool InitialiseKeyBoard(HWND _hWnd);
 	bool InitialiseMouse(HWND _hWnd);
@@ -55,3 +69,4 @@ private:
 
 };
 
+#endif //__CINPUTMANAGER_H__

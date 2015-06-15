@@ -11,9 +11,9 @@
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
-
 #pragma once
-#if !defined(__NETWORK_DEFINES_H__)
+
+#ifndef __NETWORK_DEFINES_H__
 #define __NETWORK_DEFINES_H__
 
 #pragma comment( lib, "winmm.lib" )
@@ -54,13 +54,19 @@ enum ePacketType
 	PT_LEAVE,
 	PT_QUIT,
 
-	PT_INPUT
+	PT_INPUT, 
+	PT_UPDATE
 };
 
 struct PlayerStates
 {
 	char cPLayerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	float3 f3Positions;
+	float3 f3Velocity;
+	//TO DO: float3 f3Direction;
+	//TO DO: Collision box
+	//TO DO: SCORE
+	//TO DO: Health
 	//Other states ie shooting, health, points etc
 };
 
@@ -86,7 +92,6 @@ struct ServerDataPacket
 struct ActiveClient
 {
 	char cUserName[NetworkValues::MAX_NAME_LENGTH + 1];
-
 	bool bActive;
 };
 
@@ -101,15 +106,6 @@ struct ServerInfo
 	sockaddr_in serverSocAddr;
 };
 
-struct GameState
-{
-	//TO DO
-	//list of enemies , positions, etc
-	//List of players with there positions etc
-	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
-	
-};
-
 //Data structure to send to client
 struct ClientDataPacket
 {
@@ -117,7 +113,9 @@ struct ClientDataPacket
 	bool bSuccess;
 	ePacketType packetType;
 	ServerInfo serverInfo;
-	GameState currentGameState;
+	
+	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
+
 }; 
 
 

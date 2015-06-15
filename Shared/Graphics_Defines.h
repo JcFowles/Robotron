@@ -7,14 +7,14 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : Graphics_Defines.h 
-// Description : Header file containing Graphical Defines, Structures, Enum, ect
+// Description : Header file containing Graphical Defines, Structures, Enum, etc
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 
 #pragma once
 
-#if !defined(__GRAPHICS_DEFINES_H__)
+#ifndef __GRAPHICS_DEFINES_H__
 #define __GRAPHICS_DEFINES_H__
 
 #pragma comment( lib, "winmm.lib" )
@@ -25,6 +25,9 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <vector>
+
+// Local Includes
+#include "../Shared/App_Defines.h"
 
 // Types
 typedef long VertexType;
@@ -94,7 +97,6 @@ struct D3DLightParameter
 };
 
 
-
 struct ScalarVertex
 {
 	float fScalarWidth;		//X-axis
@@ -102,6 +104,16 @@ struct ScalarVertex
 	float fScalarDepth;		//Z-axis
 };
 
-#define VALIDATE(a) if (!a) return (false)
+struct MaterialValues
+{
+	float4 f4Ambient;
+	float4 f4Specular;
+	float4 f4Diffuse;
+	float4 f4Emissive;
+
+	float fPower;
+};
+
+
 
 #endif //__GRAPHICS_DEFINES_H__

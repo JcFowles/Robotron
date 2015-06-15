@@ -9,8 +9,27 @@ CGame::CGame()
 
 CGame::~CGame()
 {
+	//Delete Terrain
 	delete m_pTerrain;
 	m_pTerrain = 0;
+
+	//Delete Camera
+	delete m_pCamera;
+	m_pCamera = 0;
+
+	//delete Mesh
+	delete m_pPlayerMesh;
+	m_pPlayerMesh = 0;
+	
+	//Delete player list
+	delete m_plistPlayers;
+	m_plistPlayers = 0;
+
+	//Delete p[layer avatar
+	delete m_pPlayerAvatar;
+	m_pPlayerAvatar = 0;
+	
+
 }
 
 CGame& CGame::GetInstance()
@@ -38,9 +57,9 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	}
 
 	m_iNumberPlayers = _Players.size();
-	
-	m_plistPlayers = new std::map < std::string, C3DObject* > ;
-	m_pClientAvatar = new std::pair < std::string, C3DObject* > ;
+	m_iIndexOfClientPlayer = _iIndexOfClientPlayer;
+	m_plistPlayers = new std::map < std::string, CPlayerObj >;
+	m_pPlayerAvatar = new CPlayerObj();
 	m_pRenderManager = _RenderManager;
 		
 	//Set up the projection matrix	
@@ -65,23 +84,29 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	//Create player mesh Mesh
 	m_pPlayerMesh = CreatePlayerMesh(1.0f);
 	
+	MaterialValues Material;
+	Material.f4Ambient	= { 0.0f, 0.0f, 0.0f, 1.0f };
+	Material.f4Diffuse	= { 1.0f, 0.2f, 0.0f, 1.0f };
+	Material.f4Emissive = { 1.0f, 0.2f, 0.0f, 1.0f };
+	Material.f4Specular = { 1.0f, 0.2f, 0.0f, 1.0f };
+	Material.fPower		= { 1.0f };
 	
 	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
 	{
-		//Create player avatar
-		C3DObject* tempAvatar = new C3DObject();
-		//Initialise the player avatar Object with the Cube Mesh and set its coordinates
-		tempAvatar->Initialise(m_pPlayerMesh, _Players[iPlayer].f3Positions.x, _Players[iPlayer].f3Positions.y, _Players[iPlayer].f3Positions.z);
+		//Create player object
+		CPlayerObj tempAvatar;
+		//Initialise the player Object with the Cube Mesh and set its coordinates
+		tempAvatar.Initialise(_RenderManager, Material, m_pPlayerMesh, _Players[iPlayer].f3Positions );
 	
 		std::string strPlayerName(_Players[iPlayer].cPLayerName);
 
-		//Add the player and its avatar to the list of players
-		m_plistPlayers->insert(std::pair<std::string, C3DObject*>(strPlayerName, tempAvatar));
+		//Add the player and its object to the list of players
+		m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(strPlayerName, tempAvatar));
 
-		//Initialise pointer to the clients avatar
-		if (iPlayer == _iIndexOfClientPlayer)
+		//Initialise player object
+		if (iPlayer == m_iIndexOfClientPlayer)
 		{
-			m_pClientAvatar = &(std::pair<std::string, C3DObject*>(strPlayerName, tempAvatar));
+			*m_pPlayerAvatar = tempAvatar;
 		}
 
 	}
@@ -90,10 +115,47 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 		
 }
 
-void CGame::Process()
+void CGame::Process(ClientDataPacket* _pClientPacket)
 {
-	//Set the Position of the Camera
-	//m_pCamera->SetCamera(*(m_pClientAvatar->second->GetTarget()), *(m_pClientAvatar->second->GetPosition()), *(m_pClientAvatar->second->GetUp()));
+	
+	
+	std::map< std::string, CPlayerObj>::iterator iterPlayer = m_plistPlayers->begin();
+	std::map< std::string, CPlayerObj>::iterator iterPlayerEnd = m_plistPlayers->end();
+	int iPlayer = 0;
+	while (iterPlayer != iterPlayerEnd)
+	{
+		//Draw the player avatar
+		iterPlayer->second.SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
+
+		if (iPlayer == m_iIndexOfClientPlayer)
+		{
+			*m_pPlayerAvatar = iterPlayer->second;
+		}
+
+
+		iPlayer++;
+		iterPlayer++;
+	}
+	
+	
+
+	D3DXVECTOR3 d3dVPos;
+	d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
+	d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
+	d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
+
+	D3DXVECTOR3 d3dVDirection;
+	d3dVDirection.x = m_pPlayerAvatar->GetDirection().x;
+	d3dVDirection.y = m_pPlayerAvatar->GetDirection().y;
+	d3dVDirection.z = m_pPlayerAvatar->GetDirection().z;
+
+	D3DXVECTOR3 d3dVUp;
+	d3dVUp.x = m_pPlayerAvatar->GetUpVector().x;
+	d3dVUp.y = m_pPlayerAvatar->GetUpVector().y;
+	d3dVUp.z = m_pPlayerAvatar->GetUpVector().z;
+
+	//Set the camera
+	m_pCamera->SetCamera(d3dVDirection, d3dVPos, d3dVUp);
 	m_pCamera->Process(m_pRenderManager);
 		
 }
@@ -105,12 +167,12 @@ void CGame::Draw()
 	m_pTerrain->Draw(m_pRenderManager);
 		
 	//Loop through all players
-	std::map< std::string, C3DObject*>::iterator iterPlayer = m_plistPlayers->begin();
-	std::map< std::string, C3DObject*>::iterator iterPlayerEnd = m_plistPlayers->end();
+	std::map< std::string, CPlayerObj>::iterator iterPlayer = m_plistPlayers->begin();
+	std::map< std::string, CPlayerObj>::iterator iterPlayerEnd = m_plistPlayers->end();
 	while (iterPlayer != iterPlayerEnd)
 	{
 		//Draw the player avatar
-		iterPlayer->second->Draw(m_pRenderManager);
+		iterPlayer->second.Draw();
 
 		iterPlayer++;
 	}
@@ -128,19 +190,18 @@ void CGame::Draw()
 CMesh* CGame::CreatePlayerMesh(float _fCubeSize)
 {
 	//Create the Cube mesh
-	CMesh* meshCube = new CMesh(m_pRenderManager);
+	CMesh* meshCube = new CMesh(m_pRenderManager, _fCubeSize);
 	meshCube->SetPrimitiveType(IGPT_TRIANGLELIST);
-
-
+	
 	//Create the cube using vector normals
 	std::vector<D3DXVECTOR3> vectTempPosition = { { -_fCubeSize / 2, _fCubeSize / 2, -_fCubeSize / 2 },
-	{ _fCubeSize / 2, _fCubeSize / 2, -_fCubeSize / 2 },
-	{ _fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
-	{ -_fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
-	{ -_fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
-	{ _fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
-	{ _fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 },
-	{ -_fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 } };
+												  { _fCubeSize / 2, _fCubeSize / 2, -_fCubeSize / 2 },
+												  { _fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
+												  { -_fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
+												  { -_fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
+												  { _fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
+												  { _fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 },
+												  { -_fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 } };
 	//Calculate the normals of the cube
 	for (unsigned int i = 0; i < vectTempPosition.size(); i++)
 	{
@@ -151,17 +212,17 @@ CMesh* CGame::CreatePlayerMesh(float _fCubeSize)
 
 	//Add the Indices
 	std::vector<int> vecIndices = { 0, 1, 3,
-		1, 2, 3,
-		1, 5, 2,
-		5, 6, 2,
-		5, 4, 6,
-		4, 7, 6,
-		4, 0, 7,
-		0, 3, 7,
-		4, 5, 0,
-		5, 1, 0,
-		3, 2, 7,
-		2, 6, 7 };
+									1, 2, 3,
+									1, 5, 2,
+									5, 6, 2,
+									5, 4, 6,
+									4, 7, 6,
+									4, 0, 7,
+									0, 3, 7,
+									4, 5, 0,
+									5, 1, 0,
+									3, 2, 7,
+									2, 6, 7 };
 
 	//Create the static buffer
 	meshCube->SetIndexList(vecIndices);

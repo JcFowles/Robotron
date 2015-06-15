@@ -1,4 +1,20 @@
+//
+// Bachelor of Software Engineering
+// Media Design School 
+// Auckland
+// New Zealand 
+// 
+// (c) 2005 - 2015 Media Design School 
+// 
+// File Name : CGame.h
+// Description : Header file containing declarations for CGame Class (Client side)
+// Author : Jc Fowles 
+// Mail : Jc.Fowles@mediadesign.school.nz 
+//
 #pragma once
+
+#ifndef __CLIENT_GAME_H__
+#define __CLIENT_GAME_H__
 
 //Library include
 
@@ -7,9 +23,8 @@
 #include "../Shared/Clock.h"
 #include "../Shared/IRenderer.h"
 #include "../Shared/Mesh.h"
-#include "../Shared/C3DObject.h"
+#include "../Shared/PlayerObj.h"
 #include "../Shared/Graphics_Defines.h"
-#include "../Shared/App_Defines.h"
 #include "Terrain.h"
 #include "CameraStatic.h"
 
@@ -28,8 +43,8 @@ public:
 
 	void Draw();
 
-	void Process();
-	void ProcessInput(float _fDt);
+	void Process(ClientDataPacket* _pClientPacket);
+	//void ProcessInput(float _fDt);
 
 	//Render
 	void RenderSingleFrame();
@@ -50,8 +65,8 @@ private:
 		
 	static CGame* s_pGame;
 	
-	std::map<std::string, C3DObject*>* m_plistPlayers;
-	std::pair<std::string, C3DObject*>* m_pClientAvatar;
+	std::map<std::string, CPlayerObj>* m_plistPlayers;
+	CPlayerObj* m_pPlayerAvatar;
 
 	CMesh* m_pPlayerMesh;
 
@@ -60,5 +75,7 @@ private:
 
 	float m_fPlayerSize;
 	int m_iNumberPlayers;
+	int m_iIndexOfClientPlayer;
 };
 
+#endif //__CLIENT_GAME_H__

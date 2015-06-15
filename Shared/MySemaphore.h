@@ -13,6 +13,9 @@
 //
 #pragma once
 
+#ifndef __CMYSEMAPHORE_H__
+#define __CMYSEMAPHORE_H__
+
 //Library include
 #include <condition_variable>
 #include <mutex>
@@ -28,7 +31,7 @@ public:
 	CMySemaphore(int _iValue);
 	~CMySemaphore();
 
-	//Funtionality
+	//Functionality
 	void Wait();
 	void Signal();
 
@@ -40,3 +43,4 @@ private:
 
 };
 
+#endif //__CMYSEMAPHORE_H__

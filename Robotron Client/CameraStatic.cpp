@@ -101,7 +101,6 @@ void CCameraStatic::SetType(bool _bFirstPerson)
 * @parameter: _vecTarget: Target vector of the avatar
 * @parameter: _vecPosition: Position vector of the avatar
 * @parameter: _vecUp: Up vector of the avatar
-* @parameter: _vecLook: Look direction vector of the avatar
 * @return: void
 ********************/
 void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecUp)
@@ -124,7 +123,8 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		m_vecTarget = _vecPosition;
 		
 		//Set position directly 100 unit above (on Y-axis) past in position
-		D3DXVECTOR3 AddHeight = { 0.0f, 100.0f, 1.0f,  };
+		m_vecPosition = _vecPosition;
+		D3DXVECTOR3 AddHeight = { 0.0f, 100.0f, 0.0f  };
 		m_vecPosition += AddHeight;
 		
 		//Which way is up for the avatar

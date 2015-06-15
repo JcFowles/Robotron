@@ -47,13 +47,13 @@ CTerrain::~CTerrain()
 * @author: Jc Fowles
 * @parameter: _pRenderer: Pointer to the renderer manager
 * @parameter: _VertexScalar: Structure holding the scale data for vertices
-* @return: bool: Initialise succesfullness
+* @return: bool: Initialise successfulness
 ********************/
 bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar)
 {
 	m_VertexScalar = _VertexScalar;
 
-	//Struct for holding Image information
+	//Structs for holding Image information
 	D3DXIMAGE_INFO imageInfo;
 	ZeroMemory(&imageInfo, sizeof(D3DXIMAGE_INFO));
 
@@ -74,15 +74,6 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	//Set the Index Format
 	eIGIndexType indexType = (sizeof(pIndices.front()) >= 4) ? IGIT_32 : IGIT_16;
 
-	/*m_iBufferID = _pRenderer->CreateStaticBuffer(sizeof(CVertex),
-												 IGPT_TRIANGLESTRIP,
-												 (&pVertices)->size(),
-												 iIndicesNum,
-												 sizeof(CVertex),
-												 (&pVertices),
-												 indexType,
-												 &pIndices);*/
-
 	m_iBufferID = _pRenderer->CreateStaticBuffer(sizeof(CVertexNormal),
 											     IGPT_TRIANGLESTRIP,
 											     (&pVertices)->size(),
@@ -92,16 +83,27 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 											     indexType,
 											     &pIndices);
 
+	//Set up and create the material of the terrain
+	MaterialValues Material;
+	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+	Material.f4Diffuse = { 0.4f, 0.3f, 0.3f, 1.0f };
+	Material.f4Emissive = { 0.4f, 0.3f, 0.3f, 1.0f };
+	Material.f4Specular = { 0.4f, 0.3f, 0.3f, 1.0f };
+	Material.fPower = { 1.0f };
+
+
+	m_iMaterialID = _pRenderer->CreateMaterial(Material);
+
 	return true;
 }
 
 /***********************
-* GenerateStripIndices: Generate and TriangleStrip indice list
+* GenerateStripIndices: Generate and TriangleStrip indices list
 * @author: Jc Fowles
 * @parameter: _pVecIndices: vector to store the indices
 * @parameter: _uiWidth: Width of the Image
 * @parameter: _uiDepth: Depth of the Image
-* @return: bool: Initialise succesfullness
+* @return: bool: Initialise successfulness
 ********************/
 int CTerrain::GenerateStripIndices(std::vector<int>* _pVecIndices, UINT _uiWidth, UINT _uiDepth)
 {
@@ -166,8 +168,8 @@ void CTerrain::Process(float _fDT)
 void CTerrain::Draw(IRenderer* _pRendererManager)
 {
 	CalcWorldMatrix(_pRendererManager);
-	DWORD dwMatColor = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	_pRendererManager->SetMaterial(dwMatColor);
+	
+	_pRendererManager->SetMaterial(m_iMaterialID);
 	_pRendererManager->Render(m_iBufferID);
 }
 

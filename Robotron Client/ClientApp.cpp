@@ -27,12 +27,13 @@ CClientApp::CClientApp(void)
 CClientApp::~CClientApp(void)
 {
 	//Game
-
 	
-	delete m_pGame;
-	m_pGame = 0;
+	
+	m_pGame->DestroyInstance();
 
-	m_pInputManager->Shutdown();
+	//delete m_pGame;
+	//m_pGame = 0;
+
 	delete m_pInputManager;
 	m_pInputManager = 0;
 
@@ -259,8 +260,7 @@ void CClientApp::Process()
 		break;
 	case GS_PLAY:
 	{
-		//TO DO game process
-		m_pGame->Process();
+		//m_pGame->Process();
 		ProcessGameInput();		
 	}
 		break;
@@ -1489,11 +1489,11 @@ void CClientApp::ProcessReceiveData()
 
 			for (int i = 0; i < NetworkValues::MAX_USERS; i++)
 			{
-				std::string strPlayerName(m_pClientPacket->currentGameState.PlayerInfo[i].cPLayerName);
+				std::string strPlayerName(m_pClientPacket->PlayerInfo[i].cPLayerName);
 				if (strPlayerName != "")
 				{
 
-					tempPlayerStates.push_back(m_pClientPacket->currentGameState.PlayerInfo[i]);
+					tempPlayerStates.push_back(m_pClientPacket->PlayerInfo[i]);
 				}
 				if (strPlayerName == m_strUserName)
 				{
@@ -1526,7 +1526,11 @@ void CClientApp::ProcessReceiveData()
 			m_eGameState = GS_MENU;
 			m_eMenuState = MS_MAIN;
 		}
-		
+		case PT_UPDATE:
+		{
+			m_pGame->Process(m_pClientPacket);
+		}
+		break;
 		default:
 			break;
 		}

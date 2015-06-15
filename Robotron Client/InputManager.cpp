@@ -12,10 +12,6 @@ CInputManager::CInputManager()
 
 CInputManager::~CInputManager()
 {
-}
-
-void CInputManager::Shutdown()
-{
 	//Release the mouse
 	if (m_pDIMouse)
 	{
@@ -38,8 +34,6 @@ void CInputManager::Shutdown()
 		m_pDirectInput->Release();
 		m_pDirectInput = 0;
 	}
-
-	
 }
 
 bool CInputManager::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth, int _iScreenHeight)

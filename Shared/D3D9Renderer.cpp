@@ -17,11 +17,7 @@
 
 int CStaticBuffer::s_iActiveStaticBuffer = 0;
 
-/***********************
-* CD3D9Renderer: Default Constructor for D3D9Renderer
-* @author: Jc Fowles
-* @return:
-********************/
+
 CD3D9Renderer::CD3D9Renderer()
 {
 	m_bSpecular = true;
@@ -40,11 +36,6 @@ CD3D9Renderer::CD3D9Renderer()
 	m_iSurfaceKeyCount = 0;
 }
 
-/***********************
-* ~CD3D9Renderer: Default Destructor for D3D9Renderer
-* @author: Jc Fowles
-* @return:
-********************/
 CD3D9Renderer::~CD3D9Renderer()
 {
 	//Release the device
@@ -56,15 +47,6 @@ CD3D9Renderer::~CD3D9Renderer()
 	m_pDirect3D = 0;
 }
 
-/***********************
-* Shutdown: Shut down the device
-* @author: Jc Fowles
-* @parameter: _iWidth: The width of the screen
-* @parameter: _iHeight: The height of the screen
-* @parameter: _hWindow: Handle to the Window
-* @parameter: _bFullscreen: Whether the screen is full screen or not
-* @return: bool: Successful Initialization or not
-********************/
 bool CD3D9Renderer::Shutdown()
 {
 	
@@ -91,6 +73,10 @@ bool CD3D9Renderer::Shutdown()
 		m_pSurfaceMap = 0;
 	}
 
+	m_pMaterialMap->clear();
+	delete m_pMaterialMap;
+	m_pMaterialMap = 0;
+
 	//Deallocate the Static buffer container
 	if (m_pvectBuffer != 0)
 	{
@@ -105,6 +91,52 @@ bool CD3D9Renderer::Shutdown()
 	}
 
 	
+	return true;
+}
+
+bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen)
+{
+	//Initialise the member variables
+	m_iScreenWidth = _iWidth;
+	m_iScreenHeight = _iHeight;
+	m_hWindow = _hWindow;
+	m_bFullscreen = _bFullscreen;
+
+	if (!DeviceCreation())
+	{
+		//Device creation failed
+		return false;
+	}
+
+	SetRenderStates();
+
+	SetMaterial();
+
+	//Set Clear color to deep purple
+	SetClearColour(1.0f, 20.0f / 255.0f, 147.0f / 255.0f);
+
+	//Create a Container for Static Buffers
+	m_pvectBuffer = new std::vector < CStaticBuffer* > ;
+
+	//Create map for all the Surfaces
+	m_pSurfaceMap = new std::map < int, IDirect3DSurface9* > ;
+
+	//Create the various fonts to draw text to screen
+	CreateTextFont(150, 150 / 2, "Times New Roman", TEXT_TITLE);
+	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU);
+	CreateTextFont(26, 13, "Times New Roman", TEXT_LIST);
+
+	//TO DO: Lights
+	ZeroMemory(&m_pDirectionalLight, sizeof(m_pDirectionalLight));
+	m_pDirectionalLight.Type = D3DLIGHT_DIRECTIONAL;
+	m_pDirectionalLight.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	m_pDirectionalLight.Direction = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+
+	m_pDevice->SetLight(0, &m_pDirectionalLight);
+	m_pDevice->LightEnable(0, true);
+
+	m_pMaterialMap = new std::map < int, D3DMATERIAL9 > ;
+
 	return true;
 }
 
@@ -340,83 +372,91 @@ void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 	m_pDevice->LightEnable((_pLightParameter.iID), (_pLightParameter.bIsTurnedOn)); 
 }
 
-/***********************
-* Initialise: Initialise the D3D9 Renderer
-* @author: Jc Fowles
-* @parameter: _iWidth: The width of the screen
-* @parameter: _iHeight: The height of the screen
-* @parameter: _hWindow: Handle to the Window
-* @parameter: _bFullscreen: Whether the screen is full screen or not
-* @return: bool: Successful Initialization or not
-********************/
-bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen)
-{
-	//Initialise the member variables
-	m_iScreenWidth = _iWidth;
-	m_iScreenHeight = _iHeight;
-	m_hWindow = _hWindow;
-	m_bFullscreen = _bFullscreen;
 
-	if (!DeviceCreation())
-	{
-		//Device creation failed
-		return false;
-	}
-
-	SetRenderStates();
-
-	SetMaterial();
-
-	//Set Clear color to deep purple
-	SetClearColour(1.0f, 20.0f / 255.0f, 147.0f / 255.0f);
-
-	//Create a Container for Static Buffers
-	m_pvectBuffer = new std::vector < CStaticBuffer* > ;
-
-	//Create map for all the Surfaces
-	m_pSurfaceMap = new std::map < int, IDirect3DSurface9* > ;
-
-	//Create the various fonts to draw text to screen
-	CreateTextFont(150, 150 / 2, "Times New Roman", TEXT_TITLE);
-	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU);
-	CreateTextFont(26, 13, "Times New Roman", TEXT_LIST);
-
-	//TO DO: Lights
-	ZeroMemory(&m_pDirectionalLight, sizeof(m_pDirectionalLight));
-	m_pDirectionalLight.Type = D3DLIGHT_DIRECTIONAL;
-	m_pDirectionalLight.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	m_pDirectionalLight.Direction = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
-
-	m_pDevice->SetLight(0, &m_pDirectionalLight);
-	m_pDevice->LightEnable(0, true);
-
-	return true;
-}
 
 /***********************
-* SetMaterial: Sets the material to reflect all types and color lights
+* SetMaterial: Sets the default material to reflect all types and color lights
 * @author: Jc Fowles
-* @return: void: 
+* @return: bool: return success
 ********************/
-void CD3D9Renderer::SetMaterial()
+bool CD3D9Renderer::SetMaterial()
 {
 	D3DMATERIAL9 D3DMaterial;
 	ZeroMemory(&D3DMaterial, sizeof(D3DMaterial));
 	D3DMaterial.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);  //Reflect All diffuse light color  
 	D3DMaterial.Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);  //Reflect All Ambient light color 
-	D3DMaterial.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Ambient light color 
-	m_pDevice->SetMaterial(&D3DMaterial);
+	D3DMaterial.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Specular light color 
+	D3DMaterial.Emissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Emissive light color 
+	HRESULT hr = m_pDevice->SetMaterial(&D3DMaterial);
+
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	
+	return true;
 }
 
-void CD3D9Renderer::SetMaterial(DWORD _Color)
+/***********************
+* SetMaterial: Sets the default material to reflect all types and color lights
+* @author: Jc Fowles
+* @parameter: int _materialID: The ID of the material to set on the device
+* @return: bool: return success
+********************/
+bool CD3D9Renderer::SetMaterial(int _materialID)
+{
+	std::map<int, D3DMATERIAL9>::iterator materialIter = m_pMaterialMap->find(_materialID);
+
+	if (materialIter == m_pMaterialMap->end())
+	{
+		//Material ID not found in the map
+		return false;
+	}
+	else
+	{
+		//Set the material on the device
+		m_pDevice->SetMaterial(&(materialIter->second));
+		return true;
+	}
+}
+
+UINT CD3D9Renderer::CreateMaterial(MaterialValues _materialVal)
 {	
-	D3DXCOLOR D3DColor = D3DXCOLOR(_Color);
+	//Create and ready the memory of the D3D material
 	D3DMATERIAL9 D3DMaterial;
 	ZeroMemory(&D3DMaterial, sizeof(D3DMaterial));
-	D3DMaterial.Diffuse = D3DColor;  
-	D3DMaterial.Ambient = D3DColor;  
-	D3DMaterial.Specular = D3DColor; 
-	m_pDevice->SetMaterial(&D3DMaterial);
+
+	//Set the ambients
+	D3DMaterial.Ambient.r = _materialVal.f4Ambient.r;
+	D3DMaterial.Ambient.g = _materialVal.f4Ambient.g;
+	D3DMaterial.Ambient.b = _materialVal.f4Ambient.b;
+	D3DMaterial.Ambient.a = _materialVal.f4Ambient.a;
+
+	//Set the diffuse
+	D3DMaterial.Diffuse.r = _materialVal.f4Diffuse.r;
+	D3DMaterial.Diffuse.g = _materialVal.f4Diffuse.g;
+	D3DMaterial.Diffuse.b = _materialVal.f4Diffuse.b;
+	D3DMaterial.Diffuse.a = _materialVal.f4Diffuse.a;
+	
+	//Set the Emissive
+	D3DMaterial.Emissive.r = _materialVal.f4Emissive.r;
+	D3DMaterial.Emissive.g = _materialVal.f4Emissive.g;
+	D3DMaterial.Emissive.b = _materialVal.f4Emissive.b;
+	D3DMaterial.Emissive.a = _materialVal.f4Emissive.a;
+
+	//Set the Specular
+	D3DMaterial.Specular.r = _materialVal.f4Specular.r;
+	D3DMaterial.Specular.g = _materialVal.f4Specular.g;
+	D3DMaterial.Specular.b = _materialVal.f4Specular.b;
+	D3DMaterial.Specular.a = _materialVal.f4Specular.a;
+
+	//Set the power
+	D3DMaterial.Power = _materialVal.fPower;
+
+	//Add the material to the map
+	m_pMaterialMap->insert(std::pair<int, D3DMATERIAL9>(++m_iMaterialKeyCount, D3DMaterial));
+	//Return a material ID
+	return m_iMaterialKeyCount;
 }
 
 /***********************
@@ -956,22 +996,6 @@ void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _
 	//Set the Projection matrix of the D3D Device
 	m_pDevice->SetTransform(D3DTS_PROJECTION, &m_matProjection);
 
-}
-
-/***********************
-* CalculateOrthogonalMatrix: Calculates the the Orthogonal projection Matrix
-* @author: Jc Fowles
-* @parameter: _fNear: The closest the projection can be
-* @parameter: _fFar: The Furtherest the projection can be
-* @return: void:
-********************/
-void CD3D9Renderer::CalculateOrthogonalMatrix(float _fNear, float _fFar)
-{
-	//Calculate the Orthogonal Projection matrix of the D3D Device
-	D3DXMatrixOrthoLH(&m_matProjection, (float)m_iScreenWidth, (float)m_iScreenHeight, _fNear, _fFar);
-
-	//Set the Orthogonal Projection matrix of the D3D Device
-	m_pDevice->SetTransform(D3DTS_PROJECTION, &m_matProjection);
 }
 
 /***********************

@@ -6,14 +6,16 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : Vectex.h 
-// Description : Contains the header file for Vectex Class
+// File Name : VertexColor.h 
+// Description : Contains the header file for VertexColor Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 
 #pragma once
-//TO DO: ifdef
+
+#ifndef __VERTEX_COLOR_H__
+#define __VERTEX_COLOR_H__
 
 // Library Includes
 #include <d3dx9.h>
@@ -49,3 +51,5 @@ protected:
 
 	DWORD m_dwColor;
 };
+
+#endif //__VERTEX_COLOR_H__

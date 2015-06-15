@@ -13,6 +13,10 @@
 //
 #pragma once
 
+#ifndef __CCAMERASTATIC_H__
+#define __CCAMERASTATIC_H__
+
+
 //Local includes
 #include "../shared/IRenderer.h"
 
@@ -43,7 +47,7 @@ public:
 	//Functionality
 	void ToggleType();
 
-	//Member varialble
+	//Member variable
 private:
 
 	D3DXVECTOR3 m_vecPosition;
@@ -57,3 +61,5 @@ private:
 
 
 };
+
+#endif //__CCAMERASTATIC_H__

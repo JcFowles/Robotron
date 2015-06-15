@@ -12,7 +12,8 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
-#if !defined(__CLIENT_APP_H__)
+
+#ifndef __CLIENT_APP_H__
 #define __CLIENT_APP_H__
 
 //library includes

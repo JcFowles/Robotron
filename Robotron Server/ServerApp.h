@@ -20,6 +20,7 @@
 //Local Includes
 #include "Server.h"
 #include "../Shared/Clock.h"
+#include "Game.h"
 
 class CServerApp
 {
@@ -228,8 +229,11 @@ private:
 
 	//Server Variables
 	static CServerApp* s_pServerApp;
-	CClock* m_pClock;
 	std::string m_strServerName;
+	
+	//Game variables
+	CGame* m_pGame;
+	CClock* m_pClock;
 	bool m_bGameStart;
 	bool m_bSinglePlayer;
 

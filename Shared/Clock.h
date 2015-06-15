@@ -12,7 +12,9 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 #pragma once
-//TO DO IFDEF
+
+#ifndef __CCLOCK_H__
+#define __CCLOCK_H__
 
 // Library Includes
 #include <windows.h>
@@ -50,7 +52,7 @@ public:
 	void Process();
 
 	/***********************
-	* GetDeltaTick: Return the detla tick. Time taken for one frame in seconds
+	* GetDeltaTick: Return the delta tick. Time taken for one frame in seconds
 	* @author: Jc Fowles
 	* @return: float: Return delta tick. Time taken for a single frame in seconds
 	********************/
@@ -80,3 +82,5 @@ protected:
 
 private:
 };
+
+#endif //__CCLOCK_H__

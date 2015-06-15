@@ -11,6 +11,10 @@
 * Author :	Jc Fowles
 * Mail :	Jc.Fowles@mediadesign.school.nz
 */
+#pragma once
+
+#ifndef __TERRAIN_H__
+#define __TERRAIN_H__
 
 // Library Includes
 #include <vector>
@@ -68,5 +72,8 @@ private:
 	float m_fX;
 	float m_fY;
 	float m_fZ;
+
+	int m_iMaterialID;
 };
 
+#endif //__TERRAIN_H__

@@ -13,7 +13,7 @@
 //
 #pragma once
 
-#if !defined(__STATICBUFFER_H__)
+#ifndef __STATICBUFFER_H__
 #define __STATICBUFFER_H__
 
 // Local Includes

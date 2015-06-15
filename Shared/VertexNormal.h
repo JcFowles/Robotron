@@ -6,8 +6,8 @@
 // 
 // (c) 2005 - 2015 Media Design School 
 // 
-// File Name : VectexNormal.h 
-// Description : Contains the header file for VectexNormal Class
+// File Name : VertexNormal.h 
+// Description : Contains the header file for VertexNormal Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //

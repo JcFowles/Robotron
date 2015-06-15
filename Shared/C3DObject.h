@@ -22,71 +22,152 @@
 
 // Local Includes
 #include "Mesh.h"
+#include "../Shared/Graphics_Defines.h"
+
 
 class C3DObject
 {
 public:
-	//Creation/Deletion
+	
+	/***********************
+	* C3DObject: Default Constructor for 3DObject class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	C3DObject();
+
+	/***********************
+	* ~C3DObject: Destructor for 3DObject class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	~C3DObject();
 		
-	//Getters
-	D3DXVECTOR3* GetPosition();
-	D3DXVECTOR3* GetLook();
-	D3DXVECTOR3* GetUp();
-	D3DXVECTOR3* GetTarget();
-	D3DXMATRIX GetWorldMatrix();
-	float GetMoveSpeed();
-
-	//Setters
-	void SetMesh(CMesh* _pMesh);
-	void SetPosition(float _fX, float _fY, float _fZ);
-	void SetMoveSpeed(float _fMoveSpeed);
-	void SetTurnSpeed(float _fTurnSpeed);
+	/***********************
+	* Initialise: initialize all the member variables for the 3D Object
+	* @author: Jc Fowles
+	* @parameter: _pMesh: Mesh for this 3D Object
+	* @parameter: _fX: Starting X coordinate. Default to 0 if not specified
+	* @parameter: _fY: Starting Y coordinate. Default to 0 if not specified
+	* @parameter: _fZ: Starting Z coordinate. Default to 0 if not specified
+	* @return: void
+	********************/
+	void Initialise(IRenderer* _pRenderManager, MaterialValues _material, CMesh* _pMesh, float3 _f3Pos = { 0, 0, 0 });
 	
-	//Functionality
-	void Initialise(CMesh* _pMesh, float _fX = 0, float _fY = 0, float _fZ = 0);
-	void Draw(IRenderer* _pRendererManager);
+	/***********************
+	* Draw: Draws the 3D Object
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	void Draw();
+
+	/***********************
+	* Process: Processes the 3D Object using the Delta tick
+	* @author: Jc Fowles
+	* @parameter: _fDT: The Delta Tick
+	* @return: void
+	********************/
 	void Process(float _fDT);
 
-	void MoveForward(float _fDT);
-	void Yaw(float _fDT);
-	void Pitch(float _fDT);
+	//Getters
+	
+	/***********************
+	* GetMaxSpeed: TO DO: Description
+	* @author: Jc Fowles
+	* @return: float: 
+	********************/
+	float GetMaxSpeed() const { return m_fMaxSpeed; }
+	
+	/***********************
+	* GetPosition: Return the position of the object
+	* @author: Jc Fowles
+	* @return: float3: The position of the object
+	********************/
+	float3 GetPosition() const { return m_f3Position; }
+	
+	/***********************
+	* GetVelocity: Return the Velocity of the object
+	* @author: Jc Fowles
+	* @return: float3: The Velocity of the object
+	********************/
+	float3 GetVelocity() const { return m_f3Velocity; }
+	
+	/***********************
+	* GetDirection: Return the Direction of the object
+	* @author: Jc Fowles
+	* @return: float3: The Direction of the object
+	********************/
+	float3 GetDirection() const { return m_f3Direction; }
+	
+	//Setters
+		
+	/***********************
+	* SetRotation: Set the Yaw rotation of the 3D object 
+	* @author: Jc Fowles
+	* @Parameter: float _Rotation: value to rotate the 3D object by
+	* @return: void: 
+	********************/
+	void SetRotation(float _Rotation) { m_fRotation = _Rotation; }
+	
+	/***********************
+	* SetPosition: Set the position vector of the 3D object
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Position: position vector for the 3D object 
+	* @return: void:
+	********************/
+	void SetPosition(float3 _f3Position) { m_f3Position = _f3Position; }
+	
+	/***********************
+	* SetVelocity: Set the Velocity of the 3D object
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Velocity: Velocity vector for the 3D object
+	* @return: void:
+	********************/
+	void SetVelocity(float3 _f3Velocity) { m_f3Velocity = _f3Velocity; }
+
+	/***********************
+	* SetDirection: Set the Direction vector of the 3D object
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Velocity: Velocity vector for the 3D object
+	* @return: void:
+	********************/
+	void SetDirection(float3 _f3Direction) { m_f3Direction = _f3Direction; }
+	
 
 protected:
 	
-	void CalcWorldMatrix(IRenderer* _pRendererManager);
-
+	/***********************
+	* CalcWorldMatrix: Calculates the World Matrix for this Object
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	void CalcWorldMatrix();
+	
+	//Member variables
 protected:
-	//Member Variables
+	
+	IRenderer* m_pRenderManager;
+
+	//Material
+	int m_iMaterialID;
+	
+	float m_fRotation;  //Yaw Rotation (Radian)
+	float m_fSize;		//TO DO : Potential removal 
+	float m_fMaxSpeed;
+	
+	float3 m_f3Position;
+	float3 m_f3Velocity;
+	float3 m_f3Direction;
+		
 	CMesh* m_pMesh;
 
-	D3DXMATRIX m_matWorld;
-	D3DXMATRIX m_matView;
-	
-	//Rotations
-	float m_fRotationYaw;
-	float m_fRotationPitch;
-	float m_fRotationRoll;
-	
-	float m_fYawRevolution;
-	float m_fPitchRevolution;
-	float m_fRollRevolution;
-	
-	D3DXVECTOR3 m_vecLook;
-	D3DXVECTOR3 m_vecTarget;
-	D3DXVECTOR3 m_vecPosition;
-	D3DXVECTOR3 m_vecUp;
-	D3DXVECTOR3 m_vecRight;
+	//TO DO:
+	//Texture 
 
-	D3DXVECTOR3 m_vecVelocity;
 
-	float m_fMoveSpeed;
-	float m_fTurnSpeed;
-	
-	float m_fMaxPitch;
-	float m_fPitch;
-		
+	//collision box
+	//Structs min max float3 
+
 };
 
 #endif // __C3DOBJECT_H__ 

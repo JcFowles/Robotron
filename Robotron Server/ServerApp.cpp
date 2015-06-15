@@ -112,14 +112,9 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	std::string strTextToSend = m_strServerName + ":" + m_strHostClient;
 	AddTextToClientDataPacket(strTextToSend);
 	
-	
-
 	//Broadcast to all potential clients
 	m_pServer->Broadcast(m_pClientPacket);
-	
-	
-
-	//Game 
+		
 	return true;
 }
 
@@ -240,6 +235,17 @@ void CServerApp::ProcessReceiveData()
 		{
 			ProcessQuit();
 		}
+		case PT_INPUT:
+		{
+			//Add server info to client packet
+			SetServerInfo();
+			//Send to all so so has left
+			m_pClientPacket->packetType = PT_UPDATE;
+			
+			m_pGame->Process(m_pServerPacket, m_pClientPacket);
+
+			m_pServer->SendData(m_pClientPacket);
+		}
 		default:
 			break;
 		}
@@ -355,23 +361,31 @@ void CServerApp::ProcessActive()
 			//If more than 2 players are in the lobby
 			if (m_pServer->GetNumClients() > 1)
 			{
+
+				std::vector<PlayerStates> vecPlayerStates;
 				//Set player positions
 				std::map< std::string, PlayerStates>::iterator iterClient = m_pMapPlayerStates->begin();
 				std::map< std::string, PlayerStates>::iterator iterClientEnd = m_pMapPlayerStates->end();
 				int iClient = 0;
 				while (iterClient != iterClientEnd)
 				{
-
-					m_pClientPacket->currentGameState.PlayerInfo[iClient].f3Positions = { float(iClient * 5), 20.0f, 0.0f };
+					//Add the player state to the temp vector
+					vecPlayerStates.push_back(iterClient->second);
 
 					iClient++;
 					iterClient++;
 				}
-									
+
+				//Create and initialize the server side game
+				m_pGame = &(CGame::GetInstance());
+				m_pGame->Initialise(vecPlayerStates, m_pClientPacket);
+				
+
 				//Send message
 				m_pServer->SendData(m_pClientPacket);
 				//Set Game to start
 				m_bGameStart = true;
+
 			}
 		}
 	}
@@ -514,6 +528,7 @@ bool CServerApp::AddUser(std::string _UserName, PlayerStates _playerStates)
 	return MapClientIter.second;
 }
 
+//TO DO
 void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 {
 	//Reset the list of active clients
@@ -521,9 +536,9 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 	{
 		//Set the user name to nothing
 		std::string strText = "";
-		strcpy_s(_pDataToSend->currentGameState.PlayerInfo[iUser].cPLayerName, strText.c_str());
+		strcpy_s(_pDataToSend->PlayerInfo[iUser].cPLayerName, strText.c_str());
 		//Reset positions
-		_pDataToSend->currentGameState.PlayerInfo[iUser].f3Positions = { 0, 0, 0 };
+		_pDataToSend->PlayerInfo[iUser].f3Positions = { 0, 0, 0 };
 		
 	}
 
@@ -537,10 +552,10 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 		if (strText.length() < NetworkValues::MAX_NAME_LENGTH)
 		{
 			//Set the user name in the active client list in the server info to the current user in the map of active clients
-			strcpy_s(_pDataToSend->currentGameState.PlayerInfo[iUser].cPLayerName, strText.c_str());
+			strcpy_s(_pDataToSend->PlayerInfo[iUser].cPLayerName, strText.c_str());
 		}
 
-		_pDataToSend->currentGameState.PlayerInfo[iUser].f3Positions = iterClient->second.f3Positions;
+		_pDataToSend->PlayerInfo[iUser].f3Positions = iterClient->second.f3Positions;
 		//Get next clients user name
 		iterClient++;
 		//Increment the iUser
