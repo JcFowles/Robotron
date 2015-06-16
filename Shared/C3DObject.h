@@ -152,7 +152,7 @@ protected:
 	int m_iMaterialID;
 	
 	float m_fRotation;  //Yaw Rotation (Radian)
-	float m_fSize;		//TO DO : Potential removal 
+	float m_fSize;		
 	float m_fMaxSpeed;
 	
 	float3 m_f3Position;
@@ -160,10 +160,7 @@ protected:
 	float3 m_f3Direction;
 		
 	CMesh* m_pMesh;
-
-	//TO DO:
-	//Texture 
-
+	
 
 	//collision box
 	//Structs min max float3 

@@ -21,6 +21,7 @@
 
 //library includes
 #include <cassert>
+#include <string>
 
 //Local Includes
 
@@ -56,6 +57,17 @@ enum eHostStates
 	HS_DONE
 };
 
+enum eEnemyTypes
+{
+	ET_LUST,	//Grabbing enemy that tries to hold onto you slowing you down and damaging you over time
+	ET_PRIDE,	//Runs(flee) away and heals it self when hurt
+	ET_WRATH,	//Big angry 
+	ET_GREED,	//Points stealer
+	ET_SLOTH,	//BIG Wanderer passive till attacked
+	ET_ENVY,	//
+	ET_GLUTTONY	//Eats other objects gets bigger, slower, harder to kill, more points, and more damage
+};
+
 struct InputStates
 {
 	bool bUpPress;
@@ -67,6 +79,7 @@ struct InputStates
 	POINT CursorPos;
 };
 
+//Vector with 2 float values
 struct float2
 {
 	float u;
@@ -87,7 +100,7 @@ struct float2
 
 };
 
-//Float with 3 values
+//Vector with 3 float values
 struct float3
 {
 	float x;
@@ -135,6 +148,17 @@ struct float3
 	}
 
 	/***********************
+	* operator+: Addition and assignment operator
+	* @author: Jc Fowles
+	* @Parameter: const float3 _f3: right hand side of the operator
+	* @return: float3: The result of the addition and assignment
+	********************/
+	float3 operator+= (const float3 _f3) 
+	{
+		return float3(x += _f3.x, y += _f3.y, z += _f3.z);
+	}
+
+	/***********************
 	* operator-: Subtraction operator
 	* @author: Jc Fowles
 	* @Parameter: const float3 _f3: right hand side of the operator
@@ -155,9 +179,40 @@ struct float3
 	{
 		return float3(_f3.x * x, _f3.y * y, _f3.z * z);
 	}
+	
+	/***********************
+	* Magnitude: Calculate and return the magnitude of the float3 vector
+	* @author: Jc Fowles
+	* @return: float: The magnitude of the float3 vector
+	********************/
+	float Magnitude()
+	{
+		return ( sqrt( pow(x, 2) + pow(y, 2) + pow(z, 2) ) );
+	}
+
+	/***********************
+	* Normalise: Calculate and return a normalized vector of the float3 vector
+	* @author: Jc Fowles
+	* @return: float: The normalized float3 vector 
+	********************/
+	float3 Normalise()
+	{
+		float mag = this->Magnitude();
+		if (mag == 0.0f)
+		{
+			//Return a zero vector if magnitude is zero
+			return float3(0.0f, 0.0f, 0.0f);
+		}
+		else
+		{
+			//Return the normalized vector 
+			return ((*this)*(1 / mag));
+		}
+	}
 
 };
 
+//Vector with 4 float values
 struct float4
 {
 	float r; //Red
@@ -166,8 +221,6 @@ struct float4
 	float a; //Alpha
 
 };
-
-
 
 #define VALIDATE(a) if (!a) return (false)
 

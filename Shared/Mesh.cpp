@@ -67,7 +67,7 @@ void CMesh::Draw()
 	//Set texture
 	m_pRenderManager->SetTexture(m_iTextureID, 0);
 
-	//RenderManger to render the mesh with its unique buffer ID passed in
+	//RenderManger to render the mesh with its unique buffer ID 
 	m_pRenderManager->Render(m_iBufferID);
 }
 
