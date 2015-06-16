@@ -96,7 +96,7 @@ void CCamera::SetType(bool _bFirstPerson)
 }
 
 /***********************
-* SetCamera: Set up the camera in the correct postion and correct target
+* SetCamera: Set up the camera in the correct position and correct target
 * @author: Jc Fowles
 * @parameter: _vecTarget: Target vector of the avatar
 * @parameter: _vecPosition: Position vector of the avatar
@@ -123,11 +123,11 @@ void CCamera::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVE
 		//set target to be the avatar
 		m_vecTarget = _vecPosition;
 		
-		//Set position back apon the look vector of the avatar
+		//Set position back upon the look vector of the avatar
 		m_vecPosition = _vecPosition;
 		m_vecPosition += -_vecLook*m_f3PCDistBehind;
 		
-		//Set position slighly higher than the avatar
+		//Set position slightly higher than the avatar
 		m_vecPosition += _vecUp * m_f3PCDistUp;
 		//Which way is up for the avatar
 		m_VecUp = _vecUp;

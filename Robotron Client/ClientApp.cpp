@@ -974,7 +974,7 @@ void CClientApp::JoinMenuDraw()
 			RenderText("\tServer Host", iYPos, TEXT_LIST, false, dwTextFormat);
 			//Render Number of clients in server
 			dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-			RenderText("Player Count  .", iYPos, TEXT_LIST, false, dwTextFormat);
+			RenderText("Player Count", iYPos, TEXT_LIST, false, dwTextFormat);
 
 
 
@@ -1024,7 +1024,7 @@ void CClientApp::JoinMenuDraw()
 		}
 				
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		iYPos = m_iScreenHeight - (2*uiFontHeight);
 		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 				
@@ -1052,7 +1052,7 @@ void CClientApp::JoinMenuDraw()
 
 		//Render back button
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-		iYPos = m_iScreenHeight - (uiFontHeight + 10);
+		iYPos = m_iScreenHeight - (2*uiFontHeight);
 		dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 		RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 	}
@@ -1238,8 +1238,8 @@ void CClientApp::OptionsMenuDraw()
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (uiFontHeight + 10);
-	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	iYPos = m_iScreenHeight - (2 * uiFontHeight);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 
@@ -1263,8 +1263,8 @@ void CClientApp::InstructionMenuDraw()
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	iYPos = m_iScreenHeight - (uiFontHeight + 10);
-	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	iYPos = m_iScreenHeight - (2 * uiFontHeight);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
 	RenderText("\t Back", iYPos, TEXT_MENU, true, dwTextFormat);
 }
 

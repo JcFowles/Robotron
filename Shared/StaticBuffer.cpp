@@ -16,7 +16,7 @@
 #include "StaticBuffer.h"
 
 /***********************
-* CStaticBuffer: Defualt constructor of the CStaticBuffer class
+* CStaticBuffer: Default constructor of the CStaticBuffer class
 * @author: Jc Fowles
 * @return: 
 ********************/
@@ -48,19 +48,19 @@ CStaticBuffer::~CStaticBuffer(void)
 }
 
 /***********************
-* Initialise: Initialises the StaticBuffer
+* Initialise: Initializes the StaticBuffer
 * @author: Jc Fowles
 * @parameter: _pDevice : Pointer to the DirectX9 device
 * @parameter: _iID : Unique ID for the static buffer
 * @parameter: _VertexType : Long number to define the type of vertex 
-* @parameter: _ePrimitiveType : a enum to define to the Primative type 
+* @parameter: _ePrimitiveType : a enum to define to the Primitive type 
 * @parameter: _uiTotalVerts : Total number of vertices in the static buffer
 * @parameter: _uiTotalIndices : Total number of indices of different verts in the static buffer
 * @parameter: _iStride : Size of the vertices in the buffer
 * @parameter: _pVertexData : pointer to the the vertex data
 * @parameter: _eIndexType : enum for the bit size(32 or 64) for the index type
 * @parameter: _pIndices : pointer to data to be assigned to the index buffer
-* @return: bool: If succeded or not
+* @return: bool: If succeeded or not
 ********************/
 bool CStaticBuffer::Initialise(IDirect3DDevice9* _pDevice, 
 							   int _iID, 
@@ -97,37 +97,17 @@ bool CStaticBuffer::Initialise(IDirect3DDevice9* _pDevice,
 	//Create vertex buffer
 	HRESULT hr = _pDevice->CreateVertexBuffer((m_iNumVerts * (m_iStride)), 0, m_dwFvf, D3DPOOL_MANAGED, &m_pVertexBuffer, NULL);
 	
-	//Based on vertex Type cast _pVertexData to that type
-	switch (_VertexType)
-	{
-		case (sizeof(CVertexColor)) :
-		{
-			//Convert vertexData to type CVertex
-			std::vector<CVertexColor>* pVertices = static_cast<std::vector<CVertexColor>*>(_pVertexData);
+	
+	//Convert vertexData to type CVertex
+	std::vector<CVertexUV>* pVertices = static_cast<std::vector<CVertexUV>*>(_pVertexData);
 
-			//Add the vertices to the vertex buffer
-			//Locks Memory from being moved or used by another process
-			m_pVertexBuffer->Lock(0, (_uiTotalVerts * _iStride), (void**)&pVoidVertex, 0);
-			memcpy(pVoidVertex, &pVertices->front(), (_uiTotalVerts * _iStride));
-			//Unlocks the locked memory for general use again
-			m_pVertexBuffer->Unlock();
-		}
-		break;
-		case (sizeof(CVertexNormal)) :
-		{
-			//Convert vertexData to type CVertexNormal
-			std::vector<CVertexNormal>* pVertices = static_cast<std::vector<CVertexNormal>*>(_pVertexData);
-
-			//Add the vertices to the vertex buffer
-			//Locks Memory from being moved or used by another process
-			m_pVertexBuffer->Lock(0, (_uiTotalVerts * _iStride), (void**)&pVoidVertex, 0);
-			memcpy(pVoidVertex, &pVertices->front(), (_uiTotalVerts * _iStride));
-			//Unlocks the locked memory for general use again
-			m_pVertexBuffer->Unlock();
+	//Add the vertices to the vertex buffer
+	//Locks Memory from being moved or used by another process
+	m_pVertexBuffer->Lock(0, (_uiTotalVerts * _iStride), (void**)&pVoidVertex, 0);
+	memcpy(pVoidVertex, &pVertices->front(), (_uiTotalVerts * _iStride));
+	//Unlocks the locked memory for general use again
+	m_pVertexBuffer->Unlock();
 		
-		}
-		break;
-	}
 
 	
 	//Create the Index Buffer
@@ -163,7 +143,7 @@ bool CStaticBuffer::Initialise(IDirect3DDevice9* _pDevice,
 		//Create the  Index buffer
 		_pDevice->CreateIndexBuffer((_uiTotalIndices * sizeof(int)), 0, D3DIndexFormat, D3DPOOL_MANAGED, &m_pIndexBuffer, NULL);
 				
-		//Cast void poinet _pIndices to vector of ints
+		//Cast void point _pIndices to vector of ints
 		std::vector<int>* pIndices = static_cast<std::vector<int>*>(_pIndices);
 		//Add the indices to the index buffer
 		//Locks Memory from being moved or used by another process

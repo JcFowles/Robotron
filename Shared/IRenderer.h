@@ -20,8 +20,7 @@
 #include "Graphics_Defines.h"
 
 // Prototypes
-class CVertexColor;
-class CVertexNormal;
+class CVertexUV;
 class IRenderer
 {
 	// Member Functions
@@ -42,8 +41,7 @@ public:
 	virtual D3DXMATRIX& GetViewMatrix() = 0;
 	virtual D3DXMATRIX& GetWorldMatrix() = 0;
 
-	virtual void RetrieveVertices(std::vector<CVertexColor>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues) = 0;
-	virtual void RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues) = 0;
+	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues) = 0;
 
 	virtual bool GetSpecularEnable() = 0;
 	virtual D3DXVECTOR3 GetAmbient() = 0;
@@ -67,6 +65,7 @@ public:
 
 	virtual bool SetMaterial() = 0;
 	virtual bool SetMaterial(int _materialID) = 0;
+	virtual bool SetTexture(int _textureID, int _iStage) = 0;
 
 	//Render
 	virtual void Render(unsigned int _uiStaticId) = 0;
@@ -85,6 +84,7 @@ public:
 	
 	//Creators
 	virtual UINT CreateMaterial(MaterialValues _materialVal) = 0;
+	virtual UINT CreateTexture(std::string _strFileName) = 0;
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo) = 0;
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType) = 0;
 	virtual int CreateStaticBuffer( VertexType _VertexType,

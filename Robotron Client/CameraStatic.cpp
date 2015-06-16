@@ -65,7 +65,7 @@ bool CCameraStatic::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget,
 /***********************
 * Process: Process the camera, setting the view matrix of the Render manager
 * @author: Jc Fowles
-* @parameter: _pRenderManager: Pointer to the render manager, who will untimaly set the view
+* @parameter: _pRenderManager: Pointer to the render manager, who will ultimately set the view
 * @return: void
 ********************/
 void CCameraStatic::Process(IRenderer* _pRenderManager)
@@ -74,7 +74,7 @@ void CCameraStatic::Process(IRenderer* _pRenderManager)
 }
 
 /***********************
-* SetPosition: Set up the camera in the correct postion
+* SetPosition: Set up the camera in the correct position
 * @author: Jc Fowles
 * @parameter: _vecPosition: Position to set the camera to
 * @return: void
@@ -124,7 +124,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		
 		//Set position directly 100 unit above (on Y-axis) past in position
 		m_vecPosition = _vecPosition;
-		D3DXVECTOR3 AddHeight = { 0.0f, 100.0f, 0.0f  };
+		D3DXVECTOR3 AddHeight = { 0.0f, 20.0f, 0.0f  };
 		m_vecPosition += AddHeight;
 		
 		//Which way is up for the avatar

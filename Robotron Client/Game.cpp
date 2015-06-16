@@ -75,20 +75,23 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	//Create the Camera
 	m_pCamera = new CCameraStatic();
 	//Get the position of the client player and set the static camera to that position only 100 units above it
-	D3DXVECTOR3 D3DPosition = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y + 100, _Players[_iIndexOfClientPlayer].f3Positions.z };
+	D3DXVECTOR3 D3DPosition = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y + 2, _Players[_iIndexOfClientPlayer].f3Positions.z };
 	//And then set the look at vector of the camera to look at the client players position
 	D3DXVECTOR3 D3DLookAt = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y, _Players[_iIndexOfClientPlayer].f3Positions.z };
 	m_pCamera->Initialise(D3DPosition, D3DLookAt, false);
 	m_pCamera->Process(m_pRenderManager);
 
 	//Create player mesh Mesh
-	m_pPlayerMesh = CreatePlayerMesh(1.0f);
+
+	std::string strFilePath = "Assets\\CompanionCube.png";
+	int iTextureID = _RenderManager->CreateTexture(strFilePath);
+	m_pPlayerMesh = CreatePlayerMesh(1.0f, iTextureID);
 	
 	MaterialValues Material;
 	Material.f4Ambient	= { 0.0f, 0.0f, 0.0f, 1.0f };
-	Material.f4Diffuse	= { 1.0f, 0.2f, 0.0f, 1.0f };
-	Material.f4Emissive = { 1.0f, 0.2f, 0.0f, 1.0f };
-	Material.f4Specular = { 1.0f, 0.2f, 0.0f, 1.0f };
+	Material.f4Diffuse	= { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.fPower		= { 1.0f };
 	
 	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
@@ -177,8 +180,6 @@ void CGame::Draw()
 		iterPlayer++;
 	}
 
-	
-
 }
 
 /***********************
@@ -187,42 +188,66 @@ void CGame::Draw()
 * @parameter: float _fCubeSize: Size of cube
 * @return: CMesh*: Pointer to a created Cube mesh
 ********************/
-CMesh* CGame::CreatePlayerMesh(float _fCubeSize)
+CMesh* CGame::CreatePlayerMesh(float _fCubeSize, int iTextureID)
 {
 	//Create the Cube mesh
-	CMesh* meshCube = new CMesh(m_pRenderManager, _fCubeSize);
+	CMesh* meshCube = new CMesh(m_pRenderManager, _fCubeSize, iTextureID);
 	meshCube->SetPrimitiveType(IGPT_TRIANGLELIST);
 	
-	//Create the cube using vector normals
-	std::vector<D3DXVECTOR3> vectTempPosition = { { -_fCubeSize / 2, _fCubeSize / 2, -_fCubeSize / 2 },
-												  { _fCubeSize / 2, _fCubeSize / 2, -_fCubeSize / 2 },
-												  { _fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
-												  { -_fCubeSize / 2, -_fCubeSize / 2, -_fCubeSize / 2 },
-												  { -_fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
-												  { _fCubeSize / 2, _fCubeSize / 2, _fCubeSize / 2 },
-												  { _fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 },
-												  { -_fCubeSize / 2, -_fCubeSize / 2, _fCubeSize / 2 } };
-	//Calculate the normals of the cube
-	for (unsigned int i = 0; i < vectTempPosition.size(); i++)
-	{
-		D3DXVECTOR3 tempNormal;
-		D3DXVec3Normalize(&tempNormal, &vectTempPosition[i]);
-		meshCube->AddVertex(CVertexNormal(vectTempPosition[i].x, vectTempPosition[i].y, vectTempPosition[i].z, tempNormal.x, tempNormal.y, tempNormal.z));
-	}
+	//Create the cube using Vertex with normals and UV Coords
+	
+	float fTemp = _fCubeSize / 2;
+
+	//Front Face
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 1.0f)));
+
+	//Left Face
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
+
+	//Right Face
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(0.0f, 1.0f)));
+
+	//Back Face
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
+
+	//Top Face
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 1.0f)));
+
+	//Bottom Face
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
 
 	//Add the Indices
-	std::vector<int> vecIndices = { 0, 1, 3,
-									1, 2, 3,
-									1, 5, 2,
-									5, 6, 2,
-									5, 4, 6,
-									4, 7, 6,
-									4, 0, 7,
-									0, 3, 7,
-									4, 5, 0,
-									5, 1, 0,
-									3, 2, 7,
-									2, 6, 7 };
+	std::vector<int> vecIndices = { 0,1,2,
+									0,2,3,
+									4,5,6,
+									4,6,7,
+									8,9,10,
+									8,10,11,
+									12,13,14,
+									12,14,15,
+									16,17,18,
+									16,18,19,
+									20,21,22,
+									20,22,23
+									};
 
 	//Create the static buffer
 	meshCube->SetIndexList(vecIndices);

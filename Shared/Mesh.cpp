@@ -16,13 +16,15 @@
 #include "Mesh.h"
 
 
-CMesh::CMesh(IRenderer* _pRenderManager, float _fSize)
+CMesh::CMesh(IRenderer* _pRenderManager, float _fSize, int _iTextureID)
 {
 	m_pRenderManager = _pRenderManager;
 	m_fSize = _fSize;
 
 	//Set default Primitive type to triangle list
 	m_ePrimitiveType = IGPT_TRIANGLELIST;
+	
+	m_iTextureID = _iTextureID;
 }
 
 CMesh::~CMesh()
@@ -30,9 +32,9 @@ CMesh::~CMesh()
 
 }
 
-void CMesh::AddVertex(CVertexNormal _vert)
+void CMesh::AddVertex(CVertexUV _vert)
 {
-	m_vecVerticesNormal.push_back(_vert);
+	m_vecVerticesUV.push_back(_vert);
 };
 
 void CMesh::CreateStaticBuffer()
@@ -49,37 +51,22 @@ void CMesh::CreateStaticBuffer()
 		indexType = ((sizeof(m_vecIndices.front())) >= 4) ? IGIT_32 : IGIT_16;
 	}
 		
-	if ((m_vecVertices.size() != 0) && (m_vecVerticesNormal.size() == 0))
-	//Using vertices with color
-	{
-		//Create the static Buffer on the device
-		m_iBufferID = m_pRenderManager->CreateStaticBuffer(sizeof(CVertexColor),
+	//Create the static Buffer on the device
+	m_iBufferID = m_pRenderManager->CreateStaticBuffer( sizeof(CVertexUV),
 															m_ePrimitiveType,
-															m_vecVertices.size(),
+															m_vecVerticesUV.size(),
 															m_vecIndices.size(),
-															sizeof(CVertexColor),
-															&m_vecVertices,
+															sizeof(CVertexUV),
+															&m_vecVerticesUV,
 															indexType,
 															&m_vecIndices);
-	}
-	else if ((m_vecVertices.size() == 0) && (m_vecVerticesNormal.size() != 0))
-	//Using vertices with normal
-	{
-		//Create the static Buffer on the device
-		m_iBufferID = m_pRenderManager->CreateStaticBuffer( sizeof(CVertexNormal),
-															m_ePrimitiveType,
-															m_vecVerticesNormal.size(),
-															m_vecIndices.size(),
-															sizeof(CVertexNormal),
-															&m_vecVerticesNormal,
-															indexType,
-															&m_vecIndices);
-	}
-
 }
 
 void CMesh::Draw()
 {
+	//Set texture
+	m_pRenderManager->SetTexture(m_iTextureID, 0);
+
 	//RenderManger to render the mesh with its unique buffer ID passed in
 	m_pRenderManager->Render(m_iBufferID);
 }

@@ -19,8 +19,7 @@
 
 // Local Includes
 #include "IRenderer.h"
-#include "VertexColor.h"
-#include "VertexNormal.h"
+#include "VertexUV.h"
 
 class CMesh
 {
@@ -28,10 +27,12 @@ public:
 	/***********************
 	* CMesh: Constructor for Mesh class
 	* @author: Jc Fowles
-	* @parameter: _pRenderer: Pointer to the Renderer for this application
+	* @parameter: IRenderer* _pRenderer: Pointer to the Renderer for this application
+	* @parameter: float _fSize: Size of the mesh object
+	* @parameter: int _iTextureID: Created texture ID
 	* @return:
 	********************/
-	CMesh(IRenderer* _pRenderer, float _fSize);
+	CMesh(IRenderer* _pRenderer, float _fSize, int _iTextureID);
 	
 	/***********************
 	* ~CMesh: Default Destructor for Mesh class
@@ -53,7 +54,7 @@ public:
 	* @parameter: _vert: The new vertex with normals to be added
 	* @return: void
 	********************/
-	void AddVertex(CVertexNormal _vert);
+	void AddVertex(CVertexUV _vert);
 
 	/***********************
 	* CreateStaticBuffer: Creates the Static Buffer
@@ -97,13 +98,14 @@ private:
 	//Renderer Variables
 	IRenderer* m_pRenderManager;
 	int m_iBufferID;
-	std::vector<CVertexColor> m_vecVertices;
-
-	std::vector<CVertexNormal> m_vecVerticesNormal;
+	
+	std::vector<CVertexUV> m_vecVerticesUV;
 
 	std::vector<int> m_vecIndices;
 
 	eIGPrimitiveType m_ePrimitiveType;
+
+	int m_iTextureID;
 };
 
 #endif // __MESH_H__ 

@@ -18,8 +18,7 @@
 
 // Local Includes
 #include "Graphics_Defines.h"
-#include "VertexColor.h"
-#include "VertexNormal.h"
+#include "VertexUV.h"
 
 // Constants
 const int g_kiInvalidStaticBuffer = -1;

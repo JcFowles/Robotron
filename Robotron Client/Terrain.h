@@ -23,8 +23,7 @@
 // Local Includes
 #include "../Shared/IRenderer.h"
 #include "../Shared/StaticBuffer.h"
-#include "../Shared/VertexColor.h"
-#include "../Shared/VertexNormal.h"
+#include "../Shared/VertexUV.h"
 
 #pragma once
 class CTerrain
@@ -74,6 +73,7 @@ private:
 	float m_fZ;
 
 	int m_iMaterialID;
+	int m_iTextureID;
 };
 
 #endif //__TERRAIN_H__

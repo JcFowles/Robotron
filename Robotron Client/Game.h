@@ -50,7 +50,7 @@ public:
 	void RenderSingleFrame();
 
 
-	CMesh* CreatePlayerMesh(float _fCubeSize);
+	CMesh* CreatePlayerMesh(float _fCubeSize, int iTextureID);
 
 private:
 	//Disallowing copies and extra constructions

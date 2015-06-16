@@ -67,6 +67,26 @@ struct InputStates
 	POINT CursorPos;
 };
 
+struct float2
+{
+	float u;
+	float v;
+
+	/***********************
+	* float2: constructor for the float2 type
+	* @author: Jc Fowles
+	* @Parameter: float _u: float to be stored in the u value of the float2
+	* @Parameter: float _v: float to be stored in the v value of the float2
+	* @return: :
+	********************/
+	float2(float _u = 0, float _v = 0)
+	{
+		u = _u;
+		v = _v;
+	}
+
+};
+
 //Float with 3 values
 struct float3
 {

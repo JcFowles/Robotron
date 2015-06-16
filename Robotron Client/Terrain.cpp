@@ -16,7 +16,7 @@
 #include "Terrain.h"
 
 /***********************
-* CTerrain: Default Contructor for Terrain class
+* CTerrain: Default Constructor for Terrain class
 * @author: Jc Fowles
 * @return: 
 ********************/
@@ -65,7 +65,7 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	m_fSurfaceDepth = (float)imageInfo.Height;
 
 	//std::vector<CVertex> pVertices;
-	std::vector<CVertexNormal> pVertices;
+	std::vector<CVertexUV> pVertices;
 	_pRenderer->RetrieveVertices(&pVertices, m_iSurfaceID, imageInfo, m_VertexScalar);
 
 	std::vector<int> pIndices;
@@ -74,11 +74,11 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	//Set the Index Format
 	eIGIndexType indexType = (sizeof(pIndices.front()) >= 4) ? IGIT_32 : IGIT_16;
 
-	m_iBufferID = _pRenderer->CreateStaticBuffer(sizeof(CVertexNormal),
+	m_iBufferID = _pRenderer->CreateStaticBuffer(sizeof(CVertexUV),
 											     IGPT_TRIANGLESTRIP,
 											     (&pVertices)->size(),
 											     iIndicesNum,
-												 sizeof(CVertexNormal),
+												 sizeof(CVertexUV),
 											     (&pVertices),
 											     indexType,
 											     &pIndices);
@@ -93,6 +93,10 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 
 
 	m_iMaterialID = _pRenderer->CreateMaterial(Material);
+
+	std::string strFilePath = "Assets\\Heightmap.bmp";
+
+	m_iTextureID = _pRenderer->CreateTexture(strFilePath);
 
 	return true;
 }
@@ -170,6 +174,8 @@ void CTerrain::Draw(IRenderer* _pRendererManager)
 	CalcWorldMatrix(_pRendererManager);
 	
 	_pRendererManager->SetMaterial(m_iMaterialID);
+	_pRendererManager->SetTexture(m_iTextureID, 0);
+	//Set the material
 	_pRendererManager->Render(m_iBufferID);
 }
 

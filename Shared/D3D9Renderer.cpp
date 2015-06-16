@@ -31,9 +31,17 @@ CD3D9Renderer::CD3D9Renderer()
 	m_pMenuFont	= 0;
 	m_pListFont = 0;
 	
-	// Map of Surfaces Setup
+	//Map of Surfaces Setup
 	m_pSurfaceMap = 0;
 	m_iSurfaceKeyCount = 0;
+
+	//Map of Materials Setup
+	m_pMaterialMap = 0;
+	m_iMaterialKeyCount = 0;
+
+	//Map of Textures Setup
+	m_pTextureMap = 0;
+	m_iTextureKeyCount = 0;
 }
 
 CD3D9Renderer::~CD3D9Renderer()
@@ -57,6 +65,20 @@ bool CD3D9Renderer::Shutdown()
 	m_pListFont->Release();
 	m_pListFont = 0;
 	
+	//Deallocate the Texture map
+	if (m_pTextureMap != 0)
+	{
+		std::map<int, IDirect3DTexture9*>::iterator iterCurrent = m_pTextureMap->begin();
+		std::map<int, IDirect3DTexture9*>::iterator iterEnd = m_pTextureMap->end();
+		while (iterCurrent != iterEnd)
+		{
+			iterCurrent->second->Release();
+			iterCurrent->second = 0;
+			iterCurrent++;
+		}
+		delete m_pTextureMap;
+		m_pTextureMap = 0;
+	}
 
 	//Deallocate the Surface map
 	if (m_pSurfaceMap != 0)
@@ -73,6 +95,7 @@ bool CD3D9Renderer::Shutdown()
 		m_pSurfaceMap = 0;
 	}
 
+	//Deallocate the Material map
 	m_pMaterialMap->clear();
 	delete m_pMaterialMap;
 	m_pMaterialMap = 0;
@@ -89,6 +112,8 @@ bool CD3D9Renderer::Shutdown()
 		delete m_pvectBuffer;
 		m_pvectBuffer = 0;
 	}
+
+
 
 	
 	return true;
@@ -135,7 +160,11 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	m_pDevice->SetLight(0, &m_pDirectionalLight);
 	m_pDevice->LightEnable(0, true);
 
+	//Create map for all the Materials
 	m_pMaterialMap = new std::map < int, D3DMATERIAL9 > ;
+
+	//Create map for all the Textures
+	m_pTextureMap = new std::map < int, IDirect3DTexture9* >; 
 
 	return true;
 }
@@ -257,7 +286,7 @@ void CD3D9Renderer::SetRenderStates()
 	//Set initial Lighting
 	//Redundant//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 	//Set initial FVF
-	m_pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL);
+	m_pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
 	//Set render state z buffer to true
 	//Redundant//m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
 	//Set ambient light to a light gray
@@ -329,12 +358,7 @@ void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 	D3DLIGHT9 D3DLight;   
 	//Clear memory of light use
 	ZeroMemory(&D3DLight, sizeof(D3DLight));
-	
-	if (_pLightParameter.iID == 1)
-	{
-		int c = 9;
-	}
-	
+		
 	//Set Light parameters
 	D3DLight.Type = _pLightParameter.eLightType;
 	//All Light Types
@@ -420,6 +444,63 @@ bool CD3D9Renderer::SetMaterial(int _materialID)
 	}
 }
 
+bool CD3D9Renderer::SetTexture(int _textureID, int _iStage)
+{
+	std::map<int, IDirect3DTexture9*>::iterator TexIter = m_pTextureMap->find(_textureID);
+
+	if (TexIter == m_pTextureMap->end())
+	{
+		//Material ID not found in the map
+		return false;
+	}
+	else
+	{
+		//Set the material on the device
+		m_pDevice->SetTexture(_iStage, (TexIter->second));
+		return true;
+	}
+}
+
+UINT CD3D9Renderer::CreateTexture(std::string _strFileName)
+{
+	//Create and ready the memory of the D3D Texture
+	IDirect3DTexture9* pD3DTexture = 0;
+	//ZeroMemory(pD3DTexture, sizeof(*pD3DTexture));
+
+	HRESULT hr = D3DXCreateTextureFromFileA(m_pDevice, _strFileName.c_str(), &pD3DTexture);
+	
+	if (hr == D3DERR_NOTAVAILABLE)
+	{
+		int c = 9;
+	}
+	if (hr == D3DERR_INVALIDCALL)
+	{
+		int c = 9;
+	}
+	if (hr == D3DXERR_INVALIDDATA)
+	{
+		int c = 9;
+	}
+	if (hr == E_OUTOFMEMORY)
+	{
+		int c = 9;
+	}
+
+	
+	if (FAILED(hr))
+	{
+		bool FailedToLoadTexture = false;
+		assert(FailedToLoadTexture);
+		return -1;
+	}
+	
+	//Add the material to the map
+	m_pTextureMap->insert(std::pair<int, IDirect3DTexture9*>(++m_iTextureKeyCount, pD3DTexture));
+	//Return a material ID
+	return m_iTextureKeyCount;
+
+}
+
 UINT CD3D9Renderer::CreateMaterial(MaterialValues _materialVal)
 {	
 	//Create and ready the memory of the D3D material
@@ -490,87 +571,15 @@ D3DXMATRIX& CD3D9Renderer::GetWorldMatrix()
 }
 
 /***********************
-* RetrieveVertices: Retrieve the Vertices's with color from the Surface of the ID given
-* @author: Jc Fowles
-* @parameter: _pVertices: Vector of all the vertices's with color
-* @parameter: _iSurfaceID: ID of the surface to render
-* @parameter: _pImageInfo: Information about the image
-* @parameter: _fScaleValues: Width, Height and Depth Scale values
-* @return: void
-********************/
-void CD3D9Renderer::RetrieveVertices(std::vector<CVertexColor>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues)
-{
-	D3DLOCKED_RECT lockRect;
-	ZeroMemory(&lockRect, sizeof(D3DLOCKED_RECT));
-	
-	//Add surface to map and pair it to a Surface ID
-	std::map<int, IDirect3DSurface9*>::iterator iterSurface = m_pSurfaceMap->find(_iSurfaceID);
-	IDirect3DSurface9* pSurface = iterSurface->second;
-	
-	//Lock the surface
-	pSurface->LockRect(&lockRect, 0, D3DLOCK_READONLY);;
-
-	//Calculate number of pixels in the image
-	int iNumPixels = _pImageInfo.Width * _pImageInfo.Height;
-
-	//Get bits pointer and cast to D3DCOLOR*
-	D3DCOLOR* pPixel = reinterpret_cast<D3DCOLOR*>(lockRect.pBits);
-
-	//Loop through entire surface pixel by pixel
-	//Use the pixel information to create the vertex
-	//Remembering Image height is the surface width
-	//Add Image width is the surface depth
-	for (int iCol = 0; iCol < (int)_pImageInfo.Height; iCol++)
-	{
-		for (int iRow = 0; iRow < (int)_pImageInfo.Width; iRow++)
-		{
-			int iPixelNum = (iRow * _pImageInfo.Width) + iCol;
-			D3DCOLOR PixelColor = pPixel[iPixelNum];
-			int iRedChannel = (PixelColor >> 16) & 255;
-
-			if (iRedChannel < 50)
-			{
-				//Lakes
-				float fScale = (float)iRedChannel / (50);
-				PixelColor = D3DCOLOR_XRGB((int)(0.0f * fScale), (int)(0.0f * fScale), (int)(255 * fScale));
-			}
-			else if (iRedChannel < 200)
-			{
-				//Mountains
-				float fScale = (float)iRedChannel / (200 - 50);
-				PixelColor = D3DCOLOR_XRGB((int)(139 * fScale), (int)(69 * fScale), (int)(19 * fScale));
-			}
-			else
-			{
-				//Mountain tops
-				PixelColor = D3DCOLOR_XRGB(255, 255, 255);
-			}
-			
-			//Scale the vertex to Calculate Vector positions
-			float fXPos = iRow  * _fScaleValues.fScalarWidth;
-			float fYPos = iRedChannel * _fScaleValues.fScalarHeight;
-			float fZPos = iCol  * _fScaleValues.fScalarDepth;
-
-			//Create the vertex with above created values
-			CVertexColor pTempVertex((float)fXPos, (float)fYPos, (float)fZPos, PixelColor);
-			_pVertices->push_back(pTempVertex);
-		}
-	}
-
-	//Unlock the surface
-	pSurface->UnlockRect();
-}
-
-/***********************
 * RetrieveVertices: Retrieve the Vertices's with normals from the Surface of the ID given
 * @author: Jc Fowles
-* @parameter: _pVertices: Vector of all the vertices's with normals
+* @parameter: _pVertices: Vector of all the vertices's with normals and UV Coords
 * @parameter: _iSurfaceID: ID of the surface to render
 * @parameter: _pImageInfo: Information about the image
 * @parameter: _fScaleValues: Width, Height and Depth Scale values
 * @return: void
 ********************/
-void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues)
+void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues)
 {
 	D3DLOCKED_RECT lockRect;
 	ZeroMemory(&lockRect, sizeof(D3DLOCKED_RECT));
@@ -799,8 +808,11 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int
 			//Normalize the calculated normal
 			D3DXVec3Normalize(&VertexNormal, &tempNormalVector);
 			
-			//Create the CVertexNormal and and it the vector of Vertices's
-			CVertexNormal TempVertexNormal(fXPos, fYPos, fZPos, VertexNormal.x, VertexNormal.y, VertexNormal.z);
+			//Create the CVertexUV and and it the vector of Vertices's
+			CVertexUV TempVertexNormal(CVertexUV(float3(fXPos, fYPos, fZPos), 
+												 float3(VertexNormal.x, VertexNormal.y, VertexNormal.z),
+												 float2( ( (float)iRow / _pImageInfo.Width ), ( (float)iCol / _pImageInfo.Height ) ) ) 
+									  );
 			_pVertices->push_back(TempVertexNormal);
 		}
 	}

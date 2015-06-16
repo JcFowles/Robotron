@@ -70,8 +70,7 @@ public:
 	virtual D3DXMATRIX& GetViewMatrix();
 	virtual D3DXMATRIX& GetWorldMatrix();
 
-	virtual void RetrieveVertices(std::vector<CVertexColor>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues);
-	virtual void RetrieveVertices(std::vector<CVertexNormal>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues);
+	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues);
 
 	virtual bool GetSpecularEnable();
 	virtual D3DXVECTOR3 GetAmbient();
@@ -89,7 +88,7 @@ public:
 	virtual void SetLights(D3DLightParameter _pLightParameter);
 	virtual bool SetMaterial();
 	virtual bool SetMaterial(int _materialID);
-
+	virtual bool SetTexture(int _textureID, int _iStage);
 	
 	virtual void SetSpecularEnable(bool _bEnable);
 	virtual void SetAmbient(D3DCOLOR _Color);
@@ -115,6 +114,7 @@ public:
 	//Creators
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo);
 	virtual UINT CreateMaterial(MaterialValues _materialVal);
+	virtual UINT CreateTexture(std::string _strFileName);
 	virtual void FillRectColor(DWORD _Color, RECT _rect);
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType);
 	virtual int CreateStaticBuffer(	VertexType _VertexType,
@@ -173,19 +173,17 @@ protected:
 	std::vector< CStaticBuffer* >* m_pvectBuffer;
 
 	std::map<int, IDirect3DSurface9*>* m_pSurfaceMap;
-
 	std::map<int, D3DMATERIAL9>* m_pMaterialMap;
-	
+	std::map<int, IDirect3DTexture9*>* m_pTextureMap;
 
 	UINT m_iSurfaceKeyCount;
-
 	UINT m_iMaterialKeyCount;
+	UINT m_iTextureKeyCount;
 
 	ID3DXFont* m_pTitleFont;
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
 	
-
 
 	D3DLIGHT9 m_pDirectionalLight;
 
