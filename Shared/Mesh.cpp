@@ -15,7 +15,6 @@
 // Local Includes
 #include "Mesh.h"
 
-
 CMesh::CMesh(IRenderer* _pRenderManager, float _fSize, int _iTextureID)
 {
 	m_pRenderManager = _pRenderManager;
@@ -64,9 +63,8 @@ void CMesh::CreateStaticBuffer()
 
 void CMesh::Draw()
 {
-	//Set texture
+	//Set texture to be used
 	m_pRenderManager->SetTexture(m_iTextureID, 0);
-
 	//RenderManger to render the mesh with its unique buffer ID 
 	m_pRenderManager->Render(m_iBufferID);
 }

@@ -63,6 +63,15 @@ public:
 	********************/
 	void CreateStaticBuffer();
 
+	//Getter
+
+	/***********************
+	* GetSize: Return the size of the mesh
+	* @author: Jc Fowles
+	* @return: float: The mesh size
+	********************/
+	float GetSize() { return m_fSize; };
+
 	//Setter
 
 	/***********************
@@ -81,15 +90,6 @@ public:
 	********************/
 	void SetIndexList(std::vector<int> _vecIndices) { m_vecIndices = _vecIndices; };
 	
-	//Getter
-		
-	/***********************
-	* GetSize: Return the size of the mesh
-	* @author: Jc Fowles
-	* @return: float: The mesh size
-	********************/
-	float GetSize() { return m_fSize; };
-
 	//Member Variables
 private:
 	

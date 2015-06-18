@@ -25,8 +25,7 @@
 //local include
 #include "..\shared\App_Defines.h"
 
-//TO DO : remove comment
-//http://www.rastertek.com/dx10tut13.html
+//TO DO : Comment Headers
 
 class CInputManager
 {

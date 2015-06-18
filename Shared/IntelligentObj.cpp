@@ -18,7 +18,6 @@
 
 CIntelligentObj::CIntelligentObj()
 {
-	//Initialize member variables
 	m_uiPoints = 0;
 	m_fMaxForce = 0.0f;
 

@@ -70,7 +70,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 	ScalarVertex TerrainScalar = { 1.0f, 0.05f, 1.0f };
 	std::string strImagePath = "Assets\\Heightmap.bmp";
 	m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar);
-	m_pTerrain->SetCenter(0, 0, 0);
+	m_pTerrain->SetCenter({ 0, 0, 0 });
 
 	//Create the Camera
 	m_pCamera = new CCameraStatic();
@@ -129,10 +129,11 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	{
 		//Draw the player avatar
 		iterPlayer->second.SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
-
+		
 		if (iPlayer == m_iIndexOfClientPlayer)
 		{
 			*m_pPlayerAvatar = iterPlayer->second;
+
 		}
 
 

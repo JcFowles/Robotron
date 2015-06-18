@@ -17,7 +17,6 @@
 
 int CStaticBuffer::s_iActiveStaticBuffer = 0;
 
-
 CD3D9Renderer::CD3D9Renderer()
 {
 	m_bSpecular = true;
@@ -55,9 +54,24 @@ CD3D9Renderer::~CD3D9Renderer()
 	m_pDirect3D = 0;
 }
 
+D3DXMATRIX& CD3D9Renderer::GetProjectionMatrix()
+{
+	return m_matProjection;
+}
+
+D3DXMATRIX& CD3D9Renderer::GetViewMatrix()
+{
+	return m_matView;
+}
+
+D3DXMATRIX& CD3D9Renderer::GetWorldMatrix()
+{
+	return m_matWorld;
+}
+
 bool CD3D9Renderer::Shutdown()
 {
-	
+	//Release COM objects
 	m_pTitleFont->Release();
 	m_pTitleFont = 0;
 	m_pMenuFont->Release();
@@ -133,7 +147,7 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 		return false;
 	}
 
-	SetRenderStates();
+	RenderStates();
 
 	SetMaterial();
 
@@ -169,11 +183,6 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	return true;
 }
 
-/***********************
-* DeviceCreation: Initialize the device present parameters, and creates the device
-* @author: Jc Fowles
-* @return: bool: Successful Creation or not
-********************/
 bool CD3D9Renderer::DeviceCreation()
 {
 	//Declare Variables structs
@@ -281,7 +290,7 @@ bool CD3D9Renderer::DeviceCreation()
 	return false;
 }
 
-void CD3D9Renderer::SetRenderStates()
+void CD3D9Renderer::RenderStates()
 {
 	//Set initial Lighting
 	//Redundant//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -298,24 +307,12 @@ void CD3D9Renderer::SetRenderStates()
 	//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 }
 
-/***********************
-* SetAmbient: Set Ambient color
-* @author: Jc Fowles
-* @parameter: _Enable: boolean value to set specular to
-* @return: void
-********************/
 void CD3D9Renderer::SetAmbient(D3DCOLOR _Color)
 {
 	m_pDevice->SetRenderState(D3DRS_AMBIENT, _Color);
 	m_color = _Color;
 }
 
-/***********************
-* GetAmbient: Get Ambient color
-* @author: Jc Fowles
-* @parameter: _Enable: boolean value to set specular to
-* @return: void
-********************/
 D3DXVECTOR3 CD3D9Renderer::GetAmbient()
 {
 	D3DXVECTOR3 vecColor;
@@ -325,33 +322,17 @@ D3DXVECTOR3 CD3D9Renderer::GetAmbient()
 	return vecColor;
 }
 
-/***********************
-* SetSpecularEnable: Set Specular Enable
-* @author: Jc Fowles
-* @parameter: _Enable: boolean value to set specular to 
-* @return: void
-********************/
 void CD3D9Renderer::SetSpecularEnable(bool _bEnable)
 {
 	m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, _bEnable);
 	m_bSpecular = _bEnable;
 }
 
-/***********************
-* GetSpecularEnable: Get Specular Enable
-* @author: Jc Fowles
-* @return: void
-********************/
 bool CD3D9Renderer::GetSpecularEnable()
 {
 	return m_bSpecular;
 }
 
-/***********************
-* SetLight: Set Light properties of the device
-* @author: Jc Fowles
-* @return: void
-********************/
 void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 {
 	//Create the light
@@ -396,13 +377,6 @@ void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
 	m_pDevice->LightEnable((_pLightParameter.iID), (_pLightParameter.bIsTurnedOn)); 
 }
 
-
-
-/***********************
-* SetMaterial: Sets the default material to reflect all types and color lights
-* @author: Jc Fowles
-* @return: bool: return success
-********************/
 bool CD3D9Renderer::SetMaterial()
 {
 	D3DMATERIAL9 D3DMaterial;
@@ -421,12 +395,6 @@ bool CD3D9Renderer::SetMaterial()
 	return true;
 }
 
-/***********************
-* SetMaterial: Sets the default material to reflect all types and color lights
-* @author: Jc Fowles
-* @parameter: int _materialID: The ID of the material to set on the device
-* @return: bool: return success
-********************/
 bool CD3D9Renderer::SetMaterial(int _materialID)
 {
 	std::map<int, D3DMATERIAL9>::iterator materialIter = m_pMaterialMap->find(_materialID);
@@ -540,45 +508,6 @@ UINT CD3D9Renderer::CreateMaterial(MaterialValues _materialVal)
 	return m_iMaterialKeyCount;
 }
 
-/***********************
-* GetProjectionMatrix: Retrieves the location of the Projection Matrix stored in memory
-* @author: Jc Fowles
-* @return: D3DXMATRIX&: Memory address of the Devices Projection Matrix
-********************/
-D3DXMATRIX& CD3D9Renderer::GetProjectionMatrix()
-{
-	return m_matProjection;
-}
-
-/***********************
-* GetViewMatrix: Retrieves the location of the View Matrix stored in memory
-* @author: Jc Fowles
-* @return: D3DXMATRIX&: Memory address of the Devices View Matrix
-********************/
-D3DXMATRIX& CD3D9Renderer::GetViewMatrix()
-{
-	return m_matView;
-}
-
-/***********************
-* GetWorldMatrix: Retrieves the location of the World Matrix stored in memory
-* @author: Jc Fowles
-* @return: D3DXMATRIX&: Memory address of the Devices World Matrix
-********************/
-D3DXMATRIX& CD3D9Renderer::GetWorldMatrix()
-{
-	return m_matWorld;
-}
-
-/***********************
-* RetrieveVertices: Retrieve the Vertices's with normals from the Surface of the ID given
-* @author: Jc Fowles
-* @parameter: _pVertices: Vector of all the vertices's with normals and UV Coords
-* @parameter: _iSurfaceID: ID of the surface to render
-* @parameter: _pImageInfo: Information about the image
-* @parameter: _fScaleValues: Width, Height and Depth Scale values
-* @return: void
-********************/
 void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues)
 {
 	D3DLOCKED_RECT lockRect;
@@ -821,12 +750,6 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iS
 	pSurface->UnlockRect();
 }
 
-/***********************
-* SetWorldMatrix: Sets the world matrix on the Render
-* @author: Jc Fowles
-* @parameter: _rWorld: Memory address of the world Matrix to be set too
-* @return: void:
-********************/
 void CD3D9Renderer::SetWorldMatrix(D3DXMATRIX& _rWorld)
 {
 	m_matWorld = _rWorld;
@@ -834,60 +757,26 @@ void CD3D9Renderer::SetWorldMatrix(D3DXMATRIX& _rWorld)
 	m_pDevice->SetTransform(D3DTS_WORLD, &m_matWorld);
 }
 
-/***********************
-* SetViewMatrix: Sets the View Matrix of the Render
-* @author: Jc Fowles
-* @parameter: _rView:  Memory address of the View Matrix to be set too
-* @return: void:
-********************/
 void CD3D9Renderer::SetViewMatrix(D3DXMATRIX& _rView)
 {
 	m_matView = _rView;
 }
 
-/***********************
-* SetProjectionMatrix: Sets the Projection Matrix of the Render
-* @author: Jc Fowles
-* @parameter: _rProjection:  Memory address of the Projection Matrix to be set too
-* @return: void:
-********************/
 void CD3D9Renderer::SetProjectionMatrix(D3DXMATRIX& _rProjection)
 {
 	m_matProjection = _rProjection;
 }
 
-/***********************
-* SetClearColour: Initialise the D3D9 Renderer
-* @author: Jc Fowles
-* @parameter: _fRed: The Red value for the clear color
-* @parameter: _fGreen: The Green value for the clear color
-* @parameter: _fBlue: The Blue value for the clear color
-* @return: void
-********************/
 void CD3D9Renderer::SetClearColour(float _fRed, float _fGreen, float _fBlue)
 {
 	m_ClearColor = D3DCOLOR_COLORVALUE(_fRed, _fGreen, _fBlue, 1.0f);
 }
 
-/***********************
-* Render: Render a specific Static buffer, based on the passed in ID
-* @author: Jc Fowles
-* @parameter: _uiStaticId: ID To which buffer to render
-* @return: void:
-********************/
 void CD3D9Renderer::Render(unsigned int _uiStaticID)
 {
 	(*m_pvectBuffer)[_uiStaticID]->Render(m_pDevice);
 }
 
-/***********************
-* Clear: Clears the device
-* @author: Jc Fowles
-* @parameter: _bTarget: Whether to clear the target area
-* @parameter: _bDepth: Whether to clear the Z buffer
-* @parameter: _bStencil: Whether to clear the stencil
-* @return: void
-********************/
 void CD3D9Renderer::Clear(bool _bTarget, bool _bDepth, bool _bStencil)
 {
 	DWORD dwClearFlags = 0;
@@ -914,14 +803,6 @@ void CD3D9Renderer::Clear(bool _bTarget, bool _bDepth, bool _bStencil)
 	m_pDevice->Clear(0, NULL, dwClearFlags, m_ClearColor, 1.0f, 0);
 }
 
-/***********************
-* StartRender: Calls the device BeginScene to start the current frame
-* @author: Jc Fowles
-* @parameter: _bTarget: Whether to clear the target area
-* @parameter: _bDepth: Whether to clear the Z buffer
-* @parameter: _bStencil: Whether to clear the stencil
-* @return: void
-********************/
 void CD3D9Renderer::StartRender(bool _bTarget, bool _bDepth, bool _bStencil)
 {
 	//Clears the scene, creating a black scene to draw onto
@@ -930,11 +811,6 @@ void CD3D9Renderer::StartRender(bool _bTarget, bool _bDepth, bool _bStencil)
 	m_pDevice->BeginScene();
 }
 
-/***********************
-* EndRender: Calls the device EndScence to end the current frame
-* @author: Jc Fowles
-* @return: void
-********************/
 void CD3D9Renderer::EndRender()
 {
 	//End the current frame
@@ -943,14 +819,6 @@ void CD3D9Renderer::EndRender()
 	m_pDevice->Present(NULL, NULL, NULL, NULL);
 }
 
-/***********************
-* RenderDebugOuput: Render Text to the screen for debug purposes
-* @author: Jc Fowles
-* @parameter: _strInfo: String to be rendered on screen
-* @parameter: _iYPos: Y position of the text in screen coordinates
-* @parameter: _color: Color to make the Text
-* @return: void
-********************/
 void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYPos, D3DCOLOR _color)
 {//TO DO:
 //	//Return the Font Description
@@ -968,14 +836,6 @@ void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYP
 //						_color);				//The color of text
 }
 
-/***********************
-* CreateViewMatrix: Creates the view Matrix
-* @author: Jc Fowles
-* @parameter: _vPosition: View Position
-* @parameter: _vLookAt: View Looking at the Origin (Origin is center of the screen)
-* @parameter: _vUp: View Direction up vector
-* @return: void:
-********************/
 void CD3D9Renderer::CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp)
 {
 	//Create and populate the view Matrix
@@ -985,14 +845,6 @@ void CD3D9Renderer::CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookA
 	m_pDevice->SetTransform(D3DTS_VIEW, &m_matView);
 }
 
-/***********************
-* CalculateProjectionMatrix: Calculates the the projection Matrix
-* @author: Jc Fowles
-* @parameter: _fFov: The Field of view in radians
-* @parameter: _fNear: The closest the projection can be
-* @parameter: _fFar: The Furtherest the projection can be
-* @return: void:
-********************/
 void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar)
 {
 	//Calculate aspect ratio
@@ -1010,12 +862,6 @@ void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _
 
 }
 
-/***********************
-* CreateOffScreenSurface: Create an off screen surface
-* @author: Jc Fowles
-* @parameter: _strFileName: The file name of the image we wish to create the surface from
-* @return: D3DXMATRIX&: Memory address of the Devices World Matrix
-********************/
 int CD3D9Renderer::CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo)
 {
 	//Create a surface pointer
@@ -1041,19 +887,6 @@ int CD3D9Renderer::CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_IN
 	return m_iSurfaceKeyCount;
 }
 
-/***********************
-* CreateStaticBuffer: Create a Static Buffer
-* @author: Jc Fowles
-* parameter: _VertexType: Long number to define the Vertex Type
-* @parameter: _ePrimitiveType: The Primitive Type used
-* @parameter: _uiTotalVerts: The Total number of Verts in the Buffer
-* @parameter: _uiTotalIndices: The Total number of Indices in the Buffer
-* @parameter: _iStride: The size of the Vertex
-* parameter: _pData: Pointer to data to be assigned to the Vertex Buffer
-* @parameter: _eIndexType: Index type used
-* parameter: _pIndices: Pointer to data to be assigned to the Index Buffer
-* @return: int: ID of the newly created Static Buffer
-********************/
 int	CD3D9Renderer::CreateStaticBuffer(	VertexType _VertexType,
 										eIGPrimitiveType _ePrimitiveType,
 										unsigned int _uiTotalVerts,
@@ -1094,12 +927,7 @@ int	CD3D9Renderer::CreateStaticBuffer(	VertexType _VertexType,
 	return iID;
 }
 
-/***********************
-* SetBackgroundColor: Create a Static Buffer
-* @author: Jc Fowles
-* @parameter: _Color: D3DCOLOR you which to set the back buffer to
-* @return: int: ID of the newly created Static Buffer
-********************/
+
 void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 {
 	IDirect3DSurface9* pBackBuffer;
@@ -1114,16 +942,6 @@ void CD3D9Renderer::FillRectColor(DWORD _Color, RECT _rect)
 	m_pDevice->ColorFill(pBackBuffer, &_rect, _Color);
 }
 
-/***********************
-* CreateTextFont: Create the text font to be rendered to the screen
-* @author: Jc Fowles
-* @param: _pFont: pointer to the created font
-* @param: uiHeight: Height of the font to be created
-* @param: uiWidth: Width of the font to be created
-* @param: _strFontType: Type of the font to be created
-* @param: _textType: Type of font to create, and where to save it
-* @return: void
-********************/
 void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType)
 {
 	D3DXFONT_DESCA fontDesc;
@@ -1164,16 +982,6 @@ void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontTy
 	}
 }
 
-/***********************
-* RenderText: Render Text to the screen
-* @author: Jc Fowles
-* @parameter: _strText: Text to be rendered on screen
-* @parameter: _rect: Rectangle to draw text in
-* @parameter: DWORD _color: Color to make the Text
-* @parameter: eTextType _textType: Text type used to select the correct font style
-* @parameter: DWORD _Format: Text format
-* @return: void
-********************/
 void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format)
 {
 	//Get the font pointer based on text type
@@ -1198,12 +1006,6 @@ void CD3D9Renderer::RenderText(std::string _strText, RECT _rect, DWORD _color, e
 	}
 }
 
-/***********************
-* GetFontHeight: Return the Height of the font
-* @author: Jc Fowles
-* @parameter: eTextType _textType: Height of this text type is returned
-* @return: int: The height of the font
-********************/
 int CD3D9Renderer::GetFontHeight(eTextType _textType)
 {
 	//Get the font pointer based on text type
@@ -1227,12 +1029,6 @@ int CD3D9Renderer::GetFontHeight(eTextType _textType)
 
 }
 
-/***********************
-* GetFontWidth: Return the Width of the font
-* @author: Jc Fowles
-* @parameter: eTextType _textType: Width of this text type is returned
-* @return: int: The Width of the font
-********************/
 int CD3D9Renderer::GetFontWidth(eTextType _textType)
 {
 	//Get the font pointer based on text type

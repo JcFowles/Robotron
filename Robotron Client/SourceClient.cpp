@@ -14,7 +14,7 @@
 #pragma comment( lib, "winmm.lib" )
 
 #ifdef _DEBUG
-	#include "vld.h"
+	//#include "vld.h"
 	#define D3D_DEBUG_INFO
 #endif
 

@@ -28,7 +28,6 @@
 #include "InputManager.h"
 
 
-
 class CClientApp
 {
 	//Member Function

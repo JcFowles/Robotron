@@ -16,10 +16,6 @@
 #include "EnemyObj.h"
 
 
-CEnemyObj::CEnemyObj()
-{
-}
-
 CEnemyObj::CEnemyObj(eEnemyTypes _eEnemyType)
 {
 
@@ -36,6 +32,7 @@ CEnemyObj::CEnemyObj(eEnemyTypes _eEnemyType)
 		m_fMaxHealth = 50.0f;
 		m_fHealth = m_fMaxHealth;
 
+		//TO DO
 		//Everything else
 	}
 		break;

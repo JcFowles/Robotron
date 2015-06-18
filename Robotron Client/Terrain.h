@@ -16,10 +16,6 @@
 #ifndef __TERRAIN_H__
 #define __TERRAIN_H__
 
-// Library Includes
-#include <vector>
-#include <stdlib.h>
-
 // Local Includes
 #include "../Shared/IRenderer.h"
 #include "../Shared/StaticBuffer.h"
@@ -29,32 +25,85 @@
 class CTerrain
 {
 public:
-	//Creation/Deletion
+
+	/***********************
+	* CTerrain: Default Constructor for Terrain class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CTerrain();
+
+	/***********************
+	* ~CTerrain: Destructor for Terrain class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	~CTerrain();
+		
+	//Getters
 
-	//General functions
-	bool Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar);
-	void Process(float _fDT);
-	void Draw(IRenderer* _pRenderer);
-	
 	//Setters
-	void SetScaleWidth(float _fWidth);
-	void SetScaleHeight(float _fHeight);
-	void SetScaleDepth(float _fDepth);
-	void SetCenter(float _fX, float _fY, float _fZ);
+		
+	/***********************
+	* SetCenter: Set the Center of the terrain in world space, in relation to the scale values that the image has been scaled by
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Center: Value of the positional vector to set as the terrain center
+	* @return: void: 
+	********************/
+	void SetCenter(float3 _f3Center); 
 
-	//Functionality
-	void CalcWorldMatrix(IRenderer* _pRenderer);
+	//Prototypes
+
+	/***********************
+	* Initialise: Initialise the Terrain for use
+	* @author: Jc Fowles
+	* @parameter: IRenderer* _pRenderer: Pointer to the renderer manager
+	* @parameter: std::string _strImagePath: File path to texture
+	* @parameter: _VertexScalar: Structure holding the scale data for vertices
+	* @return: bool: Initialise successfulness
+	********************/
+	bool Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar);
+	
+	/***********************
+	* Process: Process the Terrain
+	* @author: Jc Fowles
+	* @author: _fDT: The current Delta Tick
+	* @return: void
+	********************/
+	void Process(float _fDT);
+
+	/***********************
+	* Draw: Draws the Terrain
+	* @author: Jc Fowles
+	* @author: _pRendererManager: Render manager use to draw the Terrain
+	* @return: void
+	********************/
+	void Draw(IRenderer* _pRenderer);
+
+	/***********************
+	* GenerateStripIndices: Generate and TriangleStrip indices list
+	* @author: Jc Fowles
+	* @parameter: _pVecIndices: vector to store the indices
+	* @parameter: _uiWidth: Width of the Image
+	* @parameter: _uiDepth: Depth of the Image
+	* @return: bool: Initialise successfulness
+	********************/
 	int GenerateStripIndices(std::vector<int>* ppIndices, UINT _uiWidth, UINT _uiDepth);
-
+	
+	/***********************
+	* CalcWorldMatrix: Calculates the World Matrix for the Terrain
+	* @author: Jc Fowles
+	* @parameter: _pRenderer: Render manager for the application
+	* @return: void
+	********************/
+	void CalcWorldMatrix(IRenderer* _pRenderer);
+	
 	// Member Variables
 private:
-	ScalarVertex m_VertexScalar;
-
+	
 	D3DXMATRIX m_matWorld;
-
-	float m_fCenter;
+	
+	ScalarVertex m_VertexScalar;
 
 	int m_iSurfaceID;
 	int m_iBufferID;
@@ -62,15 +111,12 @@ private:
 	float m_fSurfaceWidth;
 	float m_fSurfaceDepth;
 
-	float m_fDT;
-
+	//TO DO: Not used
 	float m_fRotPitch;
 	float m_fRotYaw;
 	float m_fRotRoll;
 
-	float m_fX;
-	float m_fY;
-	float m_fZ;
+	float3 m_f3Center;
 
 	int m_iMaterialID;
 	int m_iTextureID;

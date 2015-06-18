@@ -63,7 +63,7 @@ struct PlayerStates
 	char cPLayerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	float3 f3Positions;
 	float3 f3Velocity;
-	//TO DO: float3 f3Direction;
+	float3 f3Direction;
 	//TO DO: Collision box
 	//TO DO: SCORE
 	//TO DO: Health

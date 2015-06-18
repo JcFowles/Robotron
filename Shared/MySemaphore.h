@@ -26,17 +26,50 @@ class CMySemaphore
 public:
 	//Member Functions
 
-	//Creation/Deletion
+	/***********************
+	* CMySemaphore: Constructor of the Game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CMySemaphore();
+
+	/***********************
+	* CMySemaphore: overloaded Constructor of the Game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CMySemaphore(int _iValue);
+
+	/***********************
+	* ~CMySemaphore: Destructor of the Game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	~CMySemaphore();
 
-	//Functionality
+	//Prototypes
+
+	/***********************
+	* Wait: Atomic operation that waits for the semaphore value to be positive and
+			then decrements it by one.
+	* @author: Jc Fowles
+	* @author: Asma Shakil
+	* @return: void
+	********************/
 	void Wait();
+
+	/***********************
+	* Signal: Atomic operation that increments the semaphore value by one.
+			  Which when positive, wakes up a waiting Semaphore
+	* @author: Jc Fowles
+	* @author: Asma Shakil
+	* @return: void
+	********************/
 	void Signal();
 
-private:
 	// Member variables
+private:
+	
 	int m_iValue;
 	std::condition_variable m_Condition; 
 	std::mutex m_Mutex;

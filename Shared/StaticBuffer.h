@@ -28,10 +28,70 @@ class CStaticBuffer
 {
 	// Member Functions
 public:
-	//Creation/Deletion
+
+	/***********************
+	* CStaticBuffer: Default constructor of the CStaticBuffer class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CStaticBuffer();
+
+	/***********************
+	* ~CStaticBuffer: Default destructor of the CStaticBuffer class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	~CStaticBuffer();
 	
+	//Getters
+
+	/***********************
+	* GetNumPrimitives: returns the number of primitive(points/lines/triangles) Dependant of the primitive type
+	* @author: Jc Fowles
+	* @return: const int: number of primitive shapes(point/lines/triangles)
+	********************/
+	int GetNumPrimitives() const ;
+
+	/***********************
+	* GetNumIndicies: Returns the number of indices, based on the primitive type
+	* @author: Jc Fowles
+	* @return: const int: Returns the number of indices
+	********************/
+	int GetNumIndicies() const;
+
+	/***********************
+	* GetD3DPT: returns the D3DPRIMITIVETYPE Dependant on the enum of the same type
+	* @author: Jc Fowles
+	* @return: D3DPRIMITIVETYPE: 3DPRIMITIVETYPE Dependant on the enum of the same type
+	********************/
+	D3DPRIMITIVETYPE GetD3DPT();
+
+	/***********************
+	* GetID: returns the ID of the Static Buffer
+	* @author: Jc Fowles
+	* @return: const int: returns the ID of the Static Buffer
+	********************/
+	int GetID() const{ return m_iID; };
+
+	//Setters
+
+	//Prototypes
+	
+	/***********************
+	* Initialise: Initializes the StaticBuffer
+	* @author: Jc Fowles
+	* @parameter: _pDevice : Pointer to the DirectX9 device
+	* @parameter: _iID : Unique ID for the static buffer
+	* @parameter: _VertexType : Long number to define the type of vertex
+	* @parameter: _ePrimitiveType : a enum to define to the Primitive type
+	* @parameter: _uiTotalVerts : Total number of vertices in the static buffer
+	* @parameter: _uiTotalIndices : Total number of indices of different vertices in the static buffer
+	* @parameter: _iStride : Size of the vertices in the buffer
+	* @parameter: _pVertexData : pointer to the the vertex data
+	* @parameter: _eIndexType : enum for the bit size(32 or 64) for the index type
+	* @parameter: _pIndices : pointer to data to be assigned to the index buffer
+	* @return: bool: If succeeded or not
+	********************/
 	bool Initialise(IDirect3DDevice9* _pDevice,
 					int _iID, 
 					VertexType _VertexType,
@@ -42,22 +102,20 @@ public:
 					void* _pVertexData, 
 					eIGIndexType _eIndexType,
 					void* _pIndices);
-
-	//Getters
-	int GetNumPrimitives() const;
-	int GetNumIndicies() const;
-	int GetID() const;
-	
-	//Funtionality
+		
+	/***********************
+	* Render: Render the static buffer using the D3D device
+	* @author: Jc Fowles
+	* @parameter: _pDevice : Pointer to the DirectX9 device
+	* @return: void
+	********************/
 	void Render(IDirect3DDevice9* _pDevice);
 	
 protected:
-	//Protected Getters
-	DWORD GetD3DFvf();
-	D3DPRIMITIVETYPE GetD3DPT();
+	
 
 private:
-	//Dissallow copyies
+	//disallow copies
 	CStaticBuffer(const CStaticBuffer& _kr);
 	CStaticBuffer& operator=(const CStaticBuffer& _kr);
 

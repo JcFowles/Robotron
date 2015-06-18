@@ -33,6 +33,8 @@ C3DObject::C3DObject()
 
 C3DObject::~C3DObject()
 {
+	//delete m_pMesh;
+	//m_pMesh = 0;
 }
 
 void C3DObject::Initialise(IRenderer* _pRenderManager, MaterialValues _material, CMesh* _pMesh, float3 _f3Pos)
@@ -51,7 +53,6 @@ void C3DObject::Draw()
 {
 	//Calculates the World Matrix for this 3D Object
 	CalcWorldMatrix();
-	//TO DO: Set and create material in D3Drender
 	//Set the Material for the renderer to the material of this object
 	m_pRenderManager->SetMaterial(m_iMaterialID);
 	m_pMesh->Draw();

@@ -72,7 +72,7 @@ public:
 	//Getters
 	
 	/***********************
-	* GetMaxSpeed: TO DO: Description
+	* GetMaxSpeed: Returns the max speed of the object
 	* @author: Jc Fowles
 	* @return: float: 
 	********************/
@@ -151,7 +151,7 @@ protected:
 	//Material
 	int m_iMaterialID;
 	
-	float m_fRotation;  //Yaw Rotation (Radian)
+	float m_fRotation;  //Yaw Rotation (Radians)
 	float m_fSize;		
 	float m_fMaxSpeed;
 	

@@ -42,6 +42,144 @@ public:
 	********************/
 	virtual ~CD3D9Renderer();
 	
+	//Getters
+
+	/***********************
+	* GetProjectionMatrix: Retrieves the location of the Projection Matrix stored in memory
+	* @author: Jc Fowles
+	* @return: D3DXMATRIX&: Memory address of the Devices Projection Matrix
+	********************/
+	virtual D3DXMATRIX& GetProjectionMatrix();
+
+	/***********************
+	* GetViewMatrix: Retrieves the location of the View Matrix stored in memory
+	* @author: Jc Fowles
+	* @return: D3DXMATRIX&: Memory address of the Devices View Matrix
+	********************/
+	virtual D3DXMATRIX& GetViewMatrix();
+
+	/***********************
+	* GetWorldMatrix: Retrieves the location of the World Matrix stored in memory
+	* @author: Jc Fowles
+	* @return: D3DXMATRIX&: Memory address of the Devices World Matrix
+	********************/
+	virtual D3DXMATRIX& GetWorldMatrix();
+		
+	/***********************
+	* GetAmbient: Get Ambient color
+	* @author: Jc Fowles
+	* @parameter: _Enable: boolean value to set specular to
+	* @return: void
+	********************/
+	virtual D3DXVECTOR3 GetAmbient();
+
+	/***********************
+	* GetSpecularEnable: Get Specular Enable
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	virtual bool GetSpecularEnable();
+
+	/***********************
+	* GetFontHeight: Return the Height of the font
+	* @author: Jc Fowles
+	* @parameter: eTextType _textType: Height of this text type is returned
+	* @return: int: The height of the font
+	********************/
+	virtual int GetFontHeight(eTextType _textType);
+
+	/***********************
+	* GetFontWidth: Return the Width of the font
+	* @author: Jc Fowles
+	* @parameter: eTextType _textType: Width of this text type is returned
+	* @return: int: The Width of the font
+	********************/
+	virtual int GetFontWidth(eTextType _textType);
+
+	//Setters
+
+	/***********************
+	* SetWorldMatrix: Sets the world matrix on the Render
+	* @author: Jc Fowles
+	* @parameter: _rWorld: Memory address of the world Matrix to be set too
+	* @return: void:
+	********************/
+	virtual void SetWorldMatrix(D3DXMATRIX& _rWorld);
+
+	/***********************
+	* SetViewMatrix: Sets the View Matrix of the Render
+	* @author: Jc Fowles
+	* @parameter: _rView:  Memory address of the View Matrix to be set too
+	* @return: void:
+	********************/
+	virtual void SetViewMatrix(D3DXMATRIX& _rView);
+	
+	/***********************
+	* SetProjectionMatrix: Sets the Projection Matrix of the Render
+	* @author: Jc Fowles
+	* @parameter: _rProjection:  Memory address of the Projection Matrix to be set too
+	* @return: void:
+	********************/
+	virtual void SetProjectionMatrix(D3DXMATRIX& _rProjection);
+	
+	/***********************
+	* SetClearColour: Initialise the D3D9 Renderer
+	* @author: Jc Fowles
+	* @parameter: _fRed: The Red value for the clear color
+	* @parameter: _fGreen: The Green value for the clear color
+	* @parameter: _fBlue: The Blue value for the clear color
+	* @return: void
+	********************/
+	virtual void SetClearColour(float _fRed, float _fGreen, float _fBlue);
+
+	/***********************
+	* SetLight: Set Light properties of the device
+	* @author: Jc Fowles
+	* @parameter: _pLightParameter: the light parameter to set the lights to
+	* @return: void
+	********************/
+	virtual void SetLights(D3DLightParameter _pLightParameter);
+
+	/***********************
+	* SetMaterial: Sets the default material to reflect all types and color lights
+	* @author: Jc Fowles
+	* @return: bool: return success
+	********************/
+	virtual bool SetMaterial();
+	
+	/***********************
+	* SetMaterial: Sets the material to be used by the renderer
+	* @author: Jc Fowles
+	* @parameter: int _materialID: The ID of the material to set on the device
+	* @return: bool: return success
+	********************/
+	virtual bool SetMaterial(int _materialID);
+	
+	/***********************
+	* SetTexture: Sets the texture to be applied and at what stage it should be applied
+	* @author: Jc Fowles
+	* @parameter: int _textureID: The ID of the texture to set on the device
+	* @parameter: int _iStage: The texture stage to be applied
+	* @return: bool: return success
+	********************/
+	virtual bool SetTexture(int _textureID, int _iStage);
+
+	/***********************
+	* SetAmbient: Set Ambient color
+	* @author: Jc Fowles
+	* @parameter: _Enable: boolean value to set specular to
+	* @return: void
+	********************/
+	virtual void SetAmbient(D3DCOLOR _Color);
+
+	/***********************
+	* SetSpecularEnable: Set Specular Enable
+	* @author: Jc Fowles
+	* @parameter: _Enable: boolean value to set specular to
+	* @return: void
+	********************/
+	virtual void SetSpecularEnable(bool _bEnable);
+		
 	/***********************
 	* Shutdown: Shut down the device
 	* @author: Jc Fowles
@@ -63,60 +201,161 @@ public:
 	* @return: bool: Successful Initialization or not
 	********************/
 	virtual bool Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _bFullscreen);
-
-
-	//Getters
-	virtual D3DXMATRIX& GetProjectionMatrix();
-	virtual D3DXMATRIX& GetViewMatrix();
-	virtual D3DXMATRIX& GetWorldMatrix();
-
+	
+	/***********************
+	* RetrieveVertices: Retrieve the Vertices's with normals from the Surface of the ID given
+	* @author: Jc Fowles
+	* @parameter: _pVertices: Vector of all the vertices's with normals and UV Coords
+	* @parameter: _iSurfaceID: ID of the surface to render
+	* @parameter: _pImageInfo: Information about the image
+	* @parameter: _fScaleValues: Width, Height and Depth Scale values
+	* @return: void
+	********************/
 	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues);
 
-	virtual bool GetSpecularEnable();
-	virtual D3DXVECTOR3 GetAmbient();
-	
-	//Font Sizes
-	virtual int GetFontHeight(eTextType _textType);
-	virtual int GetFontWidth(eTextType _textType);
-
-	//Setters
-	virtual void SetWorldMatrix(D3DXMATRIX& _rWorld);
-	virtual void SetViewMatrix(D3DXMATRIX& _rView);
-	virtual void SetProjectionMatrix(D3DXMATRIX& _rProjection);
-	virtual void SetClearColour(float _fRed, float _fGreen, float _fBlue);
-
-	virtual void SetLights(D3DLightParameter _pLightParameter);
-	virtual bool SetMaterial();
-	virtual bool SetMaterial(int _materialID);
-	virtual bool SetTexture(int _textureID, int _iStage);
-	
-	virtual void SetSpecularEnable(bool _bEnable);
-	virtual void SetAmbient(D3DCOLOR _Color);
-
-	
-
-	//Render
+	/***********************
+	* Render: Render a specific Static buffer, based on the passed in ID
+	* @author: Jc Fowles
+	* @parameter: _uiStaticId: ID To which buffer to render
+	* @return: void:
+	********************/
 	virtual void Render(unsigned int _uiStaticId);
+
+	/***********************
+	* Clear: Clears the device
+	* @author: Jc Fowles
+	* @parameter: _bTarget: Whether to clear the target area
+	* @parameter: _bDepth: Whether to clear the Z buffer
+	* @parameter: _bStencil: Whether to clear the stencil
+	* @return: void
+	********************/
 	virtual void Clear(bool _bTarget, bool _bDepth, bool _bStencil);
+
+	/***********************
+	* StartRender: Calls the device BeginScene to start the current frame
+	* @author: Jc Fowles
+	* @parameter: _bTarget: Whether to clear the target area
+	* @parameter: _bDepth: Whether to clear the Z buffer
+	* @parameter: _bStencil: Whether to clear the stencil
+	* @return: void
+	********************/
 	virtual void StartRender(bool _bTarget, bool _bDepth, bool _bStencil);
+	
+	/***********************
+	* EndRender: Calls the device EndScence to end the current frame
+	* @author: Jc Fowles
+	* @return: void
+	********************/
 	virtual void EndRender();
 
+	/***********************
+	* RenderDebugOuput: Render Text to the screen for debug purposes
+	* @author: Jc Fowles
+	* @parameter: _strInfo: String to be rendered on screen
+	* @parameter: _iYPos: Y position of the text in screen coordinates
+	* @parameter: _color: Color to make the Text
+	* @return: void
+	********************/
 	virtual void RenderDebugOutput(std::string _strInfo,int _iXPos, int _iYPos, D3DCOLOR _color);
 
+	/***********************
+	* RenderText: Render Text to the screen
+	* @author: Jc Fowles
+	* @parameter: _strText: Text to be rendered on screen
+	* @parameter: _rect: Rectangle to draw text in
+	* @parameter: DWORD _color: Color to make the Text
+	* @parameter: eTextType _textType: Text type used to select the correct font style
+	* @parameter: DWORD _Format: Text format
+	* @return: void
+	********************/
 	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format);
 	
-	virtual void CD3D9Renderer::SetBackgroundColor(DWORD _Color);
-
-	//Matrices
-	virtual void CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp);
+	/***********************
+	* SetBackgroundColor: Create a Static Buffer
+	* @author: Jc Fowles
+	* @parameter: _Color: D3DCOLOR you which to set the back buffer to
+	* @return: int: ID of the newly created Static Buffer
+	********************/
+	virtual void SetBackgroundColor(DWORD _Color);
+	
+	/***********************
+	* CalculateProjectionMatrix: Calculates the the projection Matrix
+	* @author: Jc Fowles
+	* @parameter: _fFov: The Field of view in radians
+	* @parameter: _fNear: The closest the projection can be
+	* @parameter: _fFar: The Furtherest the projection can be
+	* @return: void:
+	********************/
 	virtual void CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar);
 	
-	//Creators
+	/***********************
+	* CreateViewMatrix: Creates the view Matrix
+	* @author: Jc Fowles
+	* @parameter: _vPosition: View Position
+	* @parameter: _vLookAt: View Looking at the Origin (Origin is center of the screen)
+	* @parameter: _vUp: View Direction up vector
+	* @return: void:
+	********************/
+	virtual void CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp);
+		
+	/***********************
+	* CreateOffScreenSurface: Create an off screen surface
+	* @author: Jc Fowles
+	* @parameter: _strFileName: The file name of the image we wish to create the surface from
+	* @return: D3DXMATRIX&: Memory address of the Devices World Matrix
+	********************/
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo);
+	
+	/***********************
+	* CreateMaterial: Create a material based on passed in values
+	* @author: Jc Fowles
+	* @parameter: MaterialValues _materialVal: Material values to be used for creating the material
+	* @return: UINT: a unique ID that is used to reference the created material
+	********************/
 	virtual UINT CreateMaterial(MaterialValues _materialVal);
+
+	/***********************
+	* CreateTexture: Create a Texture from the passed in file path 
+	* @author: Jc Fowles
+	* @parameter: std::string _strFileName: File path where texture is found
+	* @return: UINT: a unique ID that is used to reference the created texture
+	********************/
 	virtual UINT CreateTexture(std::string _strFileName);
+	
+	/***********************
+	* FillRectColor: Fill a rectangle with a passed in color
+	* @author: Jc Fowles
+	* @parameter: DWORD _Color: Color value to fill the rect with
+	* @parameter: RECT _rect: Rectangle to be filled with color
+	* @return: void:
+	********************/
 	virtual void FillRectColor(DWORD _Color, RECT _rect);
+	
+	/***********************
+	* CreateTextFont: Create the text font to be rendered to the screen
+	* @author: Jc Fowles
+	* @param: _pFont: pointer to the created font
+	* @param: uiHeight: Height of the font to be created
+	* @param: uiWidth: Width of the font to be created
+	* @param: _strFontType: Type of the font to be created
+	* @param: _textType: Type of font to create, and where to save it
+	* @return: void
+	********************/
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType);
+	
+	/***********************
+	* CreateStaticBuffer: Create a Static Buffer
+	* @author: Jc Fowles
+	* parameter: _VertexType: Long number to define the Vertex Type
+	* @parameter: _ePrimitiveType: The Primitive Type used
+	* @parameter: _uiTotalVerts: The Total number of Verts in the Buffer
+	* @parameter: _uiTotalIndices: The Total number of Indices in the Buffer
+	* @parameter: _iStride: The size of the Vertex
+	* parameter: _pData: Pointer to data to be assigned to the Vertex Buffer
+	* @parameter: _eIndexType: Index type used
+	* parameter: _pIndices: Pointer to data to be assigned to the Index Buffer
+	* @return: int: ID of the newly created Static Buffer
+	********************/
 	virtual int CreateStaticBuffer(	VertexType _VertexType,
 									eIGPrimitiveType _ePrimitiveType,
 									unsigned int _uiTotalVerts,
@@ -131,6 +370,11 @@ public:
 	
 private:
 	
+	/***********************
+	* DeviceCreation: Initialize the device present parameters, and creates the device
+	* @author: Jc Fowles
+	* @return: bool: Successful Creation or not
+	********************/
 	virtual bool DeviceCreation();
 	
 	/***********************
@@ -138,7 +382,7 @@ private:
 	* @author: Jc Fowles
 	* @return: void
 	********************/
-	virtual void SetRenderStates();
+	virtual void RenderStates();
 		
 	/***********************
 	* FontSelect: Returns a D3D Font pointer of the selected text type
@@ -147,8 +391,6 @@ private:
 	* @return: ID3DXFont*: The D3D Font pointer of the selected text type
 	********************/
 	ID3DXFont* FontSelect(eTextType _textType);
-	
-	
 	
 	
 	//Member Variables
@@ -183,7 +425,6 @@ protected:
 	ID3DXFont* m_pTitleFont;
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
-	
 
 	D3DLIGHT9 m_pDirectionalLight;
 
@@ -191,7 +432,6 @@ protected:
 
 	D3DCOLOR m_color;
 
-	
 };
 
 #endif //__CD3D9RENDERER_H__

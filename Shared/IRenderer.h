@@ -1,16 +1,16 @@
-//
-// Bachelor of Software Engineering
-// Media Design School 
-// Auckland
-// New Zealand 
-// 
-// (c) 2005 - 2015 Media Design School 
-// 
-// File Name : IRenderer.h 
-// Description : Header for the IRenderer interface class
-// Author : Jc Fowles 
-// Mail : Jc.Fowles@mediadesign.school.nz 
-//
+/*
+* Bachelor of Software Engineering
+* Media Design School
+* Auckland
+* New Zealand
+*
+* (c)2005 - 2015 Media Design School
+*
+* File Name : IRenderer.h
+* Description : Header for the IRenderer interface class
+* Author : Jc Fowles
+* Mail : Jc.Fowles@mediadesign.school.nz
+*/
 #pragma once
 
 #ifndef __RENDERER_H__
@@ -105,7 +105,7 @@ private:
 	IRenderer& operator= (const IRenderer& _kr);
 
 	virtual bool DeviceCreation() = 0;
-	virtual void SetRenderStates() = 0;
+	virtual void RenderStates() = 0;
 };
 
 

@@ -14,13 +14,13 @@
 #pragma comment( lib, "winmm.lib" )
 
 #ifdef _DEBUG
-	#include "vld.h"
+	//#include "vld.h"
 	#define D3D_DEBUG_INFO
 #endif
 
 //Library includes
 //TO DO
-// #include <ctime>
+//#include <ctime>
 //#include <WinSock2.h>
 //Local Includes
 #include "ServerApp.h"

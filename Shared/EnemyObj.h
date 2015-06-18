@@ -24,8 +24,20 @@ class CEnemyObj :
 	public CIntelligentObj
 {
 public:
-	CEnemyObj();
+
+	/***********************
+	* CEnemyObj: Default Constructor for EnemyObj object class
+	* @author: Jc Fowles
+	* @parameter: eEnemyTypes _eEnemyType: Type of enemy to be created
+	* @return: :
+	********************/
 	CEnemyObj(eEnemyTypes _eEnemyType);
+
+	/***********************
+	* CEnemyObj: Default Destructor for EnemyObj object class
+	* @author: Jc Fowles
+	* @return: :
+	********************/
 	~CEnemyObj();
 
 	//Getters

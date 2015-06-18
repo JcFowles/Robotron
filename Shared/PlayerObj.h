@@ -19,7 +19,6 @@
 //local includes
 #include "..\Shared\C3DObject.h"
 
-
 class CPlayerObj :
 	public C3DObject
 {
@@ -31,8 +30,7 @@ public:
 	* @return:
 	********************/
 	CPlayerObj();
-
-	
+		
 	/***********************
 	* C3DObject: Default destructor for Player object class
 	* @author: Jc Fowles

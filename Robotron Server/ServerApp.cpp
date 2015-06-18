@@ -351,6 +351,15 @@ void CServerApp::ProcessActive()
 		//Single player
 		if (m_bSinglePlayer == true)
 		{
+			std::vector<PlayerStates> vecPlayerStates;
+
+			std::map< std::string, PlayerStates>::iterator iterClient = m_pMapPlayerStates->begin();
+
+			vecPlayerStates.push_back(iterClient->second);
+			//Create and initialize the server side game
+			m_pGame = &(CGame::GetInstance());
+			m_pGame->Initialise(vecPlayerStates, m_pClientPacket);
+
 			//Send message
 			m_pServer->SendData(m_pClientPacket);
 			//Set Game to start
@@ -511,8 +520,6 @@ void CServerApp::AddTextToClientDataPacket(std::string _srtText)
 		strcpy_s(m_pClientPacket->cText, _srtText.c_str());
 	}
 }
-
-
 
 bool CServerApp::AddUser(std::string _UserName, PlayerStates _playerStates)
 {

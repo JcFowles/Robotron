@@ -15,40 +15,26 @@
 // Local Include
 #include "Terrain.h"
 
-/***********************
-* CTerrain: Default Constructor for Terrain class
-* @author: Jc Fowles
-* @return: 
-********************/
 CTerrain::CTerrain()
 {
-	m_fDT = 0;
-
 	m_fRotPitch = 0;
 	m_fRotYaw = 0;
 	m_fRotRoll = 0;
 
-	m_fX = 0;
-	m_fY = 0;
-	m_fZ = 0;
+	m_f3Center = { 0, 0, 0 };
 }
 
-/***********************
-* ~CTerrain: Destructor for Terrain class
-* @author: Jc Fowles
-* @return:
-********************/
 CTerrain::~CTerrain()
 {
 }
 
-/***********************
-* Initialise: Initialise the Terrain for use
-* @author: Jc Fowles
-* @parameter: _pRenderer: Pointer to the renderer manager
-* @parameter: _VertexScalar: Structure holding the scale data for vertices
-* @return: bool: Initialise successfulness
-********************/
+void CTerrain::SetCenter(float3 _f3Center)
+{
+	m_f3Center.x = _f3Center.x - ((m_fSurfaceWidth * m_VertexScalar.fScalarWidth) / 2);
+	m_f3Center.y = _f3Center.y;
+	m_f3Center.z = _f3Center.z - ((m_fSurfaceDepth * m_VertexScalar.fScalarDepth) / 2);
+}
+
 bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar)
 {
 	m_VertexScalar = _VertexScalar;
@@ -66,7 +52,7 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 
 	//std::vector<CVertex> pVertices;
 	std::vector<CVertexUV> pVertices;
-	_pRenderer->RetrieveVertices(&pVertices, m_iSurfaceID, imageInfo, m_VertexScalar);
+	_pRenderer->RetrieveVertices(&pVertices, m_iSurfaceID, imageInfo, _VertexScalar);
 
 	std::vector<int> pIndices;
 	int iIndicesNum = GenerateStripIndices(&pIndices, imageInfo.Width, imageInfo.Height);
@@ -90,25 +76,33 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	Material.f4Emissive = { 0.4f, 0.3f, 0.3f, 1.0f };
 	Material.f4Specular = { 0.4f, 0.3f, 0.3f, 1.0f };
 	Material.fPower = { 1.0f };
-
-
+	
 	m_iMaterialID = _pRenderer->CreateMaterial(Material);
 
+	//Set up the Texture for the terrain 
 	std::string strFilePath = "Assets\\Heightmap.bmp";
-
 	m_iTextureID = _pRenderer->CreateTexture(strFilePath);
 
 	return true;
 }
 
-/***********************
-* GenerateStripIndices: Generate and TriangleStrip indices list
-* @author: Jc Fowles
-* @parameter: _pVecIndices: vector to store the indices
-* @parameter: _uiWidth: Width of the Image
-* @parameter: _uiDepth: Depth of the Image
-* @return: bool: Initialise successfulness
-********************/
+void CTerrain::Process(float _fDT)
+{
+	//No process required
+}
+
+void CTerrain::Draw(IRenderer* _pRendererManager)
+{
+	CalcWorldMatrix(_pRendererManager);
+	
+	//Set the material
+	_pRendererManager->SetMaterial(m_iMaterialID);
+	//Set the Texture
+	_pRendererManager->SetTexture(m_iTextureID, 0);
+	
+	_pRendererManager->Render(m_iBufferID);
+}
+
 int CTerrain::GenerateStripIndices(std::vector<int>* _pVecIndices, UINT _uiWidth, UINT _uiDepth)
 {
 	//Go through all rows except last one
@@ -152,87 +146,9 @@ int CTerrain::GenerateStripIndices(std::vector<int>* _pVecIndices, UINT _uiWidth
 	return ((int)_pVecIndices->size());
 }
 
-/***********************
-* Process: Process the Terrain
-* @author: Jc Fowles
-* @author: _fDT: The current Delta Tick
-* @return: void
-********************/
-void CTerrain::Process(float _fDT)
-{
-	//No process required
-}
-
-/***********************
-* Draw: Draws the Terrain
-* @author: Jc Fowles
-* @author: _pRendererManager: Render manager use to draw the Terrain
-* @return: void
-********************/
-void CTerrain::Draw(IRenderer* _pRendererManager)
-{
-	CalcWorldMatrix(_pRendererManager);
-	
-	_pRendererManager->SetMaterial(m_iMaterialID);
-	_pRendererManager->SetTexture(m_iTextureID, 0);
-	//Set the material
-	_pRendererManager->Render(m_iBufferID);
-}
-
-/***********************
-* SetScaleWidth: Set the Scale Width
-* @author: Jc Fowles
-* @author: _fWidth: The new Scale Width for the terrain to be set to
-* @return: void
-********************/
-void CTerrain::SetScaleWidth(float _fWidth)
-{
-	m_VertexScalar.fScalarWidth = _fWidth;
-}
-
-/***********************
-* SetScaleHeight: Set the Scale Height
-* @author: Jc Fowles
-* @author: _fHeight: The new Scale Height for the terrain to be set to
-* @return: void
-********************/
-void CTerrain::SetScaleHeight(float _fHeight)
-{
-	m_VertexScalar.fScalarHeight = _fHeight;
-}
-
-/***********************
-* SetScaleDepth: Set the Scale Depth
-* @author: Jc Fowles
-* @author: _fDepth: The new Scale Depth for the terrain to be set to
-* @return: void
-********************/
-void CTerrain::SetScaleDepth(float _fDepth)
-{
-	m_VertexScalar.fScalarDepth = _fDepth;
-}
-
-/***********************
-* SetCenter: Set the Center of the Terrain
-* @author: Jc Fowles
-* @return: void
-********************/
-void CTerrain::SetCenter(float _fX, float _fY, float _fZ )
-{
-	m_fX = _fX - ((m_fSurfaceWidth * m_VertexScalar.fScalarWidth) / 2);
-	m_fY = _fY;
-	m_fZ = _fZ - ((m_fSurfaceDepth * m_VertexScalar.fScalarDepth) / 2);
-}
-
-/***********************
-* CalcWorldMatrix: Calculates the World Matrix for the Terrain
-* @author: Jc Fowles
-* @parameter: _pRenderer: Render manager for the application
-* @return: void
-********************/
 void CTerrain::CalcWorldMatrix(IRenderer* _pRenderManager)
 {
-	//Matrices to make up the World Matrix, mostly unsused and set to identity
+	//Matrices to make up the World Matrix, mostly unused and set to identity
 	D3DXMATRIX matRotateAroundX;
 	D3DXMatrixIdentity(&matRotateAroundX);
 	D3DXMATRIX matRotateAroundY;
@@ -250,7 +166,7 @@ void CTerrain::CalcWorldMatrix(IRenderer* _pRenderManager)
 	D3DXMatrixRotationZ(&matRotateAroundZ, m_fRotRoll);
 
 	//Create the Translation Matrix from the terrain Position coordinates, which should never change
-	D3DXMatrixTranslation(&matTranslation, m_fX, m_fY, m_fZ);
+	D3DXMatrixTranslation(&matTranslation, m_f3Center.x, m_f3Center.y, m_f3Center.z);
 	m_matWorld = (matRotateAroundX * matRotateAroundY * matRotateAroundZ * matTranslation);
 
 	//Set The World Matrix for this Terrain on the Device
