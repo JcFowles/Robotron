@@ -1,0 +1,28 @@
+***********************************************************************************************************************
+*                                           Guide Lines                                                               *
+***********************************************************************************************************************
+*                          *  Placement  *   Replace # with   * Extra Info                                            *
+***********************************************************************************************************************
+*                 Light ID : #           * int                * Don't change this                                     *
+*                 Light On : #           * bool               * Whether light is on : True, false                     *
+*               Light Type : #           * D3DLIGHTTYPE       * D3DLIGHT_DIRECTIONAL, D3DLIGHT_SPOT, D3DLIGHT_POINT   *
+*        (All Light Types) :             *                    * Dont Enter anything here, leave blank                 *
+*            Ambient Color : #, #, #, #  * float, D3DXCOLOR   * Valid float values between 0.0 and 1.0 inclusive      *
+*            Diffuse Color : #, #, #, #  * float, D3DXCOLOR   * Valid float values between 0.0 and 1.0 inclusive      *
+*           Specular Color : #, #, #, #  * float, D3DXCOLOR   * Valid float values between 0.0 and 1.0 inclusive      *
+*       (Spot / Direction) :             *                    * Dont Enter anything here, leave blank                 *
+*                Direction : #, #, #     * float, D3DXVector3 * Valid float values                                    *
+*           (Spot / Point) :             *                    * Dont Enter anything here, leave blank                 *
+*        Position of Light : #, #, #     * float, D3DXVector3 * Valid float values                                    *
+*           Range of Light : #           * float              * Valid float values                                    *
+*     Attenuation Constant : #           * float              * Valid float values                                    *
+*       Attenuation Linear : #           * float              * Valid float values                                    *
+*  Attenuation Exponential : #           * float              * Valid float values                                    *
+*                   (Spot) :             *                    * Dont Enter anything here, leave blank                 *
+*   Inner Angle(Deg) Theta : #           * float              * Valid float values, angle in degrees                  *
+*     Outer Angle(Deg) Phi : #           * float              * Valid float values, angle in degrees                  *
+*                 Fall Off : #           * float              * Valid float values                                    *
+*                                        *                    * Dont Enter anything here, leave blank                 *
+***********************************************************************************************************************
+*                                                                                                                     *
+***********************************************************************************************************************

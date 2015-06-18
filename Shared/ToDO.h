@@ -16,4 +16,4 @@
 
 /*Server full - Race to user name*/
 
-//bool checkSockaddr(sockaddr_in const &a, sockaddr_in const &b) { return a.sin_addr.S_un.S_addr == b.sin_addr.S_un.S_addr; }
+/* Create blank material and texture for draw methods that do not call it*/

@@ -12,6 +12,8 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 
+//TO DO COmment headers
+
 //This include
 #include "ServerApp.h"
 
@@ -246,6 +248,7 @@ void CServerApp::ProcessReceiveData()
 
 			m_pServer->SendData(m_pClientPacket);
 		}
+		break;
 		default:
 			break;
 		}
@@ -452,10 +455,6 @@ void CServerApp::ProcessQuit()
 	}
 }
 
-
-
-
-
 //String manipulation
 std::string CServerApp::WideStringToString(wchar_t* _wstr)
 {
@@ -474,7 +473,6 @@ std::string CServerApp::WideStringToString(wchar_t* _wstr)
 	//Return the converted standard string
 	return strConverted;
 }
-
 
 //Packet manipulations
 void CServerApp::SetServerInfo()
@@ -535,7 +533,6 @@ bool CServerApp::AddUser(std::string _UserName, PlayerStates _playerStates)
 	return MapClientIter.second;
 }
 
-//TO DO
 void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 {
 	//Reset the list of active clients

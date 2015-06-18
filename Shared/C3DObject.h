@@ -46,13 +46,13 @@ public:
 	/***********************
 	* Initialise: initialize all the member variables for the 3D Object
 	* @author: Jc Fowles
+	* @parameter: _pRenderManager: Pointer to the render manager
+	* @parameter: _iMaterialID: Starting Y coordinate. Default to 0 if not specified
 	* @parameter: _pMesh: Mesh for this 3D Object
-	* @parameter: _fX: Starting X coordinate. Default to 0 if not specified
-	* @parameter: _fY: Starting Y coordinate. Default to 0 if not specified
-	* @parameter: _fZ: Starting Z coordinate. Default to 0 if not specified
+	* @parameter: _f3Pos: Starting Z coordinate. Default to 0 if not specified
 	* @return: void
 	********************/
-	void Initialise(IRenderer* _pRenderManager, MaterialValues _material, CMesh* _pMesh, float3 _f3Pos = { 0, 0, 0 });
+	void Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, float3 _f3Pos = { 0, 0, 0 });
 	
 	/***********************
 	* Draw: Draws the 3D Object
@@ -105,6 +105,13 @@ public:
 	* @return: float: The Damage dealt by the enemy object
 	********************/
 	float GetDamage() const { return m_fDamage; }
+
+	/***********************
+	* GetDamage: Get the ID number for the Object
+	* @author: Jc Fowles
+	* @return: UINT: The ID number for the Object
+	********************/
+	UINT GetObjectID() const { return m_uiObjectID; }
 
 	//Setters
 		
@@ -171,6 +178,10 @@ protected:
 	float m_fMaxSpeed;
 	float m_fDamage;
 
+
+	static UINT s_uiNextID;
+	UINT m_uiObjectID;
+		
 	float3 m_f3Position;
 	float3 m_f3Velocity;
 	float3 m_f3Direction;

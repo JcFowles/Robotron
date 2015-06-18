@@ -36,7 +36,10 @@ namespace NetworkValues
 	unsigned const MAX_SERVER_PORT = 61000;
 	unsigned const DEFAULT_CLIENT_PORT = 60000;
 	unsigned const MAX_CLIENT_PORT = 60020; // 4 more than max users, why?? potential broken port maybe?
-	unsigned const MAX_USERS = 16;
+	unsigned const MAX_USERS = 6;
+
+	unsigned const MAX_ENEMYS = 30; //TO DO: Calculate fancy formula, using increase per player and waves and min shit
+	
 	//IP address of UDP server
 	const char ipAddUPD[INET_ADDRSTRLEN] = "127.0.0.1";
 	unsigned const MAX_CHAR_LENGTH = 255;
@@ -61,13 +64,27 @@ enum ePacketType
 struct PlayerStates
 {
 	char cPLayerName[NetworkValues::MAX_NAME_LENGTH + 1];
+	
 	float3 f3Positions;
 	float3 f3Velocity;
 	float3 f3Direction;
+	
 	//TO DO: Collision box
 	//TO DO: SCORE
 	//TO DO: Health
 	//Other states ie shooting, health, points etc
+};
+
+struct EnemyStates
+{
+	UINT uiEnemyID;
+	eEnemyTypes Etype;
+
+	float3 f3Positions;
+	float3 f3Velocity;
+	float3 f3Direction;
+
+	//TO DO: everything else
 };
 
 struct ClientInfo
@@ -115,6 +132,7 @@ struct ClientDataPacket
 	ServerInfo serverInfo;
 	
 	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
+	EnemyStates EnemyInfo[NetworkValues::MAX_ENEMYS];
 
 }; 
 

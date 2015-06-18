@@ -54,9 +54,12 @@ private:
 	CClock* m_pClock;
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
-	
-	
+			
 	int m_iNumberPlayers;
+
+	UINT m_uiStage;
+
+
 };
 
 #endif //__SERVER_GAME_H__

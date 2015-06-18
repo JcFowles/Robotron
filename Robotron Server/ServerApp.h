@@ -210,7 +210,7 @@ private:
 	void SetServerInfo();
 
 	
-	
+	//TO DO
 	void SetGameState(ClientDataPacket* _pDataToSend);
 
 	bool AddUser(std::string _UserName, PlayerStates _playerStates);

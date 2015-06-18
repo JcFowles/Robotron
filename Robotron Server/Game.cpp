@@ -91,9 +91,8 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 		iPlayer++;
 		playerIter++;
 	}
-	
-	
 
+	//Create enemies if needed
 
 }
 

@@ -24,6 +24,7 @@
 #include "../Shared/IRenderer.h"
 #include "../Shared/Mesh.h"
 #include "../Shared/PlayerObj.h"
+#include "../Shared/EnemyObj.h"
 #include "../Shared/Graphics_Defines.h"
 #include "Terrain.h"
 #include "CameraStatic.h"
@@ -50,13 +51,16 @@ public:
 	//Render
 	void RenderSingleFrame();
 
+	void CreatePlayers(std::vector<PlayerStates> _Players);
+	void CreateEnemyLust();
+
 	/***********************
 	* CreateCubeMesh: Creates a cube Mesh with origin in its very center
 	* @author: Jc Fowles
 	* @parameter: float _fCubeSize: Size of cube
 	* @return: CMesh*: Pointer to a created Cube mesh
 	********************/
-	CMesh* CreatePlayerMesh(float _fCubeSize, int iTextureID);
+	CMesh* CreateCubeMesh(float _fCubeSize, int iTextureID);
 
 private:
 	//Disallowing copies and extra constructions
@@ -72,14 +76,23 @@ private:
 	static CGame* s_pGame;
 	
 	std::map<std::string, CPlayerObj>* m_plistPlayers;
+	std::map<UINT, CEnemyObj>* m_pListEnemies;
+
 	CPlayerObj* m_pPlayerAvatar;
 
 	CMesh* m_pPlayerMesh;
+	float m_fPlayerSize;
 
+	CMesh* m_pLustMesh;
+	CMesh* m_pWrathMesh;
+	CMesh* m_pSlothMesh;
+	
 	CTerrain* m_pTerrain;
 	CCameraStatic* m_pCamera;
 
-	float m_fPlayerSize;
+	
+
+
 	int m_iNumberPlayers;
 	int m_iIndexOfClientPlayer;
 };

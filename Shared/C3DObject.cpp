@@ -15,8 +15,11 @@
 // Local Includes
 #include "C3DObject.h"
 
+UINT C3DObject::s_uiNextID = 0;
+
 C3DObject::C3DObject()
 {
+	//Initialise Member variables
 	m_pRenderManager = 0;
 	m_pMesh = 0;
 	
@@ -29,6 +32,8 @@ C3DObject::C3DObject()
 	m_f3Position = { 0.0f, 0.0f, 0.0f };
 	m_f3Direction = { 0.0f, 0.0f, 1.0f };
 	m_f3Velocity = { 0.0f, 0.0f, 0.0f };
+
+	m_uiObjectID = s_uiNextID++;
 }
 
 C3DObject::~C3DObject()
@@ -37,14 +42,14 @@ C3DObject::~C3DObject()
 	//m_pMesh = 0;
 }
 
-void C3DObject::Initialise(IRenderer* _pRenderManager, MaterialValues _material, CMesh* _pMesh, float3 _f3Pos)
+void C3DObject::Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, float3 _f3Pos)
 {
 	//Initialise member variables
 	m_pRenderManager = _pRenderManager;
 	m_pMesh = _pMesh;
 	m_f3Position = _f3Pos;
 	
-	m_iMaterialID = _pRenderManager->CreateMaterial(_material);
+	m_iMaterialID = _iMaterialID;
 	
 	m_fSize = m_pMesh->GetSize();
 }
