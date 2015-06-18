@@ -55,14 +55,7 @@ public:
 	* @return: float: The current heath of th enemy object
 	********************/
 	float GetHealth() const { return m_fHealth; }
-
-	/***********************
-	* GetDamage: Get the Damage dealt by the enemy object
-	* @author: Jc Fowles
-	* @return: float: The Damage dealt by the enemy object
-	********************/
-	float GetDamage() const { return m_fDamage; }
-
+	
 	/***********************
 	* GetEnemyType: Get the enum type of the enemy object
 	* @author: Jc Fowles
@@ -87,21 +80,12 @@ public:
 	* @return: void:
 	********************/
 	void SetHealth(float _Health) { m_fHealth = _Health; }
-
-	/***********************
-	* SetDamage: Set the Damage dealt by the enemy object
-	* @author: Jc Fowles
-	* @Parameter: float _Damage: value to set damage dealt to
-	* @return: void: 
-	********************/
-	void SetDamage(float _Damage) { m_fDamage = _Damage; }
-
+		
 	//member variables
 private:
 
 	float m_fMaxHealth;
 	float m_fHealth;
-	float m_fDamage;
 
 	eEnemyTypes m_eEnemyType;
 	

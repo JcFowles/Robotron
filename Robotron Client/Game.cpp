@@ -183,12 +183,7 @@ void CGame::Draw()
 
 }
 
-/***********************
-* CreateCubeMesh: Creates a cube Mesh with origin in its very center
-* @author: Jc Fowles
-* @parameter: float _fCubeSize: Size of cube
-* @return: CMesh*: Pointer to a created Cube mesh
-********************/
+
 CMesh* CGame::CreatePlayerMesh(float _fCubeSize, int iTextureID)
 {
 	//Create the Cube mesh

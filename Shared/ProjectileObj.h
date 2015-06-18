@@ -18,7 +18,7 @@
 #define __CPROJECTILE_OBJ_H__
 
 //Local Includes
-#include "H:\GitHub\Robotron\Shared\C3DObject.h"
+#include "C3DObject.h"
 
 class CProjectileObj :
 	public C3DObject
@@ -45,26 +45,19 @@ public:
 	//Getters
 		
 	/***********************
-	* GetDamage: Returns the damage dealt by the object
+	* GetPlayerName: Get the name of the player that released this projectile
 	* @author: Jc Fowles
-	* @return: float: The damage dealt by the object
+	* @return: std::string: The name of the player that released this projectile
 	********************/
-	float GetDamage() const { return m_fDamage; }
-	
+	std::string GetPlayerName() const { return m_strPlayerName; }
+
 	//Setters
 	
-	/***********************
-	* SetDamage: Sets the damage dealt by the object
-	* @author: Jc Fowles
-	* @Parameter: float _fDamage: Value to set the damage dealt to
-	* @return: void: 
-	********************/
-	void SetDamage(float _fDamage) { m_fDamage = _fDamage; }
-
+		
 private:
-	float m_fDamage;
 	
 	std::string m_strPlayerName;
+	
 };
 
 #endif //__CPROJECTILE_OBJ_H__
