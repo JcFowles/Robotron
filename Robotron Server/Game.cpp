@@ -80,7 +80,8 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 		playerIter++;
 	}
 
-	//Create enemies if needed
+
+
 
 }
 

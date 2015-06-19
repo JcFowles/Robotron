@@ -1442,7 +1442,7 @@ void CClientApp::ProcessReceiveData()
 		{
 		case PT_DEFAULT:
 		{
-			int c = 9;
+			
 		}
 			break;
 		case PT_CREATE:
