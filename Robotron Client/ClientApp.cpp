@@ -182,6 +182,8 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 
 }
 
+
+//Process based on states
 void CClientApp::Process()
 {
 	
@@ -456,49 +458,7 @@ void CClientApp::ProcessHostGame(int _iInput)
 	}
 }
 
-void CClientApp::ConvertTextInput(std::string* _strText, int _iInput)
-{
-	std::string strTemp;
-	strTemp = *_strText;
-
-	//If shift is not down
-	if (m_bIsKeyDown[VK_SHIFT] != true)
-	{
-		if ((_iInput >= 65 && _iInput <= 90) ||
-			(_iInput >= 97 && _iInput <= 122))
-		{
-			//and a char has been pressed, force lower case
-			_iInput += 32;
-		}
-	}
-
-	char cUserInput = _iInput;
-	
-	if (cUserInput == '\b') 
-	{
-		//Backspace has been pressed remove a char
-		strTemp = _strText->substr(0, _strText->size() - 1);
-
-		//If user name was changed - set join error to false
-		m_bJoinError = false;
-	}
-	else if ((_iInput >= 65 && _iInput <= 90) ||
-			(_iInput >= 97 && _iInput <= 122))
-	{
-		//Only add to the string if its within length limits
-		if (strTemp.length() < NetworkValues::MAX_NAME_LENGTH)
-		{
-			//char has been pressed add it to the string
-			strTemp += cUserInput;
-
-			//If user name was changed - set join error to false
-			m_bJoinError = false;
-		}
-	}
-	
-	*_strText = strTemp;
-}
-
+//Process menu selection inputs
 void CClientApp::MainMenuSelect(std::string _strMenuItem)
 {
 	//Run through main menu options
@@ -802,6 +762,131 @@ void CClientApp::ExitMenuSelect(std::string _strMenuItem)
 	}
 }
 
+
+//Text based inputs
+void CClientApp::ConvertTextInput(std::string* _strText, int _iInput)
+{
+	std::string strTemp;
+	strTemp = *_strText;
+
+	//If shift is not down
+	if (m_bIsKeyDown[VK_SHIFT] != true)
+	{
+		if ((_iInput >= 65 && _iInput <= 90) ||
+			(_iInput >= 97 && _iInput <= 122))
+		{
+			//and a char has been pressed, force lower case
+			_iInput += 32;
+		}
+	}
+
+	char cUserInput = _iInput;
+
+	if (cUserInput == '\b')
+	{
+		//Backspace has been pressed remove a char
+		strTemp = _strText->substr(0, _strText->size() - 1);
+
+		//If user name was changed - set join error to false
+		m_bJoinError = false;
+	}
+	else if ((_iInput >= 65 && _iInput <= 90) ||
+		(_iInput >= 97 && _iInput <= 122))
+	{
+		//Only add to the string if its within length limits
+		if (strTemp.length() < NetworkValues::MAX_NAME_LENGTH)
+		{
+			//char has been pressed add it to the string
+			strTemp += cUserInput;
+
+			//If user name was changed - set join error to false
+			m_bJoinError = false;
+		}
+	}
+
+	*_strText = strTemp;
+}
+
+void CClientApp::EnterUserName(int _iYPos)
+{
+	//***Host MENU***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	_iYPos += 250;
+	DWORD dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+	RenderText("Enter User Name: ", _iYPos, TEXT_MENU, false, dwTextFormat);
+
+	//render user name
+	_iYPos += (uiFontHeight + 150);
+	RenderText(m_strUserName, _iYPos, TEXT_MENU, false, dwTextFormat);
+
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	_iYPos = m_iScreenHeight - (2 * uiFontHeight);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	RenderText("\t Back", _iYPos, TEXT_MENU, true, dwTextFormat);
+}
+
+void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType, bool _bSelectable, DWORD _format)
+{
+	//Create the text space as a RECT
+	RECT Rect;
+	Rect.left = 10;
+	Rect.right = m_iScreenWidth - 10;
+	Rect.top = _iYPos;
+	int uiFontHeight = m_pRenderManager->GetFontHeight(_TextType);
+	Rect.bottom = (Rect.top + uiFontHeight);
+
+	//Change the color if the mouse hovers over a main menu rect
+	DWORD TextColor = D3DCOLOR_XRGB(0, 0, 0);
+	switch (_TextType)
+	{
+	case TEXT_TITLE:
+	{
+		TextColor = D3DCOLOR_XRGB(155, 0, 0);
+
+	}break;
+	case TEXT_MENU:
+	{
+		TextColor = D3DCOLOR_XRGB(100, 0, 0);
+	}break;
+	case TEXT_LIST:
+	{
+		TextColor = D3DCOLOR_XRGB(255, 0, 0);
+
+	}break;
+	}
+
+	if (_bSelectable)
+	{
+		TextColor = D3DCOLOR_XRGB(255, 50, 0);
+
+		//If you hover over a click-able text
+		if (m_pInputManager->GetInputStates().CursorPos.y >= Rect.top	&&
+			m_pInputManager->GetInputStates().CursorPos.y <= Rect.bottom &&
+			m_pInputManager->GetInputStates().CursorPos.x <= Rect.right	&&
+			m_pInputManager->GetInputStates().CursorPos.x >= Rect.left
+			)
+
+		{
+			//Change its color signifying that its click-able
+			TextColor = D3DCOLOR_XRGB(255, 185, 0);
+			//If the text was clicked
+			if (m_pInputManager->GetInputStates().bActivate)
+			{
+				//Set menu clicked to true
+				m_bMenuClicked = true;
+				//Save which menu has been clicked
+				m_strClickedMenu = _strText;
+			}
+		}
+	}
+
+	//Render the title 
+	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
+
+}
+
+
+//Draw Dependant on state
 void CClientApp::Draw()
 {
 	m_pRenderManager->StartRender(true, true, false);
@@ -1120,24 +1205,6 @@ void CClientApp::HostMenuDraw()
 
 }
 
-void CClientApp::EnterUserName(int _iYPos)
-{
-	//***Host MENU***
-	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	_iYPos += 250;
-	DWORD dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
-	RenderText("Enter User Name: ", _iYPos, TEXT_MENU, false, dwTextFormat);
-
-	//render user name
-	_iYPos += (uiFontHeight + 150);
-	RenderText(m_strUserName, _iYPos, TEXT_MENU, false, dwTextFormat);
-
-	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
-	_iYPos = m_iScreenHeight - (2 * uiFontHeight);
-	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
-	RenderText("\t Back", _iYPos, TEXT_MENU, true, dwTextFormat);
-}
-
 void CClientApp::LobbyMenuDraw()
 {
 	int iYPos = (m_iScreenHeight / 16);
@@ -1294,6 +1361,8 @@ void CClientApp::ExitMenuDraw()
 
 }
 
+
+//Render Frame
 bool CClientApp::RenderSingleFrame()
 {
 	//Is the client still active? if not return false
@@ -1309,99 +1378,8 @@ bool CClientApp::RenderSingleFrame()
 		
 }
 
-void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextType, bool _bSelectable, DWORD _format)
-{
-	//Create the text space as a RECT
-	RECT Rect;
-	Rect.left = 10;
-	Rect.right = m_iScreenWidth-10;
-	Rect.top = _iYPos;
-	int uiFontHeight = m_pRenderManager->GetFontHeight(_TextType);
-	Rect.bottom = (Rect.top + uiFontHeight);
 
-	//Change the color if the mouse hovers over a main menu rect
-	DWORD TextColor = D3DCOLOR_XRGB(0, 0, 0);
-	switch (_TextType)
-	{
-	case TEXT_TITLE:
-	{
-		TextColor = D3DCOLOR_XRGB(155, 0, 0);
-
-	}break;
-	case TEXT_MENU:
-	{
-		TextColor = D3DCOLOR_XRGB(100, 0, 0);
-	}break;
-	case TEXT_LIST:
-	{
-		TextColor = D3DCOLOR_XRGB(255, 0, 0);
-
-	}break;
-	}
-
-	if (_bSelectable)
-	{
-		TextColor = D3DCOLOR_XRGB(255, 50, 0);
-								
-		//If you hover over a click-able text
-		if (m_pInputManager->GetInputStates().CursorPos.y >= Rect.top	&&
-			m_pInputManager->GetInputStates().CursorPos.y <= Rect.bottom &&
-			m_pInputManager->GetInputStates().CursorPos.x <= Rect.right	&&
-			m_pInputManager->GetInputStates().CursorPos.x >= Rect.left
-			)
-
-		{
-			//Change its color signifying that its click-able
-			TextColor = D3DCOLOR_XRGB(255, 185, 0);
-			//If the text was clicked
-			if (m_pInputManager->GetInputStates().bActivate)
-			{
-				//Set menu clicked to true
-				m_bMenuClicked = true;
-				//Save which menu has been clicked
-				m_strClickedMenu = _strText;
-			}
-		}
-	}
-
-	//Render the title 
-	m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
-	
-}
-
-void CClientApp::OpenServerApp()
-{
-	//only run this if you are not yet a host, ie this only gets run once 
-	if (m_bIsHost == false)
-	{
-		m_bIsHost = true;
-
-		//Run Server exe
-		std::string filename;
-
-#ifdef _DEBUG
-		filename = "..\\Debug\\Robotron Server";
-#endif
-#ifndef _DEBUG
-		//TO DO: change file path for final release
-		filename = "..\\Release\\Robotron Server";
-#endif
-
-		//TO DO: hide server
-		std::string strTextToSend = m_strServerName + " " + m_strUserName;
-		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_MINIMIZE);
-		//int iError = 42;
-		//m_bIsHost = true;
-		if (iError < 32) //Server exe opened successfully
-		{
-			//Robotron Server.exe was unable to open for some reason.
-			//Reason as to why it didnt open look up the value of iError
-			bool UnableToOpenServer = false;
-			assert(UnableToOpenServer);
-		}
-	}
-}
-
+//Process received data
 void CClientApp::ReceiveDataThread()
 {
 	ClientDataPacket* pClientPacket = new ClientDataPacket;
@@ -1507,8 +1485,8 @@ void CClientApp::ProcessReceiveData()
 			}
 			else
 			{
-				bool GameUnableToInitialise = true;
-				assert(GameUnableToInitialise);
+				//Game was unable to initialize debug and in game initialize
+				assert(("Game Unable To Initialise", false));
 			}
 
 			
@@ -1566,7 +1544,7 @@ void CClientApp::ProcessCreation()
 		//send whether in single player mode or Multiplayer mode
 		m_pServerPacket->bSuccess = m_bsinglePlayer;
 		std::string strTextToSend = "<KW>HOST";
-		AddTextToServerDataPacket(strTextToSend);
+		StringToStruct(strTextToSend.c_str(), NetworkValues::MAX_CHAR_LENGTH, m_pServerPacket->cText);
 		//Send message 
 		m_pClient->SendData(m_pServerPacket);
 
@@ -1658,13 +1636,13 @@ void CClientApp::RequestUserList()
 }
 
 
-//Packet manipulations
+//Miscellaneous functions
 void CClientApp::SetClientInfo()
 {
 	/*<CLIENT_INFO>*/
 	//TO DO ZeroMemory
 	//User Name
-	AddUserNameToClientInfo(m_strUserName);
+	StringToStruct(m_strUserName.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pServerPacket->clientInfo.cUserName);
 	//Client Socket address
 	m_pServerPacket->clientInfo.clientSocAddr = m_pClient->GetClientSocketAddress();
 	//Server Socket Address
@@ -1673,21 +1651,31 @@ void CClientApp::SetClientInfo()
 	m_pServerPacket->clientInfo.bActive = m_bClientActive;
 }
 
-void CClientApp::AddTextToServerDataPacket(std::string _srtText)
+void CClientApp::OpenServerApp()
 {
-	//convert and add the string to the ServerDataPacket
-	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
+	//only run this if you are not yet a host, ie this only gets run once 
+	if (m_bIsHost == false)
 	{
-		strcpy_s(m_pServerPacket->cText, _srtText.c_str());
-	}
-}
+		m_bIsHost = true;
 
-void CClientApp::AddUserNameToClientInfo(std::string _srtUserName)
-{
-	//Add user name to Client info
-	if (_srtUserName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
-	{
-		strcpy_s(m_pServerPacket->clientInfo.cUserName, _srtUserName.c_str());
+		//Run Server exe
+		std::string filename;
+
+#ifdef _DEBUG
+		filename = "..\\Debug\\Robotron Server";
+#endif
+#ifndef _DEBUG
+		//TO DO: change file path for final release
+		filename = "..\\Release\\Robotron Server";
+#endif
+
+		//TO DO: hide server
+		std::string strTextToSend = m_strServerName + " " + m_strUserName;
+		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_MINIMIZE);
+
+		//Robotron Server.exe was unable to open for some reason.
+		//Reason as to why it didnt open look up the value of iError
+		assert(("Unable to open server", iError > 32)); //Unable to open server
 	}
 }
 

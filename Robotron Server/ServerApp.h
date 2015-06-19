@@ -168,39 +168,6 @@ private:
 	* @return: void:
 	********************/
 	void ProcessQuit();
-
-	/***********************
-	* AddTextToClientDataPacket: Convert passed in data to a ClientDataPacket
-	* @author: Jc Fowles
-	* @param: std::string _srtText: String Data to be converted
-	* @return: void
-	********************/
-	void AddTextToClientDataPacket(std::string _srtText);
-	
-	
-	/***********************
-	* AddHostNameToServerInfo: Add the Host name to server info
-	* @author: Jc Fowles
-	* @param: std::string _srtHostName: Host name to be added
-	* @return: void
-	********************/
-	void AddHostNameToServerInfo(std::string _srtHostName);
-
-	/***********************
-	* AddServerToServerInfo: TO DO:
-	* @author: Jc Fowles
-	* @Parameter: std::string _srtServerName: TO DO:
-	* @return: void: 
-	********************/
-	void AddServerToServerInfo(std::string _srtServerName);
-	
-	/***********************
-	* WideStringToString: Convert a Wide string to a standard string
-	* @author: Jc Fowles
-	* @Parameter: wchar_t * _wstr: Wide string to be converted
-	* @return: std::string: The converted Wide string as a standard string
-	********************/
-	std::string WideStringToString(wchar_t* _wstr);
 	
 	/***********************
 	* SetServerInfo: Set the Server info of the packet before sending
@@ -208,13 +175,46 @@ private:
 	* @return: void:
 	********************/
 	void SetServerInfo();
-
-	
-	//TO DO
+		
+	/***********************
+	* SetGameState: Reset and set the game states on the data to send before sending
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: pointer to the data to send that game states need to be reset and set
+	* @return: void: 
+	********************/
 	void SetGameState(ClientDataPacket* _pDataToSend);
-
-	bool AddUser(std::string _UserName, PlayerStates _playerStates);
-
+	
+	/***********************
+	* SetActiveClientList: Reset and set the active clients on the data to send before sending
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: pointer to the data to send that Active client list need to be reset and set
+	* @return: void: 
+	********************/
+	void SetActiveClientList(ClientDataPacket* _pDataToSend);
+		
+	/***********************
+	* SendToAll: Send to all Clients in the map
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Data to be sent to all clients
+	* @return: bool: Successful sending
+	********************/
+	bool SendToAll(ClientDataPacket* _pDataToSend);
+		
+	/***********************
+	* AddUser: Add a user to the map of clients
+	* @author: Jc Fowles
+	* @Parameter: std::string _UserName: Name of the the client used as the key to the map
+	* @Parameter: ClientInfo _ClientInfo: Client info as the body of the map
+	* @return: bool: 
+	********************/
+	bool AddUser(std::string _UserName, ClientInfo _ClientInfo);
+		
+	/***********************
+	* AllActive: Check to see if all clients are 'ready' and active
+	* @author: Jc Fowles
+	* @return: bool: state of all active clients, (false if not all are ready, true if all are ready)
+	********************/
+	bool AllActive();
 	
 	//Member Variables
 public:
@@ -250,7 +250,8 @@ private:
 	
 	//TO DO move to class sever game
 	//Game Variables
-	std::map<std::string, PlayerStates>* m_pMapPlayerStates;
+	//std::map<std::string, PlayerStates>* m_pMapPlayerStates;
+	std::map< std::string, ClientInfo>* m_pMapClientInfo;
 
 };
 

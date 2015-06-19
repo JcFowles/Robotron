@@ -365,22 +365,6 @@ public:
 	* @return: void:
 	********************/
 	void SetClientInfo();
-
-	/***********************
-	* ConvertToServerDataPacket: Convert passed in string to a ServerDataPacket text
-	* @author: Jc Fowles
-	* @param: std::string _srtText: String of text to be converted
-	* @return: void
-	********************/
-	void AddTextToServerDataPacket(std::string _srtText);
-
-	/***********************
-	* AddUserNameToClientInfo: Add user name to Client info
-	* @author: Jc Fowles
-	* @Parameter: std::string _srtUserName: UserName Data to be converted
-	* @return: void:
-	********************/
-	void AddUserNameToClientInfo(std::string _srtUserName);
 		
 	/***********************
 	* LobbySelect: TO DO:

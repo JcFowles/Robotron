@@ -34,7 +34,7 @@ public:
 
 	~CGame(void);
 
-	bool Initialise(std::vector<PlayerStates> _Players, ClientDataPacket* _pClientPacket);
+	bool Initialise(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket);
 
 	void Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClientPacket);
 	void ProcessInput(float _fDt, ServerDataPacket* _pServerPacket);

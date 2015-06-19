@@ -25,6 +25,9 @@
 
 //Local Includes
 
+
+
+
 namespace AppDefines
 {
 	unsigned const BUFFER_SIZE = 256;
@@ -222,7 +225,60 @@ struct float4
 
 };
 
+//Functions
+
+/***********************
+* StringToStruct: Copies characters from a char array into a the struct property
+* @author: Jc Fowles
+* @parameter: _cText: Char array to save into the struct
+* @parameter: _pcStruct: Struct property for char array to be saved in
+* @parameter: _uiMaxLength: Maximum allowed length of the char array to copy
+* @return: bool: Successful copy
+********************/
+inline bool StringToStruct(const char* _cText, UINT _uiMaxLength, char* _pcStruct)
+{
+	//Prevent buffer overrun, when copying directly to memory
+	if ((strlen(_cText) + 1) <= (_uiMaxLength))
+	{
+		// Copy the characters into the struct
+		strcpy_s(_pcStruct, (strlen(_cText) + 1), _cText);
+	}
+	else
+	{
+		//_cText is too long, buffer overrun would occur so return false
+		return false;
+	}
+	return true;
+}
+
+/***********************
+* WideStringToString: Convert a Wide string to a standard string
+* @author: Jc Fowles
+* @Parameter: wchar_t * _wstr: Wide string to be converted
+* @return: std::string: The converted Wide string as a standard string
+********************/
+inline std::string WideStringToString(wchar_t* _wstr)
+{
+	//Convert the Wide String to a standard string
+	size_t lengthWstr = (wcslen(_wstr) + 1);
+	size_t convertedCount = 0;
+	char* cConversion = new char[lengthWstr * 2];
+	wcstombs_s(&convertedCount, cConversion, lengthWstr, _wstr, _TRUNCATE);
+
+	std::string strConverted = (std::string)(cConversion);
+
+	//Deallocate memory
+	delete cConversion;
+	cConversion = 0;
+
+	//Return the converted standard string
+	return strConverted;
+}
+
+
 #define VALIDATE(a) if (!a) return (false)
+
+
 
 #endif //__APP_DEFINES_H__
 

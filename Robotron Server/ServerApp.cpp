@@ -39,9 +39,11 @@ CServerApp::~CServerApp(void)
 	//Send to all so so has left
 	m_pClientPacket->packetType = PT_QUIT;
 
-	//Send message
-	m_pServer->SendData(m_pClientPacket);
-	m_pServer->RemoveAll();
+	//Send quit message to all clients
+	SendToAll(m_pClientPacket);
+	
+	//Remove all clients from map
+	m_pMapClientInfo->clear();
 
 	//Make sure the the client is set to inactive
 	m_pServer->SetActive(false);
@@ -56,10 +58,8 @@ CServerApp::~CServerApp(void)
 	m_pClientPacket = 0;
 	delete m_pServerDataQueue;
 	m_pServerDataQueue = 0;
-	delete m_pMapPlayerStates;
-	m_pMapPlayerStates = 0;
-	/*delete m_pMapClients;
-	m_pMapClients = 0;*/
+	delete m_pMapClientInfo;
+	m_pMapClientInfo = 0;
 }
 
 CServerApp& CServerApp::GetInstance()
@@ -100,7 +100,8 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	m_pClientPacket = new ClientDataPacket;
 	
 	//Initialise Map of player states
-	m_pMapPlayerStates = new std::map < std::string, PlayerStates > ;
+	//m_pMapPlayerStates = new std::map < std::string, PlayerStates > ;
+	m_pMapClientInfo = new std::map < std::string, ClientInfo > ;
 
 	//Set Server info on creation
 	SetServerInfo();
@@ -112,7 +113,7 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	m_pClientPacket->serverInfo.serverSocAddr = m_pServer->GetServerSocketAddress();
 	//Send back the the server name and Host client names to be checked against
 	std::string strTextToSend = m_strServerName + ":" + m_strHostClient;
-	AddTextToClientDataPacket(strTextToSend);
+	StringToStruct(strTextToSend.c_str(), NetworkValues::MAX_CHAR_LENGTH, m_pClientPacket->cText);
 	
 	//Broadcast to all potential clients
 	m_pServer->Broadcast(m_pClientPacket);
@@ -120,6 +121,8 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	return true;
 }
 
+
+//Frame calls
 void CServerApp::Process()
 {	
 	ProcessReceiveData();
@@ -147,6 +150,8 @@ bool CServerApp::RenderSingleFrame()
 	return true;
 }
 
+
+//Process receive data
 void CServerApp::ReceiveDataThread()
 {
 	ServerDataPacket* pServerPacket = new ServerDataPacket;
@@ -246,7 +251,7 @@ void CServerApp::ProcessReceiveData()
 			
 			m_pGame->Process(m_pServerPacket, m_pClientPacket);
 
-			m_pServer->SendData(m_pClientPacket);
+			SendToAll(m_pClientPacket);
 		}
 		break;
 		default:
@@ -275,15 +280,9 @@ void CServerApp::ProcessCreation()
 		m_pServer->SetHostClientInfo(m_strHostClient, m_pServerPacket->clientInfo.clientSocAddr);
 
 		//Add the client to the map of clients
-		m_pServer->AddUser(m_strHostClient, m_pServerPacket->clientInfo.clientSocAddr);
-
-		//Add to the map of players states
-		std::string strUserName(m_pServerPacket->clientInfo.cUserName);
-		PlayerStates tempState;
-		strcpy_s(tempState.cPLayerName, m_pServerPacket->clientInfo.cUserName);
-		tempState.f3Positions = { 0, 20, 0 };
-		AddUser(strUserName, tempState);
 		
+		AddUser(m_strHostClient, m_pServerPacket->clientInfo);
+				
 		//This server now has its host
 		m_bHaveHost = true;
 
@@ -310,97 +309,98 @@ void CServerApp::ProcessJoinRequest()
 	m_pClientPacket->packetType = PT_JOIN_REQUEST;
 	m_pClientPacket->bSuccess = false;
 	
-	//Try add user and its socket address to the map of clients
-	if (m_pServer->AddUser(m_pServerPacket->clientInfo.cUserName, m_pServerPacket->clientInfo.clientSocAddr))
+	//Try add user and its socket address to the map of client
+	if (AddUser(m_pServerPacket->clientInfo.cUserName, m_pServerPacket->clientInfo))
 	{
-		//Add to the map of players states
-		std::string strUserName(m_pServerPacket->clientInfo.cUserName);
-		PlayerStates tempState;
-		strcpy_s(tempState.cPLayerName, m_pServerPacket->clientInfo.cUserName);
-		tempState.f3Positions = { 0, 20, 0 };
-		AddUser(strUserName, tempState);
-		
+		//Send success		
 		m_pClientPacket->bSuccess = true;
 	}
 	else
 	{
 		//User name already in use
 		std::string strError = "<KW>INVALID_USERNAME";
-		AddTextToClientDataPacket(strError);
+		StringToStruct(strError.c_str(), NetworkValues::MAX_CHAR_LENGTH, m_pClientPacket->cText);
+
 	}
 			
 	//Add server info to client packet
 	SetServerInfo();
-
-
+	
 	//Send message
 	m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
 }
 
 void CServerApp::ProcessActive()
 {
+	
+	//Set the activeness of the client who sent the message based on the success value
 	std::string strUserName(m_pServerPacket->clientInfo.cUserName);
-	//Set the active-ness based on the bSuccess value
-	m_pServer->SetActiveClient(strUserName, m_pServerPacket->bSuccess);
+	std::map<std::string, ClientInfo>::iterator itterClient = m_pMapClientInfo->find(strUserName);
+	if (itterClient != m_pMapClientInfo->end())
+	{
+		//Set the active-ness based on the bSuccess value
+		itterClient->second.bActive = m_pServerPacket->bSuccess;
+	}
 
-	//Check if all clients are active
-	if (m_pServer->AllActive())
+	//Check if game should start
+	if (AllActive())
 	{
 		//Add server info to client packet
 		SetServerInfo();
 		//Send to all so so has left
 		m_pClientPacket->packetType = PT_GAME_START;
-		
+				
+		std::vector<std::string> listPlayers;
+
 		//Single player
 		if (m_bSinglePlayer == true)
 		{
-			std::vector<PlayerStates> vecPlayerStates;
 
-			std::map< std::string, PlayerStates>::iterator iterClient = m_pMapPlayerStates->begin();
+			std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+			//add the player to list of players, in this case will only be one player
+			listPlayers.push_back(iterClient->first);
 
-			vecPlayerStates.push_back(iterClient->second);
 			//Create and initialize the server side game
 			m_pGame = &(CGame::GetInstance());
-			m_pGame->Initialise(vecPlayerStates, m_pClientPacket);
+			m_pGame->Initialise(listPlayers, m_pClientPacket);
 
 			//Send message
-			m_pServer->SendData(m_pClientPacket);
+			SendToAll(m_pClientPacket);
 			//Set Game to start
 			m_bGameStart = true;
 		}
 		else //Multiplayer
 		{
-			//If more than 2 players are in the lobby
-			if (m_pServer->GetNumClients() > 1)
+			//If more than 1 players are in the lobby
+			if (m_pMapClientInfo->size() > 1)
 			{
-
-				std::vector<PlayerStates> vecPlayerStates;
-				//Set player positions
-				std::map< std::string, PlayerStates>::iterator iterClient = m_pMapPlayerStates->begin();
-				std::map< std::string, PlayerStates>::iterator iterClientEnd = m_pMapPlayerStates->end();
-				int iClient = 0;
+				//Loop through the map, adding the players to list of players	
+				std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+				std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
 				while (iterClient != iterClientEnd)
 				{
-					//Add the player state to the temp vector
-					vecPlayerStates.push_back(iterClient->second);
-
-					iClient++;
+					//add the player to list of players	
+					listPlayers.push_back(iterClient->first);
+					//Next player				
 					iterClient++;
 				}
 
 				//Create and initialize the server side game
 				m_pGame = &(CGame::GetInstance());
-				m_pGame->Initialise(vecPlayerStates, m_pClientPacket);
-				
+				m_pGame->Initialise(listPlayers, m_pClientPacket);
+
 
 				//Send message
-				m_pServer->SendData(m_pClientPacket);
+				SendToAll(m_pClientPacket);
 				//Set Game to start
 				m_bGameStart = true;
 
 			}
 		}
 	}
+
+
+
 }
 
 void CServerApp::ProcessDefault()
@@ -423,11 +423,11 @@ void CServerApp::ProcessLeave()
 		SetServerInfo();
 		//Send to all so so has left
 		m_pClientPacket->packetType = PT_LEAVE;
-		AddTextToClientDataPacket(strUserName);
-
+		StringToStruct(strUserName.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pClientPacket->cText);
+		
 		//Send message
-		m_pServer->SendData(m_pClientPacket);
-		m_pServer->RemoveUser(strUserName);
+		SendToAll(m_pClientPacket);
+		m_pMapClientInfo->erase(strUserName);
 	}
 	else
 	{
@@ -447,90 +447,71 @@ void CServerApp::ProcessQuit()
 		m_pClientPacket->packetType = PT_QUIT;
 
 		//Send message
-		m_pServer->SendData(m_pClientPacket);
-		m_pServer->RemoveAll();
+		SendToAll(m_pClientPacket);
+		
+		//Remove all clients from map
+		m_pMapClientInfo->clear();
+
 		//Sleep for a small time to make sure every one got the message
 		Sleep(50);
 		m_pServer->SetActive(false);
 	}
 }
 
-//String manipulation
-std::string CServerApp::WideStringToString(wchar_t* _wstr)
-{
-	//Convert the Wide String to a standard string
-	size_t lengthWstr = (wcslen(_wstr) + 1);
-	size_t convertedCount = 0;
-	char* cConversion = new char[lengthWstr * 2];
-	wcstombs_s(&convertedCount, cConversion, lengthWstr, _wstr, _TRUNCATE);
-
-	std::string strConverted = (std::string)(cConversion);
-
-	//Deallocate memory
-	delete cConversion;
-	cConversion = 0;
-
-	//Return the converted standard string
-	return strConverted;
-}
 
 //Packet manipulations
 void CServerApp::SetServerInfo()
 {
 	/*<SERVER_INFO>*/
 	//Server Name
-	AddServerToServerInfo(m_strServerName);
+	StringToStruct(m_strServerName.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pClientPacket->serverInfo.cServerName);
 	//Host Name
-	AddHostNameToServerInfo(m_strHostClient);
+	StringToStruct(m_strHostClient.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pClientPacket->serverInfo.cHostName);
 	//Socket address
 	m_pClientPacket->serverInfo.serverSocAddr = m_pServer->GetServerSocketAddress();
 	//Number of clients
-	m_pClientPacket->serverInfo.iNumClients = m_pServer->GetNumClients();
+	m_pClientPacket->serverInfo.iNumClients = m_pMapClientInfo->size();
 	//Client List
-	m_pServer->SetActiveClientList(m_pClientPacket);
+	SetActiveClientList(m_pClientPacket);
 	//Set game states
 	SetGameState(m_pClientPacket);
 }
 
-void CServerApp::AddServerToServerInfo(std::string _srtServerName)
+void CServerApp::SetActiveClientList(ClientDataPacket* _pDataToSend)
 {
-	//Add Server name to the server info of the Client packet
-	if (_srtServerName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
+	//Reset the list of active clients
+	for (int iUser = 0; iUser < NetworkValues::MAX_USERS; iUser++)
 	{
-		strcpy_s(m_pClientPacket->serverInfo.cServerName, _srtServerName.c_str());
-	}
-}
+		//Set the user name to nothing
+		std::string strText = "";
+		//Set the user name in the active client list in the server info to an empty sting
+		strcpy_s(_pDataToSend->serverInfo.activeClientList[iUser].cUserName, strText.c_str());
 
-void CServerApp::AddHostNameToServerInfo(std::string _srtHostName)
-{
-	//Add host name to the server info of the Client packet
-	if (_srtHostName.length() < NetworkValues::MAX_NAME_LENGTH + 1)
+		//Set the active-ness of the user in the active client list in the server info to false
+		_pDataToSend->serverInfo.activeClientList[iUser].bActive = false;
+	}
+
+	//Run through the map of active clients
+	std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+	std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
+	int iUser = 0;
+	while (iterClient != iterClientEnd)
 	{
-		strcpy_s(m_pClientPacket->serverInfo.cHostName, _srtHostName.c_str());
+		std::string strText = iterClient->first;
+		if (strText.length() < NetworkValues::MAX_NAME_LENGTH)
+		{
+			//Set the user name in the active client list in the server info to the current user in the map of active clients
+			strcpy_s(_pDataToSend->serverInfo.activeClientList[iUser].cUserName, strText.c_str());
+		}
+
+		//Set the active-ness of the current user in the active client list in the server info to the activeness of the client in the map
+		_pDataToSend->serverInfo.activeClientList[iUser].bActive = iterClient->second.bActive;
+
+		//Get next clients user name
+		iterClient++;
+		//Increment the iUser
+		iUser++;
 	}
-}
-
-void CServerApp::AddTextToClientDataPacket(std::string _srtText)
-{
-	//convert and add the string to the ServerDataPacket
-	if (_srtText.length() < NetworkValues::MAX_CHAR_LENGTH)
-	{
-		strcpy_s(m_pClientPacket->cText, _srtText.c_str());
-	}
-}
-
-bool CServerApp::AddUser(std::string _UserName, PlayerStates _playerStates)
-{
-
-	std::pair<std::map<std::string, PlayerStates>::iterator, bool> MapClientIter;
-
-	//Add the players with there states into the map
-	MapClientIter = m_pMapPlayerStates->insert(std::pair<std::string, PlayerStates>(_UserName, _playerStates));
-
-	//Return the bool part(second)
-	//This will hold true if a new element was added 
-	//Or false if the element already exists
-	return MapClientIter.second;
 }
 
 void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
@@ -542,13 +523,13 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 		std::string strText = "";
 		strcpy_s(_pDataToSend->PlayerInfo[iUser].cPLayerName, strText.c_str());
 		//Reset positions
-		_pDataToSend->PlayerInfo[iUser].f3Positions = { 0, 0, 0 };
+		//_pDataToSend->PlayerInfo[iUser].f3Positions = { 0, 0, 0 };
 		
 	}
 
 	//Run through the map of active clients
-	std::map< std::string, PlayerStates>::iterator iterClient = m_pMapPlayerStates->begin();
-	std::map< std::string, PlayerStates>::iterator iterClientEnd = m_pMapPlayerStates->end();
+	std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+	std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
 	int iUser = 0;
 	while (iterClient != iterClientEnd)
 	{
@@ -559,10 +540,71 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 			strcpy_s(_pDataToSend->PlayerInfo[iUser].cPLayerName, strText.c_str());
 		}
 
-		_pDataToSend->PlayerInfo[iUser].f3Positions = iterClient->second.f3Positions;
+		//_pDataToSend->PlayerInfo[iUser].f3Positions = iterClient->second.f3Positions;
 		//Get next clients user name
 		iterClient++;
 		//Increment the iUser
 		iUser++;
 	}
+}
+
+bool CServerApp::AddUser(std::string _UserName, ClientInfo _ClientInfo)
+{
+	std::pair<std::map<std::string, ClientInfo>::iterator, bool> MapClientIter;
+	
+	//Initialise this client to in active
+	_ClientInfo.bActive = false;
+	_ClientInfo.ServerSocAddr = m_pServer->GetServerSocketAddress();
+		
+	MapClientIter = m_pMapClientInfo->insert(std::pair<std::string, ClientInfo>(_UserName, _ClientInfo));
+
+	//Return the bool part(second)
+	//This will hold true if a new element was added 
+	//Or false if the element already exists
+	return MapClientIter.second;
+}
+
+bool CServerApp::AllActive()
+{
+	//Set all active to true
+	bool bAllActive = true;
+	if (m_pMapClientInfo->size() < 1)
+	{
+		bAllActive = false;
+	}
+
+	//Search through all clients 
+	std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+	std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
+	while (iterClient != iterClientEnd)
+	{
+		//If any client is not active 
+		if (iterClient->second.bActive == false)
+		{
+			//set all active to false
+			bAllActive = false;
+		}
+		//Check next in map
+		iterClient++;
+	}
+
+	//Return all active
+	return bAllActive;
+}
+
+bool CServerApp::SendToAll(ClientDataPacket* _pDataToSend)
+{
+	//Send to all clients 
+	std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
+	std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
+	while (iterClient != iterClientEnd)
+	{
+		//Failed to send
+		assert(("Failed to send to a client", m_pServer->SendData(_pDataToSend, iterClient->second.clientSocAddr) == false));
+		
+		//Get next client
+		iterClient++;
+	}
+
+	return true;
 }

@@ -17,7 +17,7 @@ CGame::~CGame()
 	delete m_pCamera;
 	m_pCamera = 0;
 
-	//delete Meshs
+	//delete Mesh
 	delete m_pPlayerMesh;
 	m_pPlayerMesh = 0;
 	delete m_pLustMesh;
@@ -26,6 +26,10 @@ CGame::~CGame()
 	//Delete player list
 	delete m_plistPlayers;
 	m_plistPlayers = 0;
+
+	//Delete enemy list
+	delete m_pListEnemies;
+	m_pListEnemies = 0;
 
 	//Delete p[layer avatar
 	delete m_pPlayerAvatar;

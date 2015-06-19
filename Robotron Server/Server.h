@@ -43,15 +43,7 @@ public:
 	* @return: bool: Successful Initialization
 	********************/
 	bool Initialise();
-
-	/***********************
-	* SendData: Send Data packet to all the Clients
-	* @author: Jc Fowles
-	* @parameter: _DataToSend: Data packet to send to the client
-	* @return: bool: Successful Sending
-	********************/
-	bool SendData(ClientDataPacket* _pDataToSend);
-
+	
 	/***********************
 	* SendData: Send Data packet to a specific Client
 	* @author: Jc Fowles
@@ -85,40 +77,7 @@ public:
 	* @return: bool: Successful broadcasting
 	********************/
 	bool Broadcast(ClientDataPacket* _pDataToSend);
-
-	/***********************
-	* AddUser: Add a user to the map of clients
-	* @author: Jc Fowles
-	* @Parameter: std::string _UserName: User name of client (also the map key)
-	* @Parameter: sockaddr_in _ClientAddress: sockaddr of the client
-	* @return: bool: if successfully added, false returned if user name already exists
-	********************/
-	bool AddUser(std::string _UserName, sockaddr_in _ClientAddress);
 		
-	/***********************
-	* RemoveUser: Remove the passed in user from the map of clients
-	* @author: Jc Fowles
-	* @Parameter: std::string _UserName: User name of the client to be removed
-	* @return: void:
-	********************/
-	void RemoveUser(std::string _UserName);
-	
-	/***********************
-	* RemoveAll: remove all clients from the map of clients
-	* @author: Jc Fowles
-	* @return: void:
-	********************/
-	void RemoveAll();
-	
-	/***********************
-	* SetActiveClientList: Set the list of active clients in the server info of the client packet.
-	*					   To prevent old client lists being sent
-	* @author: Jc Fowles
-	* @Parameter: ClientDataPacket * _pDataToSend: Packet to edit before sending
-	* @return: void:
-	********************/
-	void SetActiveClientList(ClientDataPacket* _pDataToSend);
-
 	/***********************
 	* getActive: Return weather the server is active
 	* @author: Jc Fowles
@@ -156,14 +115,7 @@ public:
 	* @return: sockaddr_in: The server Socket Address
 	********************/
 	sockaddr_in GetServerSocketAddress() const { return m_ServerSocketAddress; }
-
-	int GetNumClients() const { return m_pMapClientInfo->size(); }
-	
-	bool SetActiveClient(std::string _UserName, bool _bActive);
-
-	std::map< std::string, ClientInfo>* getMap() { return m_pMapClientInfo; };
-
-	bool AllActive();
+		
 	//Member variables
 public:
 	
@@ -174,11 +126,9 @@ private:
 
 	SOCKET m_hServerSocket;
 	sockaddr_in m_ServerSocketAddress;
-	
-	std::map< std::string, ClientInfo>* m_pMapClientInfo;
+		
 	std::pair<std::string, sockaddr_in>* m_HostClientInfo;
-
-	
+		
 };
 
 #endif //__CSERVER_H__

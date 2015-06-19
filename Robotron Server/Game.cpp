@@ -34,7 +34,7 @@ void CGame::DestroyInstance()
 	s_pGame = 0;
 }
 
-bool CGame::Initialise(std::vector<PlayerStates> _Players, ClientDataPacket* _pClientPacket)
+bool CGame::Initialise(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket)
 {
 	m_pClock = new CClock();
 	m_pClock->Initialise();
@@ -42,24 +42,23 @@ bool CGame::Initialise(std::vector<PlayerStates> _Players, ClientDataPacket* _pC
 	m_plistPlayers = new std::map < std::string, PlayerStates >;
 
 	//Get the number of players
-	m_iNumberPlayers = _Players.size();
+	m_iNumberPlayers = _ListPlayers.size();
 
 	//Initialise the list of players
 	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
 	{
-		//Get the player user name
-		std::string strPlayerName(_Players[iPlayer].cPLayerName);
-
-		//Initialise each player position
-		_Players[iPlayer].f3Positions = { float(iPlayer * 5), 20.0f, 0.0f };
-
-		_Players[iPlayer].f3Velocity = { 0.0f, 0.0f, 0.0f };
-
+			
+		//Create the player states
+		PlayerStates tempState;
+		StringToStruct(_ListPlayers[iPlayer].c_str(), NetworkValues::MAX_NAME_LENGTH, tempState.cPLayerName);
+		tempState.f3Positions = { float(iPlayer * 5), 20.0f, 0.0f };
+		tempState.f3Velocity = { 0.0f, 0.0f, 0.0f };
+		
 		//Add the player and its states to the list
-		m_plistPlayers->insert(std::pair<std::string, PlayerStates>(strPlayerName, _Players[iPlayer]));
+		m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_ListPlayers[iPlayer], tempState));
 
 		//Set the player positions in the packet to send
-		_pClientPacket->PlayerInfo[iPlayer].f3Positions = _Players[iPlayer].f3Positions;
+		_pClientPacket->PlayerInfo[iPlayer].f3Positions = tempState.f3Positions;
 
 	}
 
