@@ -42,6 +42,7 @@ public:
 
 	
 	void AddPlayer(std::string _strUser);
+	void RemovePlayer(std::string _strLeftPlayer);
 	void UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket);
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 

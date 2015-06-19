@@ -450,9 +450,14 @@ void CServerApp::ProcessLeave()
 		m_pClientPacket->packetType = PT_LEAVE;
 		StringToStruct(strUserName.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pClientPacket->cText);
 		
-		//Send message
+		//Remove the client from the map
 		m_pMapClientInfo->erase(strUserName);
 
+		//If the game excist remove the player from there too 
+		if (m_pGame != 0)
+		{
+			m_pGame->RemovePlayer(strUserName);
+		}
 		std::vector<std::string> listPlayers;
 		//Update the list players
 		//Loop through the map, adding the players to list of players	
@@ -469,6 +474,7 @@ void CServerApp::ProcessLeave()
 		//Update the list of players in the game
 		m_pGame->UpdatePlayers(listPlayers, m_pClientPacket);
 
+		//Send message
 		SendToAll(m_pClientPacket);
 
 	}

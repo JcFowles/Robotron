@@ -1463,6 +1463,7 @@ void CClientApp::ProcessReceiveData()
 					//Then add this user the the list of clients
 					bool addedUser = AddUser(JoinedUser, m_pClientPacket->serverInfo.activeClientList[iJoinedPLayer]);
 					assert(("failed to add user to client app map", addedUser));
+
 				}
 			}
 	
@@ -1472,11 +1473,14 @@ void CClientApp::ProcessReceiveData()
 		{
 			m_eGameState = GS_PLAY;
 		}
+		break;
 		case PT_LEAVE:
 		{
 			std::string strUserName(m_pClientPacket->cText);
 			//So and So has left
-
+			//Remove them from the game
+			m_pGame->RemovePlayer(strUserName);
+			m_pMapActiveClients->erase(strUserName);
 
 		
 		}
@@ -1487,6 +1491,7 @@ void CClientApp::ProcessReceiveData()
 			m_eGameState = GS_MENU;
 			m_eMenuState = MS_MAIN;
 		}
+		break;
 		case PT_UPDATE:
 		{
 			m_pGame->Process(m_pClientPacket);
@@ -1537,7 +1542,7 @@ void CClientApp::ProcessCreation()
 		//Create and Initialise the game
 		m_pGame = &(CGame::GetInstance());
 		m_pGame->Initialise(m_pRenderManager, m_strUserName);
-		m_pGame->AddAllPlayers(m_pClientPacket);
+		//m_pGame->AddAllPlayers(m_pClientPacket);
 
 		//Set the menu state to lobby
 		m_eMenuState = MS_LOBBY;
@@ -1574,11 +1579,11 @@ void CClientApp::ProcessJoinRequest()
 		m_eMenuState = MS_LOBBY;
 		m_bJoinError = false;
 
+		
 		//Create and Initialise the game
 		m_pGame = &(CGame::GetInstance());
 		m_pGame->Initialise(m_pRenderManager, m_strUserName);
 		m_pGame->AddAllPlayers(m_pClientPacket);
-
 				
 	}
 	else //Not Successful, find out why it is not

@@ -55,7 +55,7 @@ public:
 	int CreatePlayerAssest();
 	bool AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd);
 	void AddAllPlayers(ClientDataPacket* _pClientPacket);
-
+	void RemovePlayer(std::string _strLeftPlayer);
 	void CreateEnemyLust();
 
 	/***********************

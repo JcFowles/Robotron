@@ -329,7 +329,7 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 
 void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 {
-	for (UINT iPlayer = 0; iPlayer < NetworkValues::MAX_USERS; iPlayer++)
+	for (int iPlayer = 0; iPlayer < _pClientPacket->serverInfo.iNumClients; iPlayer++)
 	{
 		
 		PlayerStates CurrentPlayerState = _pClientPacket->PlayerInfo[iPlayer];
@@ -352,6 +352,11 @@ void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 			m_pPlayerAvatar = &playerItter->second;
 		}
 	}
+}
+
+void CGame::RemovePlayer(std::string _strLeftPlayer)
+{
+	m_plistPlayers->erase(_strLeftPlayer);
 }
 
 int CGame::CreatePlayerAssest()

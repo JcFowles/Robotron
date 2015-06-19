@@ -148,6 +148,11 @@ void CGame::AddPlayer(std::string _strUser)
 
 }
 
+void CGame::RemovePlayer(std::string _strLeftPlayer)
+{
+	m_plistPlayers->erase(_strLeftPlayer);
+}
+
 void CGame::SetPlayerStates(ClientDataPacket* _pDataToSend)
 {
 	//Reset the list of active clients
