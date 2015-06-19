@@ -234,3 +234,7 @@ bool CClient::Broadcast(ServerDataPacket* _pDataToSend)
 
 }
 
+void CClient::Reset()
+{
+	ZeroMemory(&m_ServerSocketAddress, sizeof(m_ServerSocketAddress)); 
+}

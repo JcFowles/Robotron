@@ -107,6 +107,12 @@ public:
 	********************/
 	void SetServerSocketAddress(sockaddr_in _serverSocAddr) { m_ServerSocketAddress = _serverSocAddr; }
 	
+	/***********************
+	* Reset: Reset the client by resetting its server address, as there is no server
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void Reset();
 
 	//Member variables
 public:

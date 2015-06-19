@@ -44,6 +44,7 @@ enum eMenuStates
 	MS_JOIN_GAME,
 	MS_HOST_GAME,
 	MS_LOBBY,
+	MS_LOADING
 };
 
 enum eGameStates

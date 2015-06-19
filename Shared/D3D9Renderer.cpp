@@ -211,7 +211,7 @@ bool CD3D9Renderer::DeviceCreation()
 	//Determine the Vertex processing Hardware or software
 	DWORD dwVertProcessing = 0;
 
-	dwVertProcessing = (caps.VertexProcessingCaps != 0) ? (D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE) : (D3DCREATE_SOFTWARE_VERTEXPROCESSING);
+	dwVertProcessing = (caps.VertexProcessingCaps != 0) ? (D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_PUREDEVICE) : (D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED);
 
 	//Fill out the D3D Present Parameters structure
 	if (m_bFullscreen == true)

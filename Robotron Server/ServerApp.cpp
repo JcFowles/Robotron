@@ -246,8 +246,6 @@ void CServerApp::ProcessReceiveData()
 				SendToAll(m_pClientPacket);
 			}
 
-			
-
 		}
 			break;
 
@@ -259,7 +257,14 @@ void CServerApp::ProcessReceiveData()
 
 		case PT_LEAVE:
 		{
-			ProcessLeave();	
+			if (m_pServerPacket->clientInfo.cUserName == m_strHostClient)
+			{
+				ProcessQuit();
+			}
+			else
+			{
+				ProcessLeave();
+			}
 		}
 		break;
 		case PT_QUIT:
@@ -636,3 +641,4 @@ bool CServerApp::SendToAll(ClientDataPacket* _pDataToSend)
 
 	return true;
 }
+

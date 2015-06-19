@@ -388,6 +388,11 @@ public:
 
 	bool AddUser(std::string _strPlayerName, ClientInfo _clientInfo);
 
+	void ResetData();
+
+	void LoadGame();
+
+	void LoadingScreen();
 
 protected:
 
@@ -430,7 +435,7 @@ private:
 	//Game Variables
 	static CClientApp* s_pClientApp;
 	CGame* m_pGame;
-	
+
 	eGameStates m_eGameState;
 	eMenuStates m_eMenuState;
 	eHostStates m_eHostState;
@@ -440,6 +445,7 @@ private:
 	std::vector<std::string> m_strOptionsMenu;
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
+	bool m_bGameLoading;
 	bool m_bsinglePlayer;
 	bool m_bMenuClicked;
 	std::string m_strClickedMenu;
@@ -464,6 +470,8 @@ private:
 	std::string m_strServerName;
 	std::string m_strUserName;
 	bool m_bClientActive;
+
+
 
 	//Maps
 	std::multimap< std::string, ServerInfo>* m_pMapActiveServers;

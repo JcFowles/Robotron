@@ -210,7 +210,17 @@ void CClientApp::Process()
 
 		switch (m_eMenuState)
 		{
-		
+		case MS_MAIN:
+		{
+			//Reset Data
+			ResetData();
+		}
+		break;
+		case MS_MULTI_PLAYER:
+		{
+			//Reset Data
+			ResetData();
+		}
 		case MS_JOIN_GAME:
 		{
 			switch (m_eHostState)
@@ -600,6 +610,8 @@ void CClientApp::HostMenuSelect(std::string _strMenuItem)
 		{
 			m_pRenderManager->Clear(true, true, false);
 			m_eMenuState = MS_MULTI_PLAYER;
+			//Reset Data
+			ResetData();
 		}
 	}
 		break;
@@ -636,8 +648,10 @@ void CClientApp::LobbyMenuSelect(std::string _strMenuItem)
 		m_pClient->SendData(m_pServerPacket);
 		
 		m_pRenderManager->Clear(true, true, false);
-		m_eMenuState = MS_MAIN;
-		m_eHostState = HS_DEFAULT;
+		//Reset Data
+		ResetData();
+		m_eMenuState = MS_HOST_GAME;
+		m_eHostState = HS_USER_NAME;
 	}
 
 	if (_strMenuItem == "\t Ready")
@@ -1488,6 +1502,8 @@ void CClientApp::ProcessReceiveData()
 		case PT_QUIT:
 		{
 			//Server has quit 
+			//Reset states
+			ResetData();
 			m_eGameState = GS_MENU;
 			m_eMenuState = MS_MAIN;
 		}
@@ -1539,10 +1555,9 @@ void CClientApp::ProcessCreation()
 		//Set that the server has been created
 		m_bServerCreated = true;
 				
-		//Create and Initialise the game
-		m_pGame = &(CGame::GetInstance());
-		m_pGame->Initialise(m_pRenderManager, m_strUserName);
-		//m_pGame->AddAllPlayers(m_pClientPacket);
+		//Load the Game
+		LoadGame();
+	
 
 		//Set the menu state to lobby
 		m_eMenuState = MS_LOBBY;
@@ -1579,11 +1594,8 @@ void CClientApp::ProcessJoinRequest()
 		m_eMenuState = MS_LOBBY;
 		m_bJoinError = false;
 
-		
-		//Create and Initialise the game
-		m_pGame = &(CGame::GetInstance());
-		m_pGame->Initialise(m_pRenderManager, m_strUserName);
-		m_pGame->AddAllPlayers(m_pClientPacket);
+		//Load the Game
+		LoadGame();
 				
 	}
 	else //Not Successful, find out why it is not
@@ -1679,7 +1691,67 @@ void CClientApp::OpenServerApp()
 	}
 }
 
+void CClientApp::LoadGame()
+{
+	m_eMenuState = MS_LOADING;
+	m_bGameLoading = true;
+	//Start the loading screen
+	std::thread LoadingTread = std::thread(&CClientApp::LoadingScreen, (this));
 
+	m_pGame = &(CGame::GetInstance());
+	m_pGame->Initialise(m_pRenderManager, m_strUserName);
+	m_pGame->AddAllPlayers(m_pClientPacket);
+
+	m_bGameLoading = false;
+
+	LoadingTread.join();
+
+	m_eMenuState = MS_LOBBY;	
+}
+
+void CClientApp::LoadingScreen()
+{
+	std::string strLoading = "LOADING";
+	std::string strLoadingDots = "";
+	int iNumDots = 0;
+	while (m_bGameLoading)
+	{
+		m_pRenderManager->StartRender(true, true, false);
+
+		int iYPos = (m_iScreenHeight / 16);
+		DWORD dwTextFormat;
+		m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
+
+		//***TITLE***
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+
+		iYPos += 400;
+		for (int i = 0; i < iNumDots; i++)
+		{
+			strLoadingDots += ".";
+		}
+		
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText(strLoading, iYPos, TEXT_MENU, false, dwTextFormat);
+
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+		iYPos += (uiFontHeight + 1);
+		dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+		RenderText(strLoadingDots, iYPos, TEXT_MENU, false, dwTextFormat);
+
+		if (iNumDots > 6)
+		{
+			iNumDots = 0;
+			strLoadingDots = "";
+		}
+		iNumDots++;
+
+		m_pRenderManager->EndRender();
+		Sleep(100);
+	}
+	
+}
 
 bool CClientApp::AddUser(std::string _strPlayerName, ClientInfo _clientInfo)
 {
@@ -1698,4 +1770,27 @@ bool CClientApp::AddUser(std::string _strPlayerName, ClientInfo _clientInfo)
 	//This will hold true if a new element was added 
 	//Or false if the element already exists
 	return MapClientIter.second;
+}
+
+void CClientApp::ResetData()
+{
+	m_bServerCreated = false;
+
+	m_strServerName = "";
+	m_strUserName = "";
+
+	m_bIsHost = false;
+
+	m_pClient->Reset();
+
+	m_eHostState = HS_DEFAULT;
+
+	m_pMapActiveClients->clear();
+
+	if (m_pGame != 0)
+	{
+		m_pGame->DestroyInstance();
+		m_pGame = 0;
+	}
+	
 }
