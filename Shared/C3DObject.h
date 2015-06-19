@@ -49,10 +49,11 @@ public:
 	* @parameter: _pRenderManager: Pointer to the render manager
 	* @parameter: _iMaterialID: Starting Y coordinate. Default to 0 if not specified
 	* @parameter: _pMesh: Mesh for this 3D Object
+	* @parameter: _ObjID: Object ID number
 	* @parameter: _f3Pos: Starting Z coordinate. Default to 0 if not specified
 	* @return: void
 	********************/
-	void Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, float3 _f3Pos = { 0, 0, 0 });
+	void Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjID, float3 _f3Pos = { 0, 0, 0 });
 	
 	/***********************
 	* Draw: Draws the 3D Object
@@ -178,8 +179,6 @@ protected:
 	float m_fMaxSpeed;
 	float m_fDamage;
 
-
-	static UINT s_uiNextID;
 	UINT m_uiObjectID;
 		
 	float3 m_f3Position;

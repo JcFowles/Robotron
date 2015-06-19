@@ -45,7 +45,9 @@ public:
 	void RemovePlayer(std::string _strLeftPlayer);
 	void UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket);
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
-
+	void SetEnemyStates(ClientDataPacket* _pDataToSend);
+	
+	void SpawnWave();
 private:
 	//Disallowing copies and extra constructions
 	CGame();
@@ -61,11 +63,13 @@ private:
 	CClock* m_pClock;
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
+	std::map<UINT, EnemyStates>* m_plistEnemies;
 			
 	int m_iNumberPlayers;
 
 	UINT m_uiStage;
 
+	UINT  m_uiNextObjID;
 
 };
 

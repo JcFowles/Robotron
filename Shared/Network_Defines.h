@@ -65,7 +65,8 @@ enum ePacketType
 struct PlayerStates
 {
 	char cPlayerName[NetworkValues::MAX_NAME_LENGTH + 1];
-	
+	UINT uiPlayerID;
+
 	float3 f3Positions;
 	float3 f3Velocity;
 	float3 f3Direction;
@@ -114,7 +115,7 @@ struct ServerInfo
 	char cServerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	char cHostName[NetworkValues::MAX_NAME_LENGTH + 1];
 	ClientInfo activeClientList[NetworkValues::MAX_USERS];
-	int iNumClients;
+	UINT iNumClients;
 	sockaddr_in serverSocAddr;
 };
 
@@ -128,7 +129,7 @@ struct ClientDataPacket
 	
 	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
 	EnemyStates EnemyInfo[NetworkValues::MAX_ENEMYS];
-
+	UINT iNumEnemies;
 }; 
 
 

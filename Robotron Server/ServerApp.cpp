@@ -572,6 +572,9 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 {
 	//set the player states based on the game
 	m_pGame->SetPlayerStates(_pDataToSend);
+
+	//Set the enemyStates based on the game
+	m_pGame->SetEnemyStates(_pDataToSend);
 }
 
 bool CServerApp::AddUser(std::string _UserName, ClientInfo _ClientInfo)

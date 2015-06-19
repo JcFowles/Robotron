@@ -15,7 +15,7 @@
 // Local Includes
 #include "C3DObject.h"
 
-UINT C3DObject::s_uiNextID = 0;
+
 
 C3DObject::C3DObject()
 {
@@ -33,7 +33,7 @@ C3DObject::C3DObject()
 	m_f3Direction = { 0.0f, 0.0f, 1.0f };
 	m_f3Velocity = { 0.0f, 0.0f, 0.0f };
 
-	m_uiObjectID = s_uiNextID++;
+	
 }
 
 C3DObject::~C3DObject()
@@ -42,13 +42,15 @@ C3DObject::~C3DObject()
 	//m_pMesh = 0;
 }
 
-void C3DObject::Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, float3 _f3Pos)
+void C3DObject::Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjectID, float3 _f3Pos)
 {
 	//Initialise member variables
 	m_pRenderManager = _pRenderManager;
 	m_pMesh = _pMesh;
 	m_f3Position = _f3Pos;
 	
+	m_uiObjectID = _ObjectID;
+
 	m_iMaterialID = _iMaterialID;
 	
 	m_fSize = m_pMesh->GetSize();
@@ -70,6 +72,8 @@ void C3DObject::Process(float _fDT)
 
 void C3DObject::CalcWorldMatrix()
 {
+	m_fRotation = -(atan2(m_f3Direction.z, m_f3Direction.x) - atan2(1.0f, 0.0f)); //looking down z axis
+
 	//Matrices to make up the World Matrix
 	D3DXMATRIX matWorld;
 	D3DXMATRIX matTranslation;

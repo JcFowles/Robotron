@@ -20,8 +20,21 @@ CGame::~CGame()
 	//delete Mesh
 	delete m_pPlayerMesh;
 	m_pPlayerMesh = 0;
-	delete m_pLustMesh;
-	m_pLustMesh = 0;
+	
+	//delete each mesh in map
+	std::map < eEnemyTypes, CMesh* >::iterator meshItter = m_pEnemyMesh->begin();
+	std::map < eEnemyTypes, CMesh* >::iterator meshItterEnd = m_pEnemyMesh->end();
+	while (meshItter != meshItterEnd)
+	{
+		delete meshItter->second;
+		meshItter->second = 0;
+
+		meshItter++;
+	}
+	//Delete the mesh map
+	m_pEnemyMesh->clear();
+	delete m_pEnemyMesh;
+	m_pEnemyMesh = 0;
 
 	//Delete player list
 	delete m_plistPlayers;
@@ -30,6 +43,9 @@ CGame::~CGame()
 	//Delete enemy list
 	delete m_pListEnemies;
 	m_pListEnemies = 0;
+
+	delete m_iEnemyIDs;
+	m_iEnemyIDs = 0;
 
 	//Delete player avatar
 	m_pPlayerAvatar = 0;
@@ -60,7 +76,10 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 		
 	m_plistPlayers = new std::map < std::string, CPlayerObj >;
 	m_pListEnemies = new std::map < UINT, CEnemyObj > ;
-	
+	m_pEnemyMesh = new std::map < eEnemyTypes, CMesh* > ;
+	m_iEnemyIDs = new std::map < eEnemyTypes, UINT > ;
+
+
 	m_pRenderManager = _RenderManager;
 		
 	//Set up the projection matrix	
@@ -85,19 +104,10 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	//Create player assets
 	m_iPlayerMaterialID = CreatePlayerAssest();
 
+	//Create the lust enemy assets
+	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_LUST, CreateEnemyAssest(ET_LUST)));
 	
 	
-	//CreateEnemyLust();
-
-	/*std::string strFilePath = "Assets\\Wrath.png";
-	iTextureID = _RenderManager->CreateTexture(strFilePath);
-	m_pWrathMesh = CreateCubeMesh(1.2f, iTextureID);
-
-	std::string strFilePath = "Assets\\Wrath.png";
-	iTextureID = _RenderManager->CreateTexture(strFilePath);
-	m_pSlothMesh = CreateCubeMesh(2.2f, iTextureID);*/
-
-		
 	
 
 	return true;
@@ -114,35 +124,25 @@ void CGame::UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket
 
 
 
-void CGame::CreateEnemyLust()
+void CGame::SpawnWave(ClientDataPacket* _pClientPacket)
 {
-	//Create the Texture for the LUST enemy
-	std::string strFilePath = "Assets\\Lust.png";
-	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
-	m_pLustMesh = CreateCubeMesh(0.8f, iTextureID);
+	for (UINT iEnemy = 0; iEnemy < _pClientPacket->iNumEnemies; iEnemy++)
+	{
 
-	//Create the material for the LUST enemy
-	MaterialValues Material;
-	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
-	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.fPower = { 1.0f };
+		EnemyStates CurrentEnemyState = _pClientPacket->EnemyInfo[iEnemy];
 
-	//Get the material Id used to reference the created material
-	int iMatID = m_pRenderManager->CreateMaterial(Material);
+		std::pair<std::map<UINT, CEnemyObj>::iterator, bool> MapEnemyIter;
 
-	//Create Lust enemies
-	CEnemyObj enemyLust(ET_LUST);
-	//Set the position of LUST
-	float3 Pos = { 0.0f, 20.0f, 5.0f };
+		//Create enemy object
+		CEnemyObj tempEnemy(CurrentEnemyState.Etype);
+		//Initialise the enemy Object with the Cube Mesh and set its coordinates
+		std::map<eEnemyTypes, CMesh* >::iterator EnemyMesh = m_pEnemyMesh->find(CurrentEnemyState.Etype);
+		tempEnemy.Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentEnemyState.uiEnemyID, CurrentEnemyState.f3Positions);
 
-	//Initialise the enemy Lust with the Cube Mesh and set its coordinates
-	enemyLust.Initialise(m_pRenderManager, iMatID, m_pLustMesh, Pos);
+		//Add the player to the map
+		MapEnemyIter = m_pListEnemies->insert(std::pair<UINT, CEnemyObj>(CurrentEnemyState.uiEnemyID, tempEnemy));
 
-	enemyLust.GetObjectID();
-
-	m_pListEnemies->insert(std::pair<UINT, CEnemyObj >(enemyLust.GetObjectID(), enemyLust));
+	}
 
 }
 
@@ -155,8 +155,10 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	int iPlayer = 0;
 	while (iterPlayer != iterPlayerEnd)
 	{
-		//Draw the player avatar
+		//Set player position
 		iterPlayer->second.SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
+		//Set player Direction
+		iterPlayer->second.SetDirection(_pClientPacket->PlayerInfo[iPlayer].f3Direction);
 		
 		if (iPlayer == m_iIndexOfClientPlayer)
 		{
@@ -307,7 +309,7 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 	//Create player object
 	CPlayerObj tempPlayer;
 	//Initialise the player Object with the Cube Mesh and set its coordinates
-	tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, tempState.f3Positions);
+	tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, tempState.uiPlayerID, tempState.f3Positions);
 
 	//Add the player to the map
 	std::string strName(tempState.cPlayerName);
@@ -329,7 +331,7 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 
 void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 {
-	for (int iPlayer = 0; iPlayer < _pClientPacket->serverInfo.iNumClients; iPlayer++)
+	for (UINT iPlayer = 0; iPlayer < _pClientPacket->serverInfo.iNumClients; iPlayer++)
 	{
 		
 		PlayerStates CurrentPlayerState = _pClientPacket->PlayerInfo[iPlayer];
@@ -339,7 +341,7 @@ void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 		//Create player object
 		CPlayerObj tempPlayer;
 		//Initialise the player Object with the Cube Mesh and set its coordinates
-		tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, CurrentPlayerState.f3Positions);
+		tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, CurrentPlayerState.uiPlayerID, CurrentPlayerState.f3Positions);
 
 		//Add the player to the map
 		MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(CurrentPlayerState.cPlayerName, tempPlayer));
@@ -375,7 +377,69 @@ int CGame::CreatePlayerAssest()
 	Material.fPower = { 1.0f };
 
 	//Get the material Id used to reference the created material
-	int iMatID = m_pRenderManager->CreateMaterial(Material);
+	UINT iMatID = m_pRenderManager->CreateMaterial(Material);
 
 	return iMatID;
+}
+
+int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
+{
+	std::string strFilePath = "";
+	float fEnemySize = 0.0f;
+	MaterialValues Material;
+	
+	switch (_EnemyType)
+	{
+	case ET_LUST:
+	{
+		strFilePath = "Assets\\Lust.png";
+		fEnemySize = 0.8f;
+
+		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fEnemySize, iTextureID);
+		//Add mesh to map
+		m_pEnemyMesh->insert(std::pair<eEnemyTypes, CMesh* >(ET_LUST, pTempMesh));
+ 
+	}
+		break;
+	case ET_PRIDE:
+		break;
+	case ET_WRATH:
+		break;
+	case ET_GREED:
+		break;
+	case ET_SLOTH:
+		break;
+	case ET_ENVY:
+		break;
+	case ET_GLUTTONY:
+		break;
+	default:
+	{
+		strFilePath = "";
+		fEnemySize = 0.0f;
+
+		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+	}
+		break;
+	}
+
+	//Get the material Id used to reference the created material
+	UINT iMatID = m_pRenderManager->CreateMaterial(Material);
+
+	return iMatID;
+	
+	
+	
 }

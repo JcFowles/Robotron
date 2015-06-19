@@ -4,6 +4,7 @@ CGame* CGame::s_pGame = 0;
 
 CGame::CGame()
 {
+	m_uiNextObjID = 0;
 }
 
 
@@ -13,6 +14,10 @@ CGame::~CGame()
 	delete m_plistPlayers;
 	m_plistPlayers = 0;
 
+	//Delete enemy list
+	delete m_plistEnemies;
+	m_plistEnemies = 0;
+	
 	delete m_pClock;
 	m_pClock = 0;
 
@@ -39,8 +44,12 @@ bool CGame::Initialise()
 	m_pClock = new CClock();
 	m_pClock->Initialise();
 
+	//Initialise player list
 	m_plistPlayers = new std::map < std::string, PlayerStates >;
-		
+	m_plistEnemies = new std::map < UINT, EnemyStates > ;
+
+	//TO DO: move and update
+	SpawnWave();
 
 	return true;
 }
@@ -107,45 +116,42 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 			//playerIter->second.f3Velocity.x = -1*(playerIter->second.f3Velocity.x * _fDt);
 			playerIter->second.f3Velocity.x = playerIter->second.f3Velocity.x - 0.05f;
 		}			
+		
+		POINT CursorPos = _pServerPacket->PlayerInputs.CursorPos;
+		CursorPos.x -= 500;
+		CursorPos.y -= 500;
+
+		float3 f3Direction(float(CursorPos.x), 0.0f, -1*float(CursorPos.y));
+		f3Direction.Normalise();
+		playerIter->second.f3Direction = f3Direction; 
+
+		if (_pServerPacket->PlayerInputs.bActivate)
+		{
+			//Spawn a bullet
+		}
+
 	}
 }
 
 void CGame::UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket)
 {
-	//Get the number of players
-	m_iNumberPlayers = _ListPlayers.size();
-
-	//Initialise the list of players
-	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
-	{
-
-		//Create the player states
-		PlayerStates tempState;
-		StringToStruct(_ListPlayers[iPlayer].c_str(), NetworkValues::MAX_NAME_LENGTH, tempState.cPlayerName);
-		tempState.f3Positions = { float(iPlayer * 5), 20.0f, 0.0f };
-		tempState.f3Velocity = { 0.0f, 0.0f, 0.0f };
-
-		//Add the player and its states to the list
-		m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_ListPlayers[iPlayer], tempState));
-
-		//Set the player positions in the packet to send
-		_pClientPacket->PlayerInfo[iPlayer].f3Positions = tempState.f3Positions;
-
-	}
+	
 }
 
 void CGame::AddPlayer(std::string _strUser)
 {
 	//Create the player states
-	PlayerStates tempState;
-	StringToStruct(_strUser.c_str(), NetworkValues::MAX_NAME_LENGTH, tempState.cPlayerName);
+	PlayerStates tempPlayerState;
+	StringToStruct(_strUser.c_str(), NetworkValues::MAX_NAME_LENGTH, tempPlayerState.cPlayerName);
 	int iNumCurrent = m_plistPlayers->size();
-	tempState.f3Positions = { float(iNumCurrent * 5), 20.0f, 0.0f };
-	tempState.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempPlayerState.f3Positions = { float(iNumCurrent * 5), 20.0f, 0.0f };
+	tempPlayerState.f3Direction = { 0.0f, 0.0f, 1.0f };
+	tempPlayerState.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempPlayerState.uiPlayerID = m_uiNextObjID++;
 
 	//Add the player and its states to the list
-	m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_strUser, tempState));
-
+	m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_strUser, tempPlayerState));
+		
 }
 
 void CGame::RemovePlayer(std::string _strLeftPlayer)
@@ -184,3 +190,38 @@ void CGame::SetPlayerStates(ClientDataPacket* _pDataToSend)
 		iUser++;
 	}
 }
+
+void CGame::SetEnemyStates(ClientDataPacket* _pDataToSend)
+{
+	//Run through the map of active clients
+	std::map< UINT, EnemyStates>::iterator iterEnemy = m_plistEnemies->begin();
+	std::map< UINT, EnemyStates>::iterator iterEnemyEnd = m_plistEnemies->end();
+	int iEnemy = 0;
+	while (iterEnemy != iterEnemyEnd)
+	{
+		_pDataToSend->EnemyInfo[iEnemy] = iterEnemy->second;
+
+		//Get next clients user name
+		iterEnemy++;
+		//Increment the iUser
+		iEnemy++;
+	}
+
+	_pDataToSend->iNumEnemies = m_plistEnemies->size();
+
+}
+
+void CGame::SpawnWave()
+{
+	//create Enemy State
+	EnemyStates tempEnemyState;
+	tempEnemyState.Etype = ET_LUST;
+	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
+	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 20.0f, 5.0f };
+	tempEnemyState.uiEnemyID = m_uiNextObjID++;
+
+	//Add to the list of enemies
+	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
+
+}
+

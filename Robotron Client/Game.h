@@ -52,11 +52,15 @@ public:
 	void RenderSingleFrame();
 
 	void UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket);
-	int CreatePlayerAssest();
+
 	bool AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd);
 	void AddAllPlayers(ClientDataPacket* _pClientPacket);
 	void RemovePlayer(std::string _strLeftPlayer);
 	void CreateEnemyLust();
+
+	int CreatePlayerAssest();
+	int CreateEnemyAssest(eEnemyTypes _EnemyType);
+	void SpawnWave(ClientDataPacket* _pClientPacket);
 
 	/***********************
 	* CreateCubeMesh: Creates a cube Mesh with origin in its very center
@@ -84,13 +88,20 @@ private:
 	int m_iPlayerMaterialID;
 
 
+	
+
+
 	std::map<UINT, CEnemyObj>* m_pListEnemies;
+
+	std::map<eEnemyTypes, UINT>* m_iEnemyIDs;
 
 	std::string m_strPlayerName;
 	CPlayerObj* m_pPlayerAvatar;
 	
 	
 	float m_fPlayerSize;
+	
+	std::map<eEnemyTypes, CMesh* >* m_pEnemyMesh;
 
 	CMesh* m_pLustMesh;
 	CMesh* m_pWrathMesh;

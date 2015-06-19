@@ -1700,6 +1700,7 @@ void CClientApp::LoadGame()
 
 	m_pGame = &(CGame::GetInstance());
 	m_pGame->Initialise(m_pRenderManager, m_strUserName);
+	m_pGame->SpawnWave(m_pClientPacket);
 	m_pGame->AddAllPlayers(m_pClientPacket);
 
 	m_bGameLoading = false;
