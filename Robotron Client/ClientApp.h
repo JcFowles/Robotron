@@ -313,7 +313,14 @@ public:
 	* @return: void:
 	********************/
 	void ProcessServerFind();
-		
+	
+	/***********************
+	* ProcessGameStart: Process the game start
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	//void ProcessGameStart();
+
 	/***********************
 	* IsKeyDown: Return the bool array of keyboard keys, used as a getter and setter
 	* @author: Jc Fowles
@@ -374,6 +381,14 @@ public:
 	********************/
 	void LobbyMenuSelect(std::string _strMenuItem);
 
+
+	//TO DO:
+	void SinglePlayerSelect(std::string _strMenuItem);
+	void EnterUserName(int _iYpos);
+
+	bool AddUser(std::string _strPlayerName, ClientInfo _clientInfo);
+
+
 protected:
 
 private:
@@ -398,8 +413,7 @@ private:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
 
-	void SinglePlayerSelect(std::string _strMenuItem);
-	void EnterUserName(int _iYpos);
+	
 
 
 	//Member Variables
@@ -453,8 +467,8 @@ private:
 
 	//Maps
 	std::multimap< std::string, ServerInfo>* m_pMapActiveServers;
-	std::map< std::string, ClientInfo>* m_pMapActiveClients;
 	
+	std::map< std::string, ClientInfo>* m_pMapActiveClients;
 	std::pair< std::string, ServerInfo>* m_pSelectedServer;
 		
 	//Graphic Variables

@@ -34,10 +34,16 @@ public:
 
 	~CGame(void);
 
-	bool Initialise(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket);
+	bool Initialise();
 
 	void Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClientPacket);
 	void ProcessInput(float _fDt, ServerDataPacket* _pServerPacket);
+
+
+	
+	void AddPlayer(std::string _strUser);
+	void UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket);
+	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 
 private:
 	//Disallowing copies and extra constructions

@@ -41,7 +41,7 @@ public:
 
 	~CGame(void);
 
-	bool Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Players, int _iIndexOfClientPlayer);
+	bool Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer);
 
 	void Draw();
 
@@ -51,7 +51,11 @@ public:
 	//Render
 	void RenderSingleFrame();
 
-	void CreatePlayers(std::vector<PlayerStates> _Players);
+	void UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket);
+	int CreatePlayerAssest();
+	bool AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd);
+	void AddAllPlayers(ClientDataPacket* _pClientPacket);
+
 	void CreateEnemyLust();
 
 	/***********************
@@ -76,11 +80,16 @@ private:
 	static CGame* s_pGame;
 	
 	std::map<std::string, CPlayerObj>* m_plistPlayers;
+	CMesh* m_pPlayerMesh;
+	int m_iPlayerMaterialID;
+
+
 	std::map<UINT, CEnemyObj>* m_pListEnemies;
 
+	std::string m_strPlayerName;
 	CPlayerObj* m_pPlayerAvatar;
-
-	CMesh* m_pPlayerMesh;
+	
+	
 	float m_fPlayerSize;
 
 	CMesh* m_pLustMesh;

@@ -137,9 +137,9 @@ private:
 	/***********************
 	* ProcessFind: Process the JOIN_REQUEST message
 	* @author: Jc Fowles
-	* @return: void:
+	* @return: bool: Succesful joining or not
 	********************/
-	void ProcessJoinRequest();
+	bool ProcessJoinRequest();
 
 	/***********************
 	* ProcessActive: Process the ACTIVE message
@@ -248,9 +248,6 @@ private:
 		
 	std::string m_strHostClient;
 	
-	//TO DO move to class sever game
-	//Game Variables
-	//std::map<std::string, PlayerStates>* m_pMapPlayerStates;
 	std::map< std::string, ClientInfo>* m_pMapClientInfo;
 
 };

@@ -52,6 +52,7 @@ enum ePacketType
 	PT_CREATE,
 	PT_FIND,
 	PT_JOIN_REQUEST,
+	PT_CLIENT_JOINED,
 	PT_ACTIVE,
 	PT_GAME_START,
 	PT_LEAVE,
@@ -63,7 +64,7 @@ enum ePacketType
 
 struct PlayerStates
 {
-	char cPLayerName[NetworkValues::MAX_NAME_LENGTH + 1];
+	char cPlayerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	
 	float3 f3Positions;
 	float3 f3Velocity;
@@ -106,19 +107,13 @@ struct ServerDataPacket
 	InputStates PlayerInputs;
 };
 
-struct ActiveClient
-{
-	char cUserName[NetworkValues::MAX_NAME_LENGTH + 1];
-	bool bActive;
-};
-
 struct ServerInfo
 {
 	//If you add anything to this search for
 	/*<SERVER_INFO>*/
 	char cServerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	char cHostName[NetworkValues::MAX_NAME_LENGTH + 1];
-	ActiveClient activeClientList[NetworkValues::MAX_USERS];
+	ClientInfo activeClientList[NetworkValues::MAX_USERS];
 	int iNumClients;
 	sockaddr_in serverSocAddr;
 };

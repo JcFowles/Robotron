@@ -182,7 +182,6 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 
 }
 
-
 //Process based on states
 void CClientApp::Process()
 {
@@ -262,8 +261,7 @@ void CClientApp::Process()
 		break;
 	case GS_PLAY:
 	{
-		//m_pGame->Process();
-		ProcessGameInput();		
+		ProcessGameInput();
 	}
 		break;
 	default:
@@ -904,7 +902,6 @@ void CClientApp::Draw()
 		}break;
 		case MS_SINGLE_PLAYER:
 		{
-			//TO DO: Start a single player instance
 			SinglePlayerMenuDraw();
 		}break;
 		case MS_MULTI_PLAYER:
@@ -1452,49 +1449,35 @@ void CClientApp::ProcessReceiveData()
 		{
 			ProcessJoinRequest();
 		}
-			break;
-
+		break;
+		case PT_CLIENT_JOINED:
+		{
+			std::string JoinedUser(m_pClientPacket->cText);
+			//Check that the joined user is not yourself
+			for (unsigned int iJoinedPLayer = 0; iJoinedPLayer < NetworkValues::MAX_USERS; iJoinedPLayer++)
+			{
+				//Find the joined users Client info
+				std::string strUserCheck(m_pClientPacket->serverInfo.activeClientList[iJoinedPLayer].cUserName);
+				if (strUserCheck == JoinedUser)
+				{
+					//Then add this user the the list of clients
+					bool addedUser = AddUser(JoinedUser, m_pClientPacket->serverInfo.activeClientList[iJoinedPLayer]);
+					assert(("failed to add user to client app map", addedUser));
+				}
+			}
+	
+		}
+		break;
 		case PT_GAME_START:
 		{
-			//Game has started set game state to play
-			//Create and Initialise the game
-			m_pGame = &(CGame::GetInstance());
-
-			std::vector<PlayerStates> tempPlayerStates;
-			//Set it to a value higher than allowed
-			int PlayerIndex = NetworkValues::MAX_USERS + 1;
-
-
-			for (int i = 0; i < NetworkValues::MAX_USERS; i++)
-			{
-				std::string strPlayerName(m_pClientPacket->PlayerInfo[i].cPLayerName);
-				if (strPlayerName != "")
-				{
-
-					tempPlayerStates.push_back(m_pClientPacket->PlayerInfo[i]);
-				}
-				if (strPlayerName == m_strUserName)
-				{
-					PlayerIndex = i;
-				}
-			}
-			
-			if (m_pGame->Initialise(m_pRenderManager, tempPlayerStates, PlayerIndex))
-			{
-				m_eGameState = GS_PLAY;
-			}
-			else
-			{
-				//Game was unable to initialize debug and in game initialize
-				assert(("Game Unable To Initialise", false));
-			}
-
-			
+			m_eGameState = GS_PLAY;
 		}
 		case PT_LEAVE:
 		{
 			std::string strUserName(m_pClientPacket->cText);
 			//So and So has left
+
+
 		
 		}
 			break;
@@ -1550,6 +1533,11 @@ void CClientApp::ProcessCreation()
 
 		//Set that the server has been created
 		m_bServerCreated = true;
+				
+		//Create and Initialise the game
+		m_pGame = &(CGame::GetInstance());
+		m_pGame->Initialise(m_pRenderManager, m_strUserName);
+		m_pGame->AddAllPlayers(m_pClientPacket);
 
 		//Set the menu state to lobby
 		m_eMenuState = MS_LOBBY;
@@ -1585,6 +1573,13 @@ void CClientApp::ProcessJoinRequest()
 		//Set the menu state to lobby
 		m_eMenuState = MS_LOBBY;
 		m_bJoinError = false;
+
+		//Create and Initialise the game
+		m_pGame = &(CGame::GetInstance());
+		m_pGame->Initialise(m_pRenderManager, m_strUserName);
+		m_pGame->AddAllPlayers(m_pClientPacket);
+
+				
 	}
 	else //Not Successful, find out why it is not
 	{
@@ -1680,3 +1675,22 @@ void CClientApp::OpenServerApp()
 }
 
 
+
+bool CClientApp::AddUser(std::string _strPlayerName, ClientInfo _clientInfo)
+{
+	std::pair<std::map<std::string, ClientInfo>::iterator, bool> MapClientIter;
+	
+	//Try add the user
+	MapClientIter = m_pMapActiveClients->insert(std::pair<std::string, ClientInfo>(_strPlayerName, _clientInfo));
+
+	//if the user is added to this map add it to the game as well
+	if (MapClientIter.second == true)
+	{
+		m_pGame->AddPlayer(m_pClientPacket, _strPlayerName);
+	}
+
+	//Return the bool part(second)
+	//This will hold true if a new element was added 
+	//Or false if the element already exists
+	return MapClientIter.second;
+}

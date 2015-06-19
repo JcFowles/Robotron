@@ -31,8 +31,7 @@ CGame::~CGame()
 	delete m_pListEnemies;
 	m_pListEnemies = 0;
 
-	//Delete p[layer avatar
-	delete m_pPlayerAvatar;
+	//Delete player avatar
 	m_pPlayerAvatar = 0;
 	
 
@@ -54,19 +53,14 @@ void CGame::DestroyInstance()
 	s_pGame = 0;
 }
 
-bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Players, int _iIndexOfClientPlayer)
+bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer)
 {	
 
-	if (_iIndexOfClientPlayer > NetworkValues::MAX_USERS)
-	{
-		return false;
-	}
-
-	m_iNumberPlayers = _Players.size();
-	m_iIndexOfClientPlayer = _iIndexOfClientPlayer;
+	m_strPlayerName = _ControllingPlayer;
+		
 	m_plistPlayers = new std::map < std::string, CPlayerObj >;
 	m_pListEnemies = new std::map < UINT, CEnemyObj > ;
-	m_pPlayerAvatar = new CPlayerObj();
+	
 	m_pRenderManager = _RenderManager;
 		
 	//Set up the projection matrix	
@@ -81,17 +75,19 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 
 	//Create the Camera
 	m_pCamera = new CCameraStatic();
-	//Get the position of the client player and set the static camera to that position only 100 units above it
-	D3DXVECTOR3 D3DPosition = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y + 2, _Players[_iIndexOfClientPlayer].f3Positions.z };
-	//And then set the look at vector of the camera to look at the client players position
-	D3DXVECTOR3 D3DLookAt = { _Players[_iIndexOfClientPlayer].f3Positions.x, _Players[_iIndexOfClientPlayer].f3Positions.y, _Players[_iIndexOfClientPlayer].f3Positions.z };
+	//Initialise the camera position
+	D3DXVECTOR3 D3DPosition = { 0.0f, 100.0f, 0.0f };
+	//Initialise the Camera target
+	D3DXVECTOR3 D3DLookAt = { 0.0f, 0.0f, 0.0f };
 	m_pCamera->Initialise(D3DPosition, D3DLookAt, false);
 	m_pCamera->Process(m_pRenderManager);
 		
-	//Create players
-	CreatePlayers(_Players);
+	//Create player assets
+	m_iPlayerMaterialID = CreatePlayerAssest();
+
 	
-	CreateEnemyLust();
+	
+	//CreateEnemyLust();
 
 	/*std::string strFilePath = "Assets\\Wrath.png";
 	iTextureID = _RenderManager->CreateTexture(strFilePath);
@@ -108,46 +104,15 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::vector<PlayerStates> _Pla
 		
 }
 
-void CGame::CreatePlayers(std::vector<PlayerStates> _Players)
+void CGame::UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket)
 {
-	//Create the texture for the Player object
-	std::string strFilePath = "Assets\\CompanionCube.png";
-	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
-	m_pPlayerMesh = CreateCubeMesh(1.0f, iTextureID);
+	
 
-	//Create the material for the players object
-	MaterialValues Material;
-	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
-	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.fPower = { 1.0f };
-
-	//Get the material Id used to reference the created material
-	int iMatID = m_pRenderManager->CreateMaterial(Material);
-
-	//Create each player object and save them in a map
-	for (int iPlayer = 0; iPlayer < m_iNumberPlayers; iPlayer++)
-	{
-		//Create player object
-		CPlayerObj tempPlayer;
-		//Initialise the player Object with the Cube Mesh and set its coordinates
-		tempPlayer.Initialise(m_pRenderManager, iMatID, m_pPlayerMesh, _Players[iPlayer].f3Positions);
-
-		std::string strPlayerName(_Players[iPlayer].cPLayerName);
-
-		//Add the player and its object to the list of players
-		m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(strPlayerName, tempPlayer));
-
-		//Initialise player object
-		if (iPlayer == m_iIndexOfClientPlayer)
-		{
-			*m_pPlayerAvatar = tempPlayer;
-		}
-
-	}
-
+	
+	
 }
+
+
 
 void CGame::CreateEnemyLust()
 {
@@ -204,7 +169,8 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 		iterPlayer++;
 	}
 	
-	
+	std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+	m_pPlayerAvatar = &playerItter->second;
 
 	D3DXVECTOR3 d3dVPos;
 	d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
@@ -321,4 +287,90 @@ CMesh* CGame::CreateCubeMesh(float _fCubeSize, int iTextureID)
 	meshCube->CreateStaticBuffer();
 	//Return the mesh
 	return meshCube;
+}
+
+bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd)
+{
+	PlayerStates tempState;
+	//Find the player to add
+	for (UINT iPlayer = 0; iPlayer < NetworkValues::MAX_USERS; iPlayer++)
+	{
+		std::string strNameCheck(_pClientPacket->serverInfo.activeClientList[iPlayer].cUserName);
+		if (_strPlayerToAdd == strNameCheck)
+		{
+			tempState = _pClientPacket->PlayerInfo[iPlayer];
+		}
+	}
+	
+	std::pair<std::map<std::string, CPlayerObj>::iterator, bool> MapClientIter;
+		
+	//Create player object
+	CPlayerObj tempPlayer;
+	//Initialise the player Object with the Cube Mesh and set its coordinates
+	tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, tempState.f3Positions);
+
+	//Add the player to the map
+	std::string strName(tempState.cPlayerName);
+	MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(strName, tempPlayer));
+	
+	//If this is the controlling players object save it
+	if (tempState.cPlayerName == m_strPlayerName)
+	{
+		//Find the controlling player in the map
+		std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+		m_pPlayerAvatar = &playerItter->second;
+	}
+
+	//Return the bool part(second)
+	//This will hold true if a new element was added 
+	//Or false if the element already exists
+	return MapClientIter.second;
+}
+
+void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
+{
+	for (UINT iPlayer = 0; iPlayer < NetworkValues::MAX_USERS; iPlayer++)
+	{
+		
+		PlayerStates CurrentPlayerState = _pClientPacket->PlayerInfo[iPlayer];
+		
+		std::pair<std::map<std::string, CPlayerObj>::iterator, bool> MapClientIter;
+
+		//Create player object
+		CPlayerObj tempPlayer;
+		//Initialise the player Object with the Cube Mesh and set its coordinates
+		tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, CurrentPlayerState.f3Positions);
+
+		//Add the player to the map
+		MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(CurrentPlayerState.cPlayerName, tempPlayer));
+
+		//If this is the controlling players object save it
+		if (CurrentPlayerState.cPlayerName == m_strPlayerName)
+		{
+			//Find the controlling player in the map
+			std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+			m_pPlayerAvatar = &playerItter->second;
+		}
+	}
+}
+
+int CGame::CreatePlayerAssest()
+{
+	//Create the texture for the Player object
+	std::string strFilePath = "Assets\\CompanionCube.png";
+	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+	m_pPlayerMesh = CreateCubeMesh(1.0f, iTextureID);
+
+	//Create the material for the players object
+	MaterialValues Material;
+	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.fPower = { 1.0f };
+
+	//Get the material Id used to reference the created material
+	int iMatID = m_pRenderManager->CreateMaterial(Material);
+
+	return iMatID;
 }
