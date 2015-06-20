@@ -165,12 +165,26 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 			*m_pPlayerAvatar = iterPlayer->second;
 
 		}
-
-
+		
 		iPlayer++;
 		iterPlayer++;
 	}
-	
+
+	//Process list of Enemies
+	std::map<UINT, CEnemyObj>::iterator enemyIter = m_pListEnemies->begin();
+	std::map<UINT, CEnemyObj>::iterator enemyIterEnd = m_pListEnemies->end();
+	int iEnemy = 0;
+	while (enemyIter != enemyIterEnd)
+	{
+		//Set player position
+		enemyIter->second.SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
+		//Set player Direction
+		enemyIter->second.SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
+		
+		iEnemy++;
+		enemyIter++;
+	}
+			
 	std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
 	m_pPlayerAvatar = &playerItter->second;
 
@@ -178,19 +192,14 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
 	d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
 	d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
-
-	D3DXVECTOR3 d3dVDirection;
-	d3dVDirection.x = m_pPlayerAvatar->GetDirection().x;
-	d3dVDirection.y = m_pPlayerAvatar->GetDirection().y;
-	d3dVDirection.z = m_pPlayerAvatar->GetDirection().z;
-
+	
 	D3DXVECTOR3 d3dVUp;
 	d3dVUp.x = m_pPlayerAvatar->GetUpVector().x;
 	d3dVUp.y = m_pPlayerAvatar->GetUpVector().y;
 	d3dVUp.z = m_pPlayerAvatar->GetUpVector().z;
 
 	//Set the camera
-	m_pCamera->SetCamera(d3dVDirection, d3dVPos, d3dVUp);
+	m_pCamera->SetCamera(d3dVPos, d3dVPos, d3dVUp);
 	m_pCamera->Process(m_pRenderManager);
 		
 }
@@ -211,6 +220,7 @@ void CGame::Draw()
 
 		iterPlayer++;
 	}
+
 	std::map< UINT, CEnemyObj>::iterator iterEnemy = m_pListEnemies->begin();
 	std::map< UINT, CEnemyObj>::iterator iterEnemyEnd = m_pListEnemies->end();
 	while (iterEnemy != iterEnemyEnd)

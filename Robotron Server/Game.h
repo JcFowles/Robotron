@@ -23,6 +23,7 @@
 #include "../Shared/Clock.h"
 #include "../Shared/IRenderer.h"
 #include "../Shared/PlayerObj.h"
+#include "SteerLib.h"
 
 
 class CGame
@@ -43,7 +44,11 @@ public:
 	
 	void AddPlayer(std::string _strUser);
 	void RemovePlayer(std::string _strLeftPlayer);
-	void UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket);
+	void UpdatePlayers(ClientDataPacket* _pClientPacket);
+	void UpdateEnemies(ClientDataPacket* _pClientPacket);
+	void UpdateLust(EnemyStates* _Enemy);
+	
+	
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
 	

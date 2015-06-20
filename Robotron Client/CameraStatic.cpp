@@ -18,7 +18,7 @@
 CCameraStatic::CCameraStatic()
 {
 	m_vecPosition = { 0, 0, 0 };
-	m_vecTarget = { 0, 0, 1 };
+	m_vecTarget = { 0, 0, 0 };
 
 	m_bFirstPerson = true;
 }

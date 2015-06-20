@@ -62,28 +62,15 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 
 	ProcessInput(fDT, _pServerPacket);
 	
-	//Process list of players
-	std::map<std::string, PlayerStates>::iterator playerIter = m_plistPlayers->begin();
-	std::map<std::string, PlayerStates>::iterator playerIterEnd = m_plistPlayers->end();
-	int iPlayer = 0;
-	while (playerIter != playerIterEnd)
-	{
-		playerIter->second.f3Positions = playerIter->second.f3Positions + playerIter->second.f3Velocity;
-
 	
-		//Set the player positions in the packet to send
-		_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
-
-		playerIter->second.f3Velocity = { 0.0f, 0.0f, 0.0f };
-
-		iPlayer++;
-		playerIter++;
-	}
-
-
+	UpdatePlayers(_pClientPacket);
+	UpdateEnemies(_pClientPacket);
 
 
 }
+
+
+
 
 void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 {
@@ -134,9 +121,63 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 	}
 }
 
-void CGame::UpdatePlayers(std::vector<std::string> _ListPlayers, ClientDataPacket* _pClientPacket)
+void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
+{
+	//Process list of players
+	std::map<std::string, PlayerStates>::iterator playerIter = m_plistPlayers->begin();
+	std::map<std::string, PlayerStates>::iterator playerIterEnd = m_plistPlayers->end();
+	int iPlayer = 0;
+	while (playerIter != playerIterEnd)
+	{
+		playerIter->second.f3Positions = playerIter->second.f3Positions + playerIter->second.f3Velocity;
+
+
+		//Set the player positions in the packet to send
+		_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
+
+		playerIter->second.f3Velocity = { 0.0f, 0.0f, 0.0f };
+
+		iPlayer++;
+		playerIter++;
+	}
+}
+
+void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 {
 	
+	//Process list of Enemies
+	std::map<UINT, EnemyStates>::iterator enemyIter = m_plistEnemies->begin();
+	std::map<UINT, EnemyStates>::iterator enemyIterEnd = m_plistEnemies->end();
+	int iEnemy = 0;
+	while (enemyIter != enemyIterEnd)
+	{
+		switch (enemyIter->second.Etype)
+		{
+		case ET_LUST:
+		{
+			UpdateLust(&enemyIter->second);
+		}
+		break;
+		default:
+			break;
+		}
+
+		
+				
+		enemyIter++;
+	}
+
+}
+
+void CGame::UpdateLust(EnemyStates* _pEnemy)
+{
+	std::map<std::string, PlayerStates>::iterator player = m_plistPlayers->begin();
+	//Find enemy to seek
+	_pEnemy->f3Target = player->second.f3Positions;
+	
+	//Steerings
+	seek(_pEnemy);
+
 }
 
 void CGame::AddPlayer(std::string _strUser)
@@ -220,6 +261,9 @@ void CGame::SpawnWave()
 	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 20.0f, 5.0f };
 	tempEnemyState.uiEnemyID = m_uiNextObjID++;
+	tempEnemyState.fMaxSpeed = 0.0001f;
+
+	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
 
 	//Add to the list of enemies
 	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));

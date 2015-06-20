@@ -458,27 +458,12 @@ void CServerApp::ProcessLeave()
 		//Remove the client from the map
 		m_pMapClientInfo->erase(strUserName);
 
-		//If the game excist remove the player from there too 
+		//If the game exist remove the player from there too 
 		if (m_pGame != 0)
 		{
 			m_pGame->RemovePlayer(strUserName);
 		}
-		std::vector<std::string> listPlayers;
-		//Update the list players
-		//Loop through the map, adding the players to list of players	
-		std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();
-		std::map< std::string, ClientInfo>::iterator iterClientEnd = m_pMapClientInfo->end();
-		while (iterClient != iterClientEnd)
-		{
-			//add the player to list of players	
-			listPlayers.push_back(iterClient->first);
-			//Next player				
-			iterClient++;
-		}
-
-		//Update the list of players in the game
-		m_pGame->UpdatePlayers(listPlayers, m_pClientPacket);
-
+		
 		//Send message
 		SendToAll(m_pClientPacket);
 

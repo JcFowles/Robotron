@@ -85,6 +85,12 @@ struct EnemyStates
 	float3 f3Positions;
 	float3 f3Velocity;
 	float3 f3Direction;
+	float3 f3Acceleration;
+
+	//PlayerStates f3TagetPlayer;
+	float3 f3Target;
+
+	float fMaxSpeed;
 
 	//TO DO: everything else
 };

@@ -170,7 +170,18 @@ struct float3
 	********************/
 	float3 operator- (const float3 _f3) const
 	{
-		return float3(_f3.x - x, _f3.y - y, _f3.z - z);
+		return float3(x - _f3.x, y - _f3.y, z - _f3.z);
+	}
+
+	/***********************
+	* operator-=: Subtraction and assignment operator
+	* @author: Jc Fowles
+	* @Parameter: const float3 _f3: right hand side of the operator
+	* @return: float3: The result of the Subtraction and assignment
+	********************/
+	float3 operator-= (const float3 _f3)
+	{
+		return float3(x -= _f3.x, y -= _f3.y, z -= _f3.z);
 	}
 
 	/***********************
@@ -184,6 +195,17 @@ struct float3
 		return float3(_f3.x * x, _f3.y * y, _f3.z * z);
 	}
 	
+	/***********************
+	* operator*: Multiplication operator
+	* @author: Jc Fowles
+	* @Parameter: const float _f: right hand side of the operator
+	* @return: float3: The result of the Multiplication
+	********************/
+	float3 operator* (const float _f) const
+	{
+		return float3(_f * x, _f * y, _f * z);
+	}
+
 	/***********************
 	* Magnitude: Calculate and return the magnitude of the float3 vector
 	* @author: Jc Fowles
