@@ -137,7 +137,7 @@ void CServerApp::Process()
 {	
 	ProcessReceiveData();
 
-
+	Sleep(16);
 	
 }
 

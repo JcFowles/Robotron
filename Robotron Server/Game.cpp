@@ -50,6 +50,8 @@ bool CGame::Initialise()
 
 	//TO DO: move and update
 	SpawnWave();
+	SpawnWave();
+	SpawnWave();
 
 	return true;
 }
@@ -59,7 +61,7 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 	//Process clock and get the delta tick
 	m_pClock->Process();
 	float fDT = m_pClock->GetDeltaTick();
-
+	
 	ProcessInput(fDT, _pServerPacket);
 	
 	
@@ -84,26 +86,48 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 		if (_pServerPacket->PlayerInputs.bDownPress)
 		{
 			//playerIter->second.f3Velocity.z = -1*(playerIter->second.f3Velocity.z * _fDt);
-			playerIter->second.f3Velocity.z = playerIter->second.f3Velocity.z - 0.05f;
+			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z - 0.016667f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bUpPress)
 		{
 			//playerIter->second.f3Velocity.z = (playerIter->second.f3Velocity.z * _fDt);
-			playerIter->second.f3Velocity.z = playerIter->second.f3Velocity.z + 0.05f;
+			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z + 0.016667f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bRightPress)
 		{
 			//playerIter->second.f3Velocity.x =  (playerIter->second.f3Velocity.x * _fDt);
-			playerIter->second.f3Velocity.x = playerIter->second.f3Velocity.x + 0.05f;
+			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x + 0.016667f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bLeftPress)
 		{
 			//playerIter->second.f3Velocity.x = -1*(playerIter->second.f3Velocity.x * _fDt);
-			playerIter->second.f3Velocity.x = playerIter->second.f3Velocity.x - 0.05f;
+			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x - 0.016667f;
 		}			
+		
+		if (!(_pServerPacket->PlayerInputs.bLeftPress) &&
+			!(_pServerPacket->PlayerInputs.bRightPress) &&
+			!(_pServerPacket->PlayerInputs.bDownPress) &&
+			!(_pServerPacket->PlayerInputs.bUpPress))
+		{
+			
+			playerIter->second.f3Velocity -= {0.016667f, 0.016667f, 0.016667f };
+			if (playerIter->second.f3Velocity.x < 0)
+			{
+				playerIter->second.f3Velocity.x = 0.0f;
+			}
+			if (playerIter->second.f3Velocity.y < 0)
+			{
+				playerIter->second.f3Velocity.y = 0.0f;
+			}
+			if (playerIter->second.f3Velocity.z < 0)
+			{
+				playerIter->second.f3Velocity.z = 0.0f;
+			}
+		}
+
 		
 		POINT CursorPos = _pServerPacket->PlayerInputs.CursorPos;
 		CursorPos.x -= 500;
@@ -129,13 +153,16 @@ void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 	int iPlayer = 0;
 	while (playerIter != playerIterEnd)
 	{
-		playerIter->second.f3Positions = playerIter->second.f3Positions + playerIter->second.f3Velocity;
-
+		//playerIter->second.f3Positions = playerIter->second.f3Positions + playerIter->second.f3Velocity;
+		
+		playerIter->second.f3Velocity += playerIter->second.f3Acceleration;
+		playerIter->second.f3Velocity.Limit(playerIter->second.fMaxSpeed);
+		playerIter->second.f3Positions += playerIter->second.f3Velocity;
+		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * 0.0f;
 
 		//Set the player positions in the packet to send
 		_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
-
-		playerIter->second.f3Velocity = { 0.0f, 0.0f, 0.0f };
+			
 
 		iPlayer++;
 		playerIter++;
@@ -178,6 +205,12 @@ void CGame::UpdateLust(EnemyStates* _pEnemy)
 	//Steerings
 	seek(_pEnemy);
 
+	_pEnemy->f3Velocity += _pEnemy->f3Acceleration;
+	_pEnemy->f3Velocity.Limit(_pEnemy->fMaxSpeed);
+	_pEnemy->f3Positions += _pEnemy->f3Velocity;
+	_pEnemy->f3Acceleration = _pEnemy->f3Acceleration * 0.0f;
+	_pEnemy->f3Direction = _pEnemy->f3Velocity;
+	
 }
 
 void CGame::AddPlayer(std::string _strUser)
@@ -189,8 +222,11 @@ void CGame::AddPlayer(std::string _strUser)
 	tempPlayerState.f3Positions = { float(iNumCurrent * 5), 20.0f, 0.0f };
 	tempPlayerState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempPlayerState.f3Velocity = { 0.0f, 0.0f, 0.0f };
-	tempPlayerState.uiPlayerID = m_uiNextObjID++;
+	tempPlayerState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
 
+	tempPlayerState.uiPlayerID = m_uiNextObjID++;
+	tempPlayerState.fMaxSpeed = 10.0f;
+	tempPlayerState.fMaxForce = 1.0f;
 	//Add the player and its states to the list
 	m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_strUser, tempPlayerState));
 		
@@ -258,13 +294,17 @@ void CGame::SpawnWave()
 	//create Enemy State
 	EnemyStates tempEnemyState;
 	tempEnemyState.Etype = ET_LUST;
+
 	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 20.0f, 5.0f };
-	tempEnemyState.uiEnemyID = m_uiNextObjID++;
-	tempEnemyState.fMaxSpeed = 0.0001f;
-
+	tempEnemyState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
 
+	tempEnemyState.uiEnemyID = m_uiNextObjID++;
+	tempEnemyState.fMaxSpeed = 2.0f * m_uiNextObjID;
+	tempEnemyState.fMaxForce = 0.1f;
+
+	
 	//Add to the list of enemies
 	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
 

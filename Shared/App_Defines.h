@@ -219,7 +219,7 @@ struct float3
 	/***********************
 	* Normalise: Calculate and return a normalized vector of the float3 vector
 	* @author: Jc Fowles
-	* @return: float: The normalized float3 vector 
+	* @return: float3: The normalized float3 vector 
 	********************/
 	float3 Normalise()
 	{
@@ -234,6 +234,21 @@ struct float3
 			//Return the normalized vector 
 			return ((*this)*(1 / mag));
 		}
+	}
+
+	/***********************
+	* Limit: limit the magnitude of a vector
+	* @author: Jc Fowles
+	* @return: float3: The limit float3 vector
+	********************/
+	float3 Limit(float _fLimit)
+	{
+		float mag = this->Magnitude();
+		if (mag > _fLimit)
+		{
+			(*this) = this->Normalise() * _fLimit;
+		}
+		return (*this);
 	}
 
 };

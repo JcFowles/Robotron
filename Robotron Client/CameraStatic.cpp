@@ -46,7 +46,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		//set target to be the avatar
 		m_vecTarget = _vecPosition;
 
-		//Set position directly 20 unit above (on Y-axis) past in position
+		//Set position 
 		m_vecPosition = _vecPosition;
 		D3DXVECTOR3 AddHeight = { 0.0f, 50.0f, -50.0f };
 		m_vecPosition += AddHeight;

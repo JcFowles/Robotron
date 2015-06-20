@@ -70,7 +70,10 @@ struct PlayerStates
 	float3 f3Positions;
 	float3 f3Velocity;
 	float3 f3Direction;
+	float3 f3Acceleration;
 	
+	float fMaxSpeed;
+	float fMaxForce;
 	//TO DO: Collision box
 	//TO DO: SCORE
 	//TO DO: Health
@@ -91,6 +94,9 @@ struct EnemyStates
 	float3 f3Target;
 
 	float fMaxSpeed;
+	float fMaxForce;
+	float fMaxAccel;
+
 
 	//TO DO: everything else
 };
