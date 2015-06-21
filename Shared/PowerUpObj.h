@@ -55,10 +55,8 @@ public:
 	//member variables
 private:
 		
-
 	ePowerType m_eType;
-
-
+	
 };
 
 #endif //__POWER_UP_OBJ_H__

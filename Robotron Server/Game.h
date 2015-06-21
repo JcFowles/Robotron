@@ -13,6 +13,8 @@
 //
 #pragma once
 
+//TO DO: comment Headers
+
 #ifndef __SERVER_GAME_H__
 #define __SERVER_GAME_H__
 
@@ -45,13 +47,22 @@ public:
 	void AddPlayer(std::string _strUser);
 	void RemovePlayer(std::string _strLeftPlayer);
 	void UpdatePlayers(ClientDataPacket* _pClientPacket);
-	void UpdateEnemies(ClientDataPacket* _pClientPacket);
-	void UpdateLust(EnemyStates* _Enemy);
+	void UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt);
+	void UpdateLust(EnemyStates* _Enemy, float _fDt);
 	
 	
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
 	void SetPowUpStates(ClientDataPacket* _pDataToSend);
+		
+	/***********************
+	* CheckCollision: Check if two bounding boxes are colliding
+	* @author: Jc Fowles
+	* @Parameter: BoundingBox _BBoxA: first bounding box
+	* @Parameter: BoundingBox _BBoxB: Second bounding box
+	* @return: bool: True if colliding
+	********************/
+	bool CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB);
 	
 	void SpawnWave();
 private:
@@ -62,9 +73,7 @@ private:
 	
 	//member variables
 private:
-
-	//IRenderer* m_pRenderManager;
-
+		
 	static CGame* s_pGame;
 	CClock* m_pClock;
 

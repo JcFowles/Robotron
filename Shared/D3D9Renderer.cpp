@@ -128,7 +128,20 @@ bool CD3D9Renderer::Shutdown()
 	}
 
 
-
+	if (m_pLightMap != 0)
+	{
+		std::map<UINT, D3DLIGHT9*>::iterator iterCurrent = m_pLightMap->begin();
+		std::map<UINT, D3DLIGHT9*>::iterator iterEnd = m_pLightMap->end();
+		while (iterCurrent != iterEnd)
+		{
+			delete iterCurrent->second;
+			iterCurrent->second = 0;
+			iterCurrent++;
+		}
+		delete m_pLightMap;
+		m_pLightMap = 0;
+	}
+	
 	
 	return true;
 }

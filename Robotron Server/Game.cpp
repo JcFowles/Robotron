@@ -66,7 +66,7 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 	
 	
 	UpdatePlayers(_pClientPacket);
-	UpdateEnemies(_pClientPacket);
+	UpdateEnemies(_pClientPacket, fDT);
 
 
 }
@@ -147,6 +147,9 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 
 void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 {
+
+	bool bCollision = false;
+
 	//Process list of players
 	std::map<std::string, PlayerStates>::iterator playerIter = m_plistPlayers->begin();
 	std::map<std::string, PlayerStates>::iterator playerIterEnd = m_plistPlayers->end();
@@ -159,19 +162,71 @@ void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 		playerIter->second.f3Velocity.Limit(playerIter->second.fMaxSpeed);
 		playerIter->second.f3Positions += playerIter->second.f3Velocity;
 		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * 0.0f;
+			
+		//Calculate bounding box
+		playerIter->second.BBox.f3CollisionMin = playerIter->second.f3Positions - kfPlayerSize;
+		playerIter->second.BBox.f3CollisionMax = playerIter->second.f3Positions + kfPlayerSize;
+					
+		//Check collisions
 
+		//If the enemy has collided with a player
+		std::map<std::string, PlayerStates>::iterator PlayerColIter = m_plistPlayers->begin();
+		while (PlayerColIter != m_plistPlayers->end())
+		{
+			if (PlayerColIter != playerIter)
+			{
+				if (CheckCollision(playerIter->second.BBox, PlayerColIter->second.BBox))
+				{
+					bCollision = true;
+					break;
+				}
+			}
+
+			PlayerColIter++;
+		}
+
+		if (bCollision == false)
+		{
+			std::map<UINT, EnemyStates>::iterator EnemyColIter = m_plistEnemies->begin();
+			while (EnemyColIter != m_plistEnemies->end())
+			{
+				
+				if (CheckCollision(playerIter->second.BBox, EnemyColIter->second.BBox))
+				{
+					bCollision = true;
+					break;
+				}
+				
+				EnemyColIter++;
+			}
+		}
+
+		if (bCollision == true)
+		{
+			//Set the position back to where it was
+			playerIter->second.f3Positions -= playerIter->second.f3Velocity;
+
+			//Then Reset its bounding box
+			playerIter->second.BBox.f3CollisionMin = playerIter->second.f3Positions - kfPlayerSize;
+			playerIter->second.BBox.f3CollisionMax = playerIter->second.f3Positions + kfPlayerSize;
+
+			playerIter->second.f3Velocity = playerIter->second.f3Velocity*0.0f;
+			playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * 0.0f;
+		}
+				
 		//Set the player positions in the packet to send
 		_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
-			
 
 		iPlayer++;
 		playerIter++;
 	}
 }
 
-void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
+void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt)
 {
-	
+	float fEnemySize = 0.0f;
+	bool bCollision = false;
+
 	//Process list of Enemies
 	std::map<UINT, EnemyStates>::iterator enemyIter = m_plistEnemies->begin();
 	std::map<UINT, EnemyStates>::iterator enemyIterEnd = m_plistEnemies->end();
@@ -182,13 +237,64 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 		{
 		case ET_LUST:
 		{
-			UpdateLust(&enemyIter->second);
+			UpdateLust(&enemyIter->second, _fDt);
+			fEnemySize = kfLustSize;
 		}
 		break;
 		default:
 			break;
 		}
 
+
+		//Calculate Collision Box
+		enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
+		enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
+
+		//Check collisions
+
+		//If the enemy has collided with a player
+		std::map<std::string, PlayerStates>::iterator PlayerColIter = m_plistPlayers->begin();
+		while (PlayerColIter != m_plistPlayers->end())
+		{
+			
+			if (CheckCollision(enemyIter->second.BBox, PlayerColIter->second.BBox))
+			{
+				bCollision = true;
+				break;
+			}
+
+			PlayerColIter++;
+		}
+
+		if (bCollision == false)
+		{
+			std::map<UINT, EnemyStates>::iterator EnemyColIter = m_plistEnemies->begin();
+			while (EnemyColIter != m_plistEnemies->end())
+			{
+				if (EnemyColIter != enemyIter)
+				{
+					if (CheckCollision(enemyIter->second.BBox, EnemyColIter->second.BBox))
+					{
+						bCollision = true;
+						break;
+					}
+				}
+				EnemyColIter++;
+			}
+		}
+		
+		if (bCollision == true)
+		{
+			//Set the position back to where it was
+			enemyIter->second.f3Positions -= enemyIter->second.f3Velocity;
+
+			//Then Reset its bounding box
+			enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
+			enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
+
+			enemyIter->second.f3Velocity = enemyIter->second.f3Velocity*0.0f;
+			enemyIter->second.f3Acceleration = enemyIter->second.f3Acceleration * 0.0f;
+		}
 		
 				
 		enemyIter++;
@@ -196,20 +302,33 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 
 }
 
-void CGame::UpdateLust(EnemyStates* _pEnemy)
+void CGame::UpdateLust(EnemyStates* _pEnemy, float _fDt)
 {
-	std::map<std::string, PlayerStates>::iterator player = m_plistPlayers->begin();
-	//Find enemy to seek
-	_pEnemy->f3Target = player->second.f3Positions;
-	
-	//Steerings
-	seek(_pEnemy);
+	std::map<std::string, PlayerStates>::iterator PlayerIter = m_plistPlayers->begin();
+	std::map<std::string, PlayerStates>::iterator ClosestPlayer = PlayerIter;
+	float fDistance = abs((PlayerIter->second.f3Positions - _pEnemy->f3Positions).Magnitude());
 
-	_pEnemy->f3Velocity += _pEnemy->f3Acceleration;
-	_pEnemy->f3Velocity.Limit(_pEnemy->fMaxSpeed);
-	_pEnemy->f3Positions += _pEnemy->f3Velocity;
-	_pEnemy->f3Acceleration = _pEnemy->f3Acceleration * 0.0f;
-	_pEnemy->f3Direction = _pEnemy->f3Velocity;
+	while (PlayerIter != m_plistPlayers->end())
+	{
+		float fNewDist = abs((PlayerIter->second.f3Positions - _pEnemy->f3Positions).Magnitude());
+
+		if (fNewDist < fDistance)
+		{
+			//Update the Distance
+			fDistance = fNewDist;
+			//The player Iter is closer than the current player, so save the closest player to this one
+			ClosestPlayer = PlayerIter;
+		}
+
+		PlayerIter++;
+	}
+
+	//Set the target to the the closest player
+	_pEnemy->f3Target = ClosestPlayer->second.f3Positions;
+
+	//Steerings
+	seek(_pEnemy, _fDt);
+		
 	
 }
 
@@ -223,6 +342,10 @@ void CGame::AddPlayer(std::string _strUser)
 	tempPlayerState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempPlayerState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempPlayerState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+
+	//Collision Box
+	tempPlayerState.BBox.f3CollisionMin = tempPlayerState.f3Positions - kfPlayerSize;
+	tempPlayerState.BBox.f3CollisionMax = tempPlayerState.f3Positions + kfPlayerSize;
 
 	tempPlayerState.uiPlayerID = m_uiNextObjID++;
 	tempPlayerState.fMaxSpeed = 10.0f;
@@ -319,10 +442,14 @@ void CGame::SpawnWave()
 	tempEnemyState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
 
-	tempEnemyState.uiEnemyID = m_uiNextObjID++;
-	tempEnemyState.fMaxSpeed = 0.10f;
-	tempEnemyState.fMaxForce = 0.01f;
+	//Collision Box
+	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfLustSize;
+	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfLustSize;
 
+	tempEnemyState.uiEnemyID = m_uiNextObjID++;
+	tempEnemyState.fMaxSpeed = 3.00f;
+	tempEnemyState.fMaxForce = 30.0f;
+	tempEnemyState.fMaxAccel = 0.5f;
 	
 	//Add to the list of enemies
 	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
@@ -336,10 +463,14 @@ void CGame::SpawnWave()
 	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, -5.0f };
 	tempPowUPState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempPowUPState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+
+	//Collision Box
+	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfLustSize;
+	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfLustSize;
 	
 	tempPowUPState.uiPowUpID = m_uiNextObjID++;
 	tempPowUPState.fMaxSpeed = 0.10f;
-	tempPowUPState.fMaxForce = 0.01f;
+	tempPowUPState.fMaxForce = 0.1f;
 
 
 	//Add to the list of enemies
@@ -347,3 +478,19 @@ void CGame::SpawnWave()
 
 }
 
+bool CGame::CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB)
+{
+
+	if (((_BBoxA.f3CollisionMax.x >= _BBoxB.f3CollisionMin.x) && (_BBoxA.f3CollisionMin.x <= _BBoxB.f3CollisionMax.x)) &&
+		((_BBoxA.f3CollisionMax.y >= _BBoxB.f3CollisionMin.y) && (_BBoxA.f3CollisionMin.y <= _BBoxB.f3CollisionMax.y)) &&
+		((_BBoxA.f3CollisionMax.z >= _BBoxB.f3CollisionMin.z) && (_BBoxA.f3CollisionMin.z <= _BBoxB.f3CollisionMax.z)))
+	{
+		//The Bounding boxes are colliding
+		return true;
+	}
+	else
+	{
+		//The Bounding boxes are not colliding
+		return false;
+	}
+}

@@ -74,10 +74,13 @@ struct PlayerStates
 	
 	float fMaxSpeed;
 	float fMaxForce;
-	//TO DO: Collision box
+	
+	//Collision Box
+	BoundingBox BBox;
+
 	//TO DO: SCORE
 	//TO DO: Health
-	//Other states ie shooting, health, points etc
+	
 };
 
 struct EnemyStates
@@ -90,15 +93,16 @@ struct EnemyStates
 	float3 f3Direction;
 	float3 f3Acceleration;
 
-	//PlayerStates f3TagetPlayer;
 	float3 f3Target;
 
 	float fMaxSpeed;
 	float fMaxForce;
 	float fMaxAccel;
 
+	//Collision Box
+	BoundingBox BBox; 
 
-	//TO DO: everything else
+	
 };
 
 struct PowerUpStates
@@ -117,6 +121,8 @@ struct PowerUpStates
 	float fMaxForce;
 	float fMaxAccel;
 
+	//Collision Box
+	BoundingBox BBox;
 };
 
 struct ClientInfo

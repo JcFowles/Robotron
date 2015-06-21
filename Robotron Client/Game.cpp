@@ -353,44 +353,42 @@ CMesh* CGame::CreateCubeMesh(float _fCubeSize, int iTextureID)
 	meshCube->SetPrimitiveType(IGPT_TRIANGLELIST);
 	
 	//Create the cube using Vertex with normals and UV Coords
-	
-	float fTemp = _fCubeSize / 2;
 
 	//Front Face
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, -_fCubeSize),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, -_fCubeSize),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 1.0f)));
 
 	//Left Face
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, _fCubeSize),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, -_fCubeSize),	float3(-1.0f, 1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(-1.0f, -1.0f, -1.0f),	float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, _fCubeSize),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
 
 	//Right Face
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, -_fCubeSize),		float3(1.0f, 1.0f, -1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, _fCubeSize),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, _fCubeSize),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(1.0f, -1.0f, -1.0f),		float2(0.0f, 1.0f)));
 
 	//Back Face
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, _fCubeSize),		float3(1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, _fCubeSize),		float3(-1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, _fCubeSize),	float3(-1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, _fCubeSize),		float3(1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
 
 	//Top Face
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, fTemp),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, fTemp),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, fTemp, -fTemp),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, fTemp, -fTemp),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, _fCubeSize),		float3(-1.0f, 1.0f, 1.0f),		float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, _fCubeSize),		float3(1.0f, 1.0f, 1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, _fCubeSize, -_fCubeSize),		float3(1.0f, 1.0f, -1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, _fCubeSize, -_fCubeSize),	float3(-1.0f, 1.0f, -1.0f),		float2(0.0f, 1.0f)));
 
 	//Bottom Face
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, -fTemp),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, -fTemp),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 0.0f)));
-	meshCube->AddVertex(CVertexUV(float3(fTemp, -fTemp, fTemp),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
-	meshCube->AddVertex(CVertexUV(float3(-fTemp, -fTemp, fTemp),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(-1.0f, -1.0f, -1.0f),	float2(0.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, -_fCubeSize),	float3(1.0f, -1.0f, -1.0f),		float2(1.0f, 0.0f)));
+	meshCube->AddVertex(CVertexUV(float3(_fCubeSize, -_fCubeSize, _fCubeSize),		float3(1.0f, -1.0f, 1.0f),		float2(1.0f, 1.0f)));
+	meshCube->AddVertex(CVertexUV(float3(-_fCubeSize, -_fCubeSize, _fCubeSize),	float3(-1.0f, -1.0f, 1.0f),		float2(0.0f, 1.0f)));
 
 	//Add the Indices
 	std::vector<int> vecIndices = { 0,1,2,
@@ -490,7 +488,7 @@ int CGame::CreatePlayerAssest()
 	//Create the texture for the Player object
 	std::string strFilePath = "Assets\\CompanionCube.png";
 	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
-	m_pPlayerMesh = CreateCubeMesh(1.0f, iTextureID);
+	m_pPlayerMesh = CreateCubeMesh(kfPlayerSize, iTextureID);
 
 	//Create the material for the players object
 	MaterialValues Material;
@@ -517,7 +515,7 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 	case ET_LUST:
 	{
 		strFilePath = "Assets\\Lust.png";
-		fEnemySize = 0.8f;
+		fEnemySize = kfLustSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -579,7 +577,7 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 	case PU_SHIELD:
 	{
 		strFilePath = "Assets\\Wrath.png";
-		fSize = 0.5f;
+		fSize = kfShieldSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };

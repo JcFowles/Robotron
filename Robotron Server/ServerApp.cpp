@@ -343,8 +343,9 @@ void CServerApp::ProcessReceiveData()
 		default:
 			break;
 		}
-		
 	}
+
+
 }
 
 void CServerApp::ProcessCreation()

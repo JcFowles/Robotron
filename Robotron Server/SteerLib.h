@@ -22,24 +22,40 @@
 #ifndef __STEER_H__
 #define __STEER_H__
 
-inline void seek(EnemyStates* _EnemyStates)
+inline void seek(EnemyStates* _EnemyStates, float fDt)
 {
+	//Di try fix to prevent Delta tick making velocity 0
+	if (fDt <= 0.0)
+	{
+		fDt = 0.01f;
+	}
+
 	float3 f3Desired;
 	f3Desired = _EnemyStates->f3Target - _EnemyStates->f3Positions;
 	f3Desired = f3Desired.Normalise();
-	f3Desired = f3Desired*_EnemyStates->fMaxSpeed;
+	f3Desired = f3Desired *_EnemyStates->fMaxSpeed* fDt;
 	
 	float3 f3Steer;
 	f3Steer = f3Desired - _EnemyStates->f3Velocity;
-	f3Steer.Limit(_EnemyStates->fMaxForce);
-	f3Steer = f3Steer* 0.01667f; //DT;
+	f3Steer.Limit(_EnemyStates->fMaxForce* fDt);
+		
 	
-
 	//Apply force
-	_EnemyStates->f3Acceleration += f3Steer; //DT;
+	_EnemyStates->f3Acceleration += f3Steer; 
+	_EnemyStates->f3Acceleration = _EnemyStates->f3Acceleration.Limit(_EnemyStates->fMaxAccel* fDt);
+	
+	//Update enemy position based on acceleration and velocity
+	_EnemyStates->f3Velocity += _EnemyStates->f3Acceleration;
+	_EnemyStates->f3Velocity.Limit(_EnemyStates->fMaxSpeed * fDt);
+	_EnemyStates->f3Positions += _EnemyStates->f3Velocity;
+	_EnemyStates->f3Acceleration = _EnemyStates->f3Acceleration * 0.0f;
+	_EnemyStates->f3Direction = _EnemyStates->f3Velocity;
+	_EnemyStates->f3Direction = _EnemyStates->f3Direction.Normalise();
 
 	
+
 	
+
 };
 
 

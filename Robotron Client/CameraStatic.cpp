@@ -33,7 +33,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		//First person view
 	{
 		//look where the avatar is looking, look at the same target
-		m_vecTarget = _vecTarget;
+		m_vecTarget = _vecTarget * 2.0f;
 
 		//Position with in the avatar
 		m_vecPosition = _vecPosition;

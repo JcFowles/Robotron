@@ -123,7 +123,7 @@ private:
 	IDirectInput8* m_pDirectInput;
 
 	IDirectInputDevice8* m_pDIKeyboard;
-	unsigned char m_cKeyStateBuffer[AppDefines::BUFFER_SIZE];
+	unsigned char m_cKeyStateBuffer[256];
 	
 	IDirectInputDevice8* m_pDIMouse;
 	DIMOUSESTATE m_mouseState;

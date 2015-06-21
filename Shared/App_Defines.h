@@ -27,11 +27,13 @@
 
 
 
+//Player Size
+const float kfPlayerSize = 1.0f;
+//Enemy Sizes
+const float kfLustSize = 0.8f;
 
-namespace AppDefines
-{
-	unsigned const BUFFER_SIZE = 256;
-};
+//Power Up Size
+const float kfShieldSize = 0.5f;
 
 enum eMenuStates
 {
@@ -147,7 +149,7 @@ struct float3
 	}
 
 	/***********************
-	* operator+: Addition operator
+	* operator+: Addition operator (vector)
 	* @author: Jc Fowles
 	* @Parameter: const float3 _f3: right hand side of the operator
 	* @return: float3: The result of the addition
@@ -155,6 +157,17 @@ struct float3
 	float3 operator+ (const float3 _f3) const 
 	{ 
 		return float3(_f3.x + x, _f3.y + y, _f3.z + z);
+	}
+
+	/***********************
+	* operator+: Addition operator (scalar)
+	* @author: Jc Fowles
+	* @Parameter: const float _f: right hand side of the operator
+	* @return: float3: The result of the addition
+	********************/
+	float3 operator+ (const float _f) const
+	{
+		return float3(_f + x, _f + y, _f + z);
 	}
 
 	/***********************
@@ -169,7 +182,7 @@ struct float3
 	}
 
 	/***********************
-	* operator-: Subtraction operator
+	* operator-: Subtraction operator (vector)
 	* @author: Jc Fowles
 	* @Parameter: const float3 _f3: right hand side of the operator
 	* @return: float3: The result of the subtraction
@@ -177,6 +190,17 @@ struct float3
 	float3 operator- (const float3 _f3) const
 	{
 		return float3(x - _f3.x, y - _f3.y, z - _f3.z);
+	}
+
+	/***********************
+	* operator-: Subtraction operator (scalar)
+	* @author: Jc Fowles
+	* @Parameter: const float _f: right hand side of the operator
+	* @return: float3: The result of the subtraction
+	********************/
+	float3 operator- (const float _f) const
+	{
+		return float3(x - _f, y - _f, z - _f);
 	}
 
 	/***********************
@@ -269,6 +293,13 @@ struct float4
 
 };
 
+struct BoundingBox
+{
+	//Collision Box
+	float3 f3CollisionMin;
+	float3 f3CollisionMax;
+};
+
 //Functions
 
 /***********************
@@ -319,10 +350,7 @@ inline std::string WideStringToString(wchar_t* _wstr)
 	return strConverted;
 }
 
-
 #define VALIDATE(a) if (!a) return (false)
-
-
 
 #endif //__APP_DEFINES_H__
 

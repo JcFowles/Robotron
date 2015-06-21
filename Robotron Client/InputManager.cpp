@@ -169,7 +169,7 @@ bool CInputManager::ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuff
 void CInputManager::ProcessInput()
 {
 	ReadDevice(m_pDIMouse, (void*)&m_mouseState, sizeof(DIMOUSESTATE));
-	ReadDevice(m_pDIKeyboard, (void*)m_cKeyStateBuffer, AppDefines::BUFFER_SIZE);
+	ReadDevice(m_pDIKeyboard, (void*)m_cKeyStateBuffer, 256);
 	ProcessMouse();
 	ProcessKeyBoard();
 	
