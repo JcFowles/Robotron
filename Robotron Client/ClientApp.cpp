@@ -991,13 +991,6 @@ void CClientApp::Draw()
 	case GS_PLAY:
 	{
 		m_pGame->Draw();
-
-		DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
-		int yPos = uiFontHeight + 2;
-		RenderText("Health: ", yPos, TEXT_LIST, false, dwTextFormat);
-		yPos += uiFontHeight + 2;
-		RenderText("Score: ", yPos, TEXT_LIST, false, dwTextFormat);
 	}
 		break;
 	

@@ -48,8 +48,7 @@ public:
 	void Draw();
 
 	void Process(ClientDataPacket* _pClientPacket);
-	//void ProcessInput(float _fDt);
-
+	
 	//Render
 	void RenderSingleFrame();
 

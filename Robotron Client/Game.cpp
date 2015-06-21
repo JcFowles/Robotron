@@ -311,8 +311,6 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 
 void CGame::Draw()
 {
-
-
 	//Draw every passed in from the server
 	m_pTerrain->Draw(m_pRenderManager);
 		
@@ -355,8 +353,9 @@ void CGame::Draw()
 
 		iterBullet++;
 	}
-
-
+	//TO DO:HUD
+	//m_pRenderManager->RenderText(_strText, Rect, TextColor, _TextType, _format);
+	//DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
 }
 
 CMesh* CGame::CreateCubeMesh(float _fCubeSize, int iTextureID)
