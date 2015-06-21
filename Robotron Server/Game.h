@@ -51,6 +51,7 @@ public:
 	
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
+	void SetPowUpStates(ClientDataPacket* _pDataToSend);
 	
 	void SpawnWave();
 private:
@@ -69,6 +70,7 @@ private:
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
 	std::map<UINT, EnemyStates>* m_plistEnemies;
+	std::map<UINT, PowerUpStates>* m_pListPowerUps;
 			
 	int m_iNumberPlayers;
 

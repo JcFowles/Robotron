@@ -39,7 +39,7 @@ namespace NetworkValues
 	unsigned const MAX_USERS = 6;
 
 	unsigned const MAX_ENEMYS = 30; //TO DO: Calculate fancy formula, using increase per player and waves and min shit
-	
+	unsigned const  MAX_POWERUPS = 10;
 	//IP address of UDP server
 	const char ipAddUPD[INET_ADDRSTRLEN] = "127.0.0.1";
 	unsigned const MAX_CHAR_LENGTH = 255;
@@ -101,6 +101,24 @@ struct EnemyStates
 	//TO DO: everything else
 };
 
+struct PowerUpStates
+{
+	UINT uiPowUpID;
+	ePowerType Etype;
+
+	float3 f3Positions;
+	float3 f3Velocity;
+	float3 f3Direction;
+	float3 f3Acceleration;
+
+	float3 f3Target;
+
+	float fMaxSpeed;
+	float fMaxForce;
+	float fMaxAccel;
+
+};
+
 struct ClientInfo
 {
 	sockaddr_in clientSocAddr;
@@ -141,6 +159,8 @@ struct ClientDataPacket
 	
 	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
 	EnemyStates EnemyInfo[NetworkValues::MAX_ENEMYS];
+	PowerUpStates PowUpInfo[NetworkValues::MAX_POWERUPS];
+	UINT iNumPowerUps; 
 	UINT iNumEnemies;
 }; 
 

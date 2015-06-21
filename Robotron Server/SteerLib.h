@@ -38,12 +38,7 @@ inline void seek(EnemyStates* _EnemyStates)
 	//Apply force
 	_EnemyStates->f3Acceleration += f3Steer; //DT;
 
-	/*_EnemyStates->f3Direction = _EnemyStates->f3Target - _EnemyStates->f3Positions;
-	_EnemyStates->f3Direction =  _EnemyStates->f3Direction.Normalise();
-	_EnemyStates->f3Velocity =   _EnemyStates->f3Direction * _EnemyStates->fMaxSpeed;
-
-
-	_EnemyStates->f3Positions += _EnemyStates->f3Velocity;*/
+	
 	
 };
 

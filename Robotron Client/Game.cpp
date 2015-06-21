@@ -36,16 +36,64 @@ CGame::~CGame()
 	delete m_pEnemyMesh;
 	m_pEnemyMesh = 0;
 
+	std::map < ePowerType, CMesh* >::iterator meshpowItter = m_pPowerUpMesh->begin();
+	std::map < ePowerType, CMesh* >::iterator meshpowItterEnd = m_pPowerUpMesh->end();
+	while (meshpowItter != meshpowItterEnd)
+	{
+		delete meshpowItter->second;
+		meshpowItter->second = 0;
+
+		meshpowItter++;
+	}
+	//Delete the mesh map
+	m_pPowerUpMesh->clear();
+	delete m_pPowerUpMesh;
+	m_pPowerUpMesh = 0;
+
 	//Delete player list
+	std::map < std::string, CPlayerObj* >::iterator itterPlayer = m_plistPlayers->begin();
+	while (itterPlayer != m_plistPlayers->end())
+	{
+		delete itterPlayer->second;
+		itterPlayer->second = 0;
+
+		itterPlayer++;
+	}
+	m_plistPlayers->clear();
 	delete m_plistPlayers;
 	m_plistPlayers = 0;
 
 	//Delete enemy list
+	std::map <UINT, CEnemyObj* >::iterator itterEnemy = m_pListEnemies->begin();
+	while (itterEnemy != m_pListEnemies->end())
+	{
+		delete itterEnemy->second;
+		itterEnemy->second = 0;
+
+		itterEnemy++;
+	}
+	m_pListEnemies->clear();
 	delete m_pListEnemies;
 	m_pListEnemies = 0;
 
+	//Delete PowerUp list
+	std::map <UINT, CPowerUpObj* >::iterator itterPowUp = m_pListPowerUps->begin();
+	while (itterPowUp != m_pListPowerUps->end())
+	{
+		delete itterPowUp->second;
+		itterPowUp->second = 0;
+
+		itterPowUp++;
+	}
+	m_pListPowerUps->clear();
+	delete m_pListPowerUps;
+	m_pListPowerUps = 0;
+
 	delete m_iEnemyIDs;
 	m_iEnemyIDs = 0;
+
+	delete m_iPowerUpIDs;
+	m_iPowerUpIDs = 0;
 
 	//Delete player avatar
 	m_pPlayerAvatar = 0;
@@ -74,11 +122,13 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	m_strPlayerName = _ControllingPlayer;
 		
-	m_plistPlayers = new std::map < std::string, CPlayerObj >;
-	m_pListEnemies = new std::map < UINT, CEnemyObj > ;
+	m_plistPlayers = new std::map < std::string, CPlayerObj* >;
+	m_pListEnemies = new std::map < UINT, CEnemyObj* > ;
 	m_pEnemyMesh = new std::map < eEnemyTypes, CMesh* > ;
 	m_iEnemyIDs = new std::map < eEnemyTypes, UINT > ;
-
+	m_iPowerUpIDs = new std::map < ePowerType, UINT > ;
+	m_pListPowerUps = new std::map < UINT, CPowerUpObj* > ;
+	m_pPowerUpMesh = new std::map < ePowerType, CMesh* > ;
 
 	m_pRenderManager = _RenderManager;
 		
@@ -87,7 +137,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Create and set up the terrain
 	m_pTerrain = new CTerrain();
-	ScalarVertex TerrainScalar = { 1.0f, 0.05f, 1.0f };
+	ScalarVertex TerrainScalar = { 1.0f, 0.0f, 1.0f };
 	std::string strImagePath = "Assets\\Heightmap.bmp";
 	m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar);
 	m_pTerrain->SetCenter({ 0, 0, 0 });
@@ -106,9 +156,29 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Create the lust enemy assets
 	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_LUST, CreateEnemyAssest(ET_LUST)));
+
+	//Create the Shield power up assets
+	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_SHIELD, CreatePowerUpAssest(PU_SHIELD)));
 	
+	//Initialise DirectionLight
+	D3DLightParameter DirectiomLightParam;
+	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
+	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	DirectiomLightParam.vecDirection = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+
+	//Create the directionLight
+	m_iDirectionID = m_pRenderManager->CreateLights(DirectiomLightParam);
+
+	//Update the Direction Light
+	m_pRenderManager->UpdateDirectionLight(m_iDirectionID, true);
+
+	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 2.0f, 8.0f, 1.0f);
+	m_iLightningID = m_pRenderManager->CreateLights(DirectiomLightParam);
 	
-	
+	//Update the Direction Light
+	m_pRenderManager->UpdateDirectionLight(m_iLightningID, false);
+
+	m_bLightning = false;
 
 	return true;
 		
@@ -126,43 +196,76 @@ void CGame::UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket
 
 void CGame::SpawnWave(ClientDataPacket* _pClientPacket)
 {
+	//Spawn Enemies
 	for (UINT iEnemy = 0; iEnemy < _pClientPacket->iNumEnemies; iEnemy++)
 	{
 
 		EnemyStates CurrentEnemyState = _pClientPacket->EnemyInfo[iEnemy];
 
-		std::pair<std::map<UINT, CEnemyObj>::iterator, bool> MapEnemyIter;
+		std::pair<std::map<UINT, CEnemyObj*>::iterator, bool> MapEnemyIter;
 
 		//Create enemy object
-		CEnemyObj tempEnemy(CurrentEnemyState.Etype);
+		CEnemyObj* tempEnemy = new CEnemyObj(CurrentEnemyState.Etype);
 		//Initialise the enemy Object with the Cube Mesh and set its coordinates
 		std::map<eEnemyTypes, CMesh* >::iterator EnemyMesh = m_pEnemyMesh->find(CurrentEnemyState.Etype);
-		tempEnemy.Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentEnemyState.uiEnemyID, CurrentEnemyState.f3Positions);
+		tempEnemy->Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentEnemyState.uiEnemyID, CurrentEnemyState.f3Positions);
 
 		//Add the player to the map
-		MapEnemyIter = m_pListEnemies->insert(std::pair<UINT, CEnemyObj>(CurrentEnemyState.uiEnemyID, tempEnemy));
+		MapEnemyIter = m_pListEnemies->insert(std::pair<UINT, CEnemyObj*>(CurrentEnemyState.uiEnemyID, tempEnemy));
 
 	}
 
+	//Spawn Power Ups
+	for (UINT iPowerUp = 0; iPowerUp < _pClientPacket->iNumPowerUps; iPowerUp++)
+	{
+
+		PowerUpStates CurrentPowUpState = _pClientPacket->PowUpInfo[iPowerUp];
+		
+		std::pair<std::map<UINT, CPowerUpObj*>::iterator, bool> MapEnemyIter;
+
+		//Create enemy object
+		CPowerUpObj* tempEnemy = new CPowerUpObj(CurrentPowUpState.Etype);
+		//Initialise the enemy Object with the Cube Mesh and set its coordinates
+		std::map<ePowerType, CMesh* >::iterator EnemyMesh = m_pPowerUpMesh->find(CurrentPowUpState.Etype);
+		tempEnemy->Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentPowUpState.uiPowUpID, CurrentPowUpState.f3Positions);
+
+		//Add the player to the map
+		MapEnemyIter = m_pListPowerUps->insert(std::pair<UINT, CPowerUpObj*>(CurrentPowUpState.uiPowUpID, tempEnemy));
+
+	}
+	
 }
 
 void CGame::Process(ClientDataPacket* _pClientPacket)
 {
-	
-	
-	std::map< std::string, CPlayerObj>::iterator iterPlayer = m_plistPlayers->begin();
-	std::map< std::string, CPlayerObj>::iterator iterPlayerEnd = m_plistPlayers->end();
+		
+	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
+	std::map< std::string, CPlayerObj*>::iterator iterPlayerEnd = m_plistPlayers->end();
 	int iPlayer = 0;
 	while (iterPlayer != iterPlayerEnd)
 	{
 		//Set player position
-		iterPlayer->second.SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
+		iterPlayer->second->SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
 		//Set player Direction
-		iterPlayer->second.SetDirection(_pClientPacket->PlayerInfo[iPlayer].f3Direction);
+		iterPlayer->second->SetDirection(_pClientPacket->PlayerInfo[iPlayer].f3Direction);
 		
+		if (iterPlayer->second->GetLightRange() > 5.0f)
+		{
+			iterPlayer->second->SetLightRange(1.0f);
+		}
+		else
+		{
+			iterPlayer->second->SetLightRange(iterPlayer->second->GetLightRange() + 0.05f);
+		}
+
+		m_pRenderManager->UpdatePointLight(iterPlayer->second->GetLightID(), true, iterPlayer->second->GetPosition(), iterPlayer->second->GetLightRange());
+				
+		m_pRenderManager->UpdateDirectionLight(m_iLightningID, m_bLightning);
+				
+
 		if (iPlayer == m_iIndexOfClientPlayer)
 		{
-			*m_pPlayerAvatar = iterPlayer->second;
+			m_pPlayerAvatar = iterPlayer->second;
 
 		}
 		
@@ -171,22 +274,22 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	}
 
 	//Process list of Enemies
-	std::map<UINT, CEnemyObj>::iterator enemyIter = m_pListEnemies->begin();
-	std::map<UINT, CEnemyObj>::iterator enemyIterEnd = m_pListEnemies->end();
+	std::map<UINT, CEnemyObj*>::iterator enemyIter = m_pListEnemies->begin();
+	std::map<UINT, CEnemyObj*>::iterator enemyIterEnd = m_pListEnemies->end();
 	int iEnemy = 0;
 	while (enemyIter != enemyIterEnd)
 	{
 		//Set player position
-		enemyIter->second.SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
+		enemyIter->second->SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
 		//Set player Direction
-		enemyIter->second.SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
+		enemyIter->second->SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
 		
 		iEnemy++;
 		enemyIter++;
 	}
 			
-	std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
-	m_pPlayerAvatar = &playerItter->second;
+	std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+	m_pPlayerAvatar = playerItter->second;
 
 	D3DXVECTOR3 d3dVPos;
 	d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
@@ -211,24 +314,34 @@ void CGame::Draw()
 	m_pTerrain->Draw(m_pRenderManager);
 		
 	//Loop through all players
-	std::map< std::string, CPlayerObj>::iterator iterPlayer = m_plistPlayers->begin();
-	std::map< std::string, CPlayerObj>::iterator iterPlayerEnd = m_plistPlayers->end();
+	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
+	std::map< std::string, CPlayerObj*>::iterator iterPlayerEnd = m_plistPlayers->end();
 	while (iterPlayer != iterPlayerEnd)
 	{
 		//Draw the player avatar
-		iterPlayer->second.Draw();
+		iterPlayer->second->Draw();
 
 		iterPlayer++;
 	}
 
-	std::map< UINT, CEnemyObj>::iterator iterEnemy = m_pListEnemies->begin();
-	std::map< UINT, CEnemyObj>::iterator iterEnemyEnd = m_pListEnemies->end();
+	std::map< UINT, CEnemyObj*>::iterator iterEnemy = m_pListEnemies->begin();
+	std::map< UINT, CEnemyObj*>::iterator iterEnemyEnd = m_pListEnemies->end();
 	while (iterEnemy != iterEnemyEnd)
 	{
-		//Draw the player avatar
-		iterEnemy->second.Draw();
+		//Draw the Enemy avatar
+		iterEnemy->second->Draw();
 
 		iterEnemy++;
+	}
+
+	std::map< UINT, CPowerUpObj*>::iterator iterPowUP = m_pListPowerUps->begin();
+	std::map< UINT, CPowerUpObj*>::iterator iterPowUPEnd = m_pListPowerUps->end();
+	while (iterPowUP != iterPowUPEnd)
+	{
+		//Draw the Power UP avatar
+		iterPowUP->second->Draw();
+
+		iterPowUP++;
 	}
 
 }
@@ -314,24 +427,25 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 		}
 	}
 	
-	std::pair<std::map<std::string, CPlayerObj>::iterator, bool> MapClientIter;
+	std::pair<std::map<std::string, CPlayerObj*>::iterator, bool> MapClientIter;
 		
 	//Create player object
-	CPlayerObj tempPlayer;
+	CPlayerObj* tempPlayer = new CPlayerObj(m_pRenderManager);
 	//Initialise the player Object with the Cube Mesh and set its coordinates
-	tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, tempState.uiPlayerID, tempState.f3Positions);
-
+	tempPlayer->Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, tempState.uiPlayerID, tempState.f3Positions);
+	
 	//Add the player to the map
 	std::string strName(tempState.cPlayerName);
-	MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(strName, tempPlayer));
+	MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj*>(strName, tempPlayer));
 	
 	//If this is the controlling players object save it
 	if (tempState.cPlayerName == m_strPlayerName)
 	{
 		//Find the controlling player in the map
-		std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
-		m_pPlayerAvatar = &playerItter->second;
+		std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+		m_pPlayerAvatar = playerItter->second;
 	}
+	
 
 	//Return the bool part(second)
 	//This will hold true if a new element was added 
@@ -346,22 +460,22 @@ void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 		
 		PlayerStates CurrentPlayerState = _pClientPacket->PlayerInfo[iPlayer];
 		
-		std::pair<std::map<std::string, CPlayerObj>::iterator, bool> MapClientIter;
+		std::pair<std::map<std::string, CPlayerObj*>::iterator, bool> MapClientIter;
 
 		//Create player object
-		CPlayerObj tempPlayer;
+		CPlayerObj* tempPlayer = new CPlayerObj(m_pRenderManager);
 		//Initialise the player Object with the Cube Mesh and set its coordinates
-		tempPlayer.Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, CurrentPlayerState.uiPlayerID, CurrentPlayerState.f3Positions);
+		tempPlayer->Initialise(m_pRenderManager, m_iPlayerMaterialID, m_pPlayerMesh, CurrentPlayerState.uiPlayerID, CurrentPlayerState.f3Positions);
 
 		//Add the player to the map
-		MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj>(CurrentPlayerState.cPlayerName, tempPlayer));
+		MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj*>(CurrentPlayerState.cPlayerName, tempPlayer));
 
 		//If this is the controlling players object save it
 		if (CurrentPlayerState.cPlayerName == m_strPlayerName)
 		{
 			//Find the controlling player in the map
-			std::map<std::string, CPlayerObj>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
-			m_pPlayerAvatar = &playerItter->second;
+			std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+			m_pPlayerAvatar = playerItter->second;
 		}
 	}
 }
@@ -380,15 +494,15 @@ int CGame::CreatePlayerAssest()
 
 	//Create the material for the players object
 	MaterialValues Material;
-	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+	Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.fPower = { 1.0f };
 
 	//Get the material Id used to reference the created material
 	UINT iMatID = m_pRenderManager->CreateMaterial(Material);
-
+	
 	return iMatID;
 }
 
@@ -405,9 +519,9 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 		strFilePath = "Assets\\Lust.png";
 		fEnemySize = 0.8f;
 
-		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
 
@@ -452,4 +566,54 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 	
 	
 	
+}
+
+int CGame::CreatePowerUpAssest(ePowerType _Type)
+{
+	std::string strFilePath = "";
+	float fSize = 0.0f;
+	MaterialValues Material;
+
+	switch (_Type)
+	{
+	case PU_SHIELD:
+	{
+		strFilePath = "Assets\\Wrath.png";
+		fSize = 0.5f;
+
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fSize, iTextureID);
+		//Add mesh to map
+		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_SHIELD, pTempMesh));
+
+	}
+	
+	default:
+	{
+		strFilePath = "";
+		fSize = 0.0f;
+
+		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+	}
+	break;
+	}
+
+	//Get the material Id used to reference the created material
+	UINT iMatID = m_pRenderManager->CreateMaterial(Material);
+
+	return iMatID;
+
+
+
 }

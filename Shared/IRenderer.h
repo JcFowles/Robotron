@@ -58,14 +58,16 @@ public:
 	virtual void SetProjectionMatrix(D3DXMATRIX& _rProjection) = 0;
 	virtual void SetClearColour(float _fRed, float _fGreen, float _fBlue) = 0;
 
-	virtual void SetLights(D3DLightParameter _pLightParameter) = 0;
-
+	
 	virtual void SetSpecularEnable(bool _bEnable) = 0;
 	virtual void SetAmbient(D3DCOLOR _Color) = 0;
 
 	virtual bool SetMaterial() = 0;
 	virtual bool SetMaterial(int _materialID) = 0;
 	virtual bool SetTexture(int _textureID, int _iStage) = 0;
+
+	virtual bool UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange) = 0;
+	virtual bool UpdateDirectionLight(int _LightID, bool bIsTurnedOn) = 0;
 
 	//Render
 	virtual void Render(unsigned int _uiStaticId) = 0;
@@ -85,6 +87,8 @@ public:
 	//Creators
 	virtual UINT CreateMaterial(MaterialValues _materialVal) = 0;
 	virtual UINT CreateTexture(std::string _strFileName) = 0;
+	virtual UINT CreateLights(D3DLightParameter _pLightParameter) = 0;
+
 	virtual int CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo) = 0;
 	virtual void CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType) = 0;
 	virtual int CreateStaticBuffer( VertexType _VertexType,

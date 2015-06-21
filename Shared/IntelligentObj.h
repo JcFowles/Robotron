@@ -106,6 +106,7 @@ public:
 	//Member variables
 protected:
 	UINT m_uiPoints;
+	
 	float m_fMaxForce;
 	
 	float3 m_f3Acceleration;

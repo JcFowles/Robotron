@@ -74,9 +74,9 @@ struct D3DLightParameter
 {
 	//All lights 
 	int iID;
-	bool bIsTurnedOn;
+	bool bIsTurnedOn = false;
 	D3DLIGHTTYPE eLightType;
-	D3DXCOLOR colorAmbient;
+	D3DXCOLOR colorAmbient ;
 	D3DXCOLOR colorDiffuse;
 	D3DXCOLOR colorSpecular;
 
@@ -85,15 +85,15 @@ struct D3DLightParameter
 
 	//Spot and Point
 	D3DXVECTOR3 vecPosition;
-	float fRange;
-	float fAttnConstant;
-	float fAttnLinear;
-	float fAttnExponential;
+	float fRange = 1.0f;
+	float fAttnConstant  = 0.0f;
+	float fAttnLinear = 0.0f;
+	float fAttnExponential = 0.0f;
 
 	//Spot
-	float fInnerAngle;
-	float fOuterAngle;
-	float fFallOff;
+	float fInnerAngle = 0.0f;
+	float fOuterAngle = 0.0f;
+	float fFallOff = 0.0f;
 };
 
 

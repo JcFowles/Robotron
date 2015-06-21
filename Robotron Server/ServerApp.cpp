@@ -23,7 +23,14 @@ CServerApp* CServerApp::s_pServerApp = 0;
 
 CServerApp::CServerApp(void)
 {
+	//Frame limiter
+	m_iFrameTimeStart = 0;
+	m_iFrameTimeEnd = 0;
+	m_iFrameTimeDifference = 0;
 
+	m_iSecondCounter = 0;
+	m_iFrameCounter = 0;
+	m_iFPS = 0;
 }
 
 CServerApp::~CServerApp(void)
@@ -137,7 +144,7 @@ void CServerApp::Process()
 {	
 	ProcessReceiveData();
 
-	Sleep(16);
+	
 	
 }
 
@@ -146,18 +153,68 @@ void CServerApp::Draw()
 
 }
 
-bool CServerApp::RenderSingleFrame()
+bool CServerApp::ProcessSingleFrame()
 {
+	//Start time
+	m_iFrameTimeStart = (int)timeGetTime();
+	//Use some time to ensure Delta tick not 0.0f
+	Sleep(1);
+
+	//Is the Server still active? if not return false
 	if (m_pServer->getActive() == false)
 	{
 		return false;
 	}
 	
-	ProcessReceiveData();
-
 	Process();
 
+	//Limit frames to roughly 60 frames per second
+	LimitFrame();
+
 	return true;
+}
+
+void CServerApp::LimitFrame()
+{
+	//End  the time
+	m_iFrameTimeEnd = (int)timeGetTime();
+
+	//Calculate the total time taken to render one frame
+	m_iFrameTimeDifference = m_iFrameTimeEnd - m_iFrameTimeStart;
+
+	//Increment the second counter by the frame difference
+	m_iSecondCounter += m_iFrameTimeDifference;
+	m_iFrameCounter++;
+
+	//Calculate remaining time to render frames at 60fps
+	int iTimeToWait;
+	if (m_iFrameCounter % 3 == 0)
+	{
+		//Every third frame wait 1 millisecond less to offset the 2 frames over the 16.667 (1000/60) mark
+		iTimeToWait = (16) - (m_iFrameTimeDifference);
+	}
+	else
+	{
+		iTimeToWait = (17) - (m_iFrameTimeDifference);
+	}
+
+	//Sleep only if the Rendering of the frame took less than 1/60th of a seconds
+	if (iTimeToWait > 0)
+	{
+		Sleep(iTimeToWait);
+		m_iSecondCounter += iTimeToWait;
+	}
+
+	if (m_iSecondCounter >= 1000)
+	{
+		//Remove one second from the counter. 
+		//Prevents integer wrap around
+		m_iSecondCounter -= 1000;
+		//FPS for this second is set to the number of frames rendered
+		m_iFPS = m_iFrameCounter;
+		//Reset the Frame counter
+		m_iFrameCounter = 0;
+	}
 }
 
 
@@ -560,6 +617,9 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 
 	//Set the enemyStates based on the game
 	m_pGame->SetEnemyStates(_pDataToSend);
+
+	//Set the PowerUpStates based on the game
+	m_pGame->SetPowUpStates(_pDataToSend);
 }
 
 bool CServerApp::AddUser(std::string _UserName, ClientInfo _ClientInfo)

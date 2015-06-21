@@ -72,6 +72,12 @@ enum eEnemyTypes
 	ET_GLUTTONY	//Eats other objects gets bigger, slower, harder to kill, more points, and more damage
 };
 
+enum ePowerType
+{
+	PU_SHIELD, //Limited time invulnerable
+	//TO DO: More
+};
+
 struct InputStates
 {
 	bool bUpPress;

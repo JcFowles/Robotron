@@ -165,15 +165,16 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	CreateTextFont(70, 20, "Times New Roman", TEXT_MENU);
 	CreateTextFont(26, 13, "Times New Roman", TEXT_LIST);
 
-	//TO DO: Lights
-	ZeroMemory(&m_pDirectionalLight, sizeof(m_pDirectionalLight));
-	m_pDirectionalLight.Type = D3DLIGHT_DIRECTIONAL;
-	m_pDirectionalLight.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	m_pDirectionalLight.Direction = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+	//Initialise Map of lights
+	m_pLightMap = new std::map < UINT, D3DLIGHT9* > ;
 
-	m_pDevice->SetLight(0, &m_pDirectionalLight);
-	m_pDevice->LightEnable(0, true);
-
+	//TO DO : Put in Game??
+	//Initialise DirectionLight
+	D3DLightParameter DirectiomLightParam;
+	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
+	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	DirectiomLightParam.vecDirection = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+	
 	//Create map for all the Materials
 	m_pMaterialMap = new std::map < int, D3DMATERIAL9 > ;
 
@@ -293,24 +294,26 @@ bool CD3D9Renderer::DeviceCreation()
 void CD3D9Renderer::RenderStates()
 {
 	//Set initial Lighting
-	//Redundant//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+	//Redundant
+	//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 	//Set initial FVF
 	m_pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
 	//Set render state z buffer to true
 	//Redundant//m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
 	//Set ambient light to a light gray
-	m_pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(40, 40, 40));
-	m_color = D3DCOLOR_XRGB(40, 40, 40);
+	//m_pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(40, 40, 40));
+	//m_color = D3DCOLOR_XRGB(40, 40, 40);
 	//Set device to normalize all normals
-	m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+	m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
+	m_pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	//m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 	//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 }
 
 void CD3D9Renderer::SetAmbient(D3DCOLOR _Color)
 {
-	m_pDevice->SetRenderState(D3DRS_AMBIENT, _Color);
-	m_color = _Color;
+	//m_pDevice->SetRenderState(D3DRS_AMBIENT, _Color);
+	//m_color = _Color;
 }
 
 D3DXVECTOR3 CD3D9Renderer::GetAmbient()
@@ -333,48 +336,107 @@ bool CD3D9Renderer::GetSpecularEnable()
 	return m_bSpecular;
 }
 
-void CD3D9Renderer::SetLights(D3DLightParameter _pLightParameter)
+UINT CD3D9Renderer::CreateLights(D3DLightParameter _pLightParameter)
 {
 	//Create the light
-	D3DLIGHT9 D3DLight;   
+	D3DLIGHT9* pD3DLight = new D3DLIGHT9;   
 	//Clear memory of light use
-	ZeroMemory(&D3DLight, sizeof(D3DLight));
+	ZeroMemory((*(&pD3DLight)), sizeof(*pD3DLight));
 		
 	//Set Light parameters
-	D3DLight.Type = _pLightParameter.eLightType;
+	pD3DLight->Type = _pLightParameter.eLightType;
 	//All Light Types
-	D3DLight.Ambient = _pLightParameter.colorAmbient;
-	D3DLight.Diffuse = _pLightParameter.colorDiffuse;
-	D3DLight.Specular = _pLightParameter.colorSpecular;
+	pD3DLight->Diffuse = _pLightParameter.colorDiffuse;
 
 	//Only used in Spot and Directional light
-	if (D3DLight.Type != D3DLIGHT_POINT)
+	if (pD3DLight->Type != D3DLIGHT_POINT)
 	{
-		D3DLight.Direction = _pLightParameter.vecDirection;
+		pD3DLight->Direction = _pLightParameter.vecDirection;
 	}
 	
 	//Only used in Spot and Point light
-	if (D3DLight.Type != D3DLIGHT_DIRECTIONAL)
+	if (pD3DLight->Type != D3DLIGHT_DIRECTIONAL)
 	{
-		D3DLight.Position = _pLightParameter.vecPosition;
-		D3DLight.Range = _pLightParameter.fRange;
-		D3DLight.Attenuation0 = _pLightParameter.fAttnConstant;
-		D3DLight.Attenuation1 = _pLightParameter.fAttnLinear;
-		D3DLight.Attenuation2 = _pLightParameter.fAttnExponential;
+		pD3DLight->Position = _pLightParameter.vecPosition;
+		pD3DLight->Range = _pLightParameter.fRange;
+		pD3DLight->Attenuation0 = _pLightParameter.fAttnConstant;
+		pD3DLight->Attenuation1 = _pLightParameter.fAttnLinear;
+		pD3DLight->Attenuation2 = _pLightParameter.fAttnExponential;
+		pD3DLight->Specular = _pLightParameter.colorSpecular;
+		pD3DLight->Ambient = _pLightParameter.colorAmbient;
 	}
 	
 	//Only used on Spot
-	if (D3DLight.Type == D3DLIGHT_SPOT)
+	if (pD3DLight->Type == D3DLIGHT_SPOT)
 	{
-		D3DLight.Theta = D3DXToRadian(_pLightParameter.fInnerAngle);
-		D3DLight.Phi = D3DXToRadian(_pLightParameter.fOuterAngle);
-		D3DLight.Falloff = _pLightParameter.fFallOff;
+		pD3DLight->Theta = D3DXToRadian(_pLightParameter.fInnerAngle);
+		pD3DLight->Phi = D3DXToRadian(_pLightParameter.fOuterAngle);
+		pD3DLight->Falloff = _pLightParameter.fFallOff;
 	}
 	
+	
+	//Add the Light to the map
+	m_pLightMap->insert(std::pair<int, D3DLIGHT9*>(m_iLightKeyCount, pD3DLight));
+	
 	//Set light properties to light iID
-	m_pDevice->SetLight((_pLightParameter.iID), &D3DLight);
+	m_pDevice->SetLight((m_iLightKeyCount), pD3DLight);
 	//Turn light on or off
-	m_pDevice->LightEnable((_pLightParameter.iID), (_pLightParameter.bIsTurnedOn)); 
+	m_pDevice->LightEnable((m_iLightKeyCount), (true));
+	
+	//Return a Light ID
+	return m_iLightKeyCount++;
+
+	
+}
+
+bool CD3D9Renderer::UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange )
+{
+	//Find the light to up date
+	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
+
+	if (lightItter->second->Type == D3DLIGHT_POINT)
+	{
+		//Set the position
+		lightItter->second->Position.x = _f3Pos.x;
+		lightItter->second->Position.y = _f3Pos.y;
+		lightItter->second->Position.z = _f3Pos.z;
+				
+		lightItter->second->Range = _fRange;
+
+		//Set the Light
+		m_pDevice->SetLight((_LightID), (lightItter->second));
+		//Turn light on or off
+		m_pDevice->LightEnable((_LightID), (bIsTurnedOn));
+	}
+	else
+	{
+		//Light to update not of type expected
+		return false;
+	}
+	
+	;
+
+	return true;
+}
+
+bool CD3D9Renderer::UpdateDirectionLight(int _LightID, bool bIsTurnedOn)
+{
+	//Find the light to up date
+	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
+
+	if (lightItter->second->Type == D3DLIGHT_DIRECTIONAL)
+	{
+		//Turn light on or off
+		m_pDevice->LightEnable((_LightID), (bIsTurnedOn));
+	}
+	else
+	{
+		//Light to update not of type expected
+		return false;
+	}
+	
+
+	return true;
 }
 
 bool CD3D9Renderer::SetMaterial()
@@ -384,7 +446,7 @@ bool CD3D9Renderer::SetMaterial()
 	D3DMaterial.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);  //Reflect All diffuse light color  
 	D3DMaterial.Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);  //Reflect All Ambient light color 
 	D3DMaterial.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Specular light color 
-	D3DMaterial.Emissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f); //Reflect All Emissive light color 
+	D3DMaterial.Emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); //Reflect All Emissive light color 
 	HRESULT hr = m_pDevice->SetMaterial(&D3DMaterial);
 
 	if (FAILED(hr))
@@ -1078,3 +1140,4 @@ ID3DXFont* CD3D9Renderer::FontSelect(eTextType _textType)
 
 	return pFont;
 }
+

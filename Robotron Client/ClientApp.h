@@ -315,11 +315,11 @@ public:
 	void ProcessServerFind();
 	
 	/***********************
-	* ProcessGameStart: Process the game start
+	* LimitFrame: Limits the number of frames renders per second to roughly 60 frames
 	* @author: Jc Fowles
-	* @return: void:
+	* @return: void
 	********************/
-	//void ProcessGameStart();
+	void LimitFrame();
 
 	/***********************
 	* IsKeyDown: Return the bool array of keyboard keys, used as a getter and setter
@@ -381,8 +381,18 @@ public:
 	********************/
 	void LobbyMenuSelect(std::string _strMenuItem);
 
+	/***********************
+	* ProcessLightning: Process when to flash lighting
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessLightning();
+
 
 	//TO DO:
+
+	
+	
 	void SinglePlayerSelect(std::string _strMenuItem);
 	void EnterUserName(int _iYpos);
 
@@ -482,6 +492,17 @@ private:
 	//Graphic Variables
 	IRenderer* m_pRenderManager;
 
+
+	//Frame Limiter
+	int m_iFrameTimeStart;
+	int m_iFrameTimeEnd;
+	int m_iFrameTimeDifference;
+
+	int m_iSecondCounter;
+	int m_iFrameCounter;
+	int m_iFPS;
+
+	int m_iLightningTimer;
 };
 
 #endif //__CLIENT_APP_H__

@@ -14,13 +14,11 @@
 
 /*stop empty names*/
 
-/*Server full - Race to user name*/
-
 /* Create blank material and texture for draw methods that do not call it*/
 
 
 
 /*
- *Reset positons in map before sending
+ * 
  *
  **/

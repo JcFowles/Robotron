@@ -47,11 +47,11 @@ bool CGame::Initialise()
 	//Initialise player list
 	m_plistPlayers = new std::map < std::string, PlayerStates >;
 	m_plistEnemies = new std::map < UINT, EnemyStates > ;
-
+	m_pListPowerUps = new std::map < UINT, PowerUpStates > ;
 	//TO DO: move and update
 	SpawnWave();
-	SpawnWave();
-	SpawnWave();
+	//SpawnWave();
+	//SpawnWave();
 
 	return true;
 }
@@ -85,26 +85,22 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 
 		if (_pServerPacket->PlayerInputs.bDownPress)
 		{
-			//playerIter->second.f3Velocity.z = -1*(playerIter->second.f3Velocity.z * _fDt);
-			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z - 0.016667f;
+			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z - 1.0f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bUpPress)
 		{
-			//playerIter->second.f3Velocity.z = (playerIter->second.f3Velocity.z * _fDt);
-			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z + 0.016667f;
+			playerIter->second.f3Acceleration.z = playerIter->second.f3Acceleration.z + 1.0f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bRightPress)
 		{
-			//playerIter->second.f3Velocity.x =  (playerIter->second.f3Velocity.x * _fDt);
-			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x + 0.016667f;
+			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x + 1.0f;
 		}
 
 		if (_pServerPacket->PlayerInputs.bLeftPress)
 		{
-			//playerIter->second.f3Velocity.x = -1*(playerIter->second.f3Velocity.x * _fDt);
-			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x - 0.016667f;
+			playerIter->second.f3Acceleration.x = playerIter->second.f3Acceleration.x - 1.0f;
 		}			
 		
 		if (!(_pServerPacket->PlayerInputs.bLeftPress) &&
@@ -112,23 +108,27 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 			!(_pServerPacket->PlayerInputs.bDownPress) &&
 			!(_pServerPacket->PlayerInputs.bUpPress))
 		{
-			
-			playerIter->second.f3Velocity -= {0.016667f, 0.016667f, 0.016667f };
+			playerIter->second.f3Velocity = {0.0f, 0.0f, 0.0f };
+
+			//Deceleration to be implemented in future
+			/*playerIter->second.f3Velocity -= {0.016667f, 0.016667f, 0.016667f };
 			if (playerIter->second.f3Velocity.x < 0)
 			{
-				playerIter->second.f3Velocity.x = 0.0f;
+			playerIter->second.f3Velocity.x = 0.0f;
 			}
 			if (playerIter->second.f3Velocity.y < 0)
 			{
-				playerIter->second.f3Velocity.y = 0.0f;
+			playerIter->second.f3Velocity.y = 0.0f;
 			}
 			if (playerIter->second.f3Velocity.z < 0)
 			{
-				playerIter->second.f3Velocity.z = 0.0f;
-			}
+			playerIter->second.f3Velocity.z = 0.0f;
+			}*/
 		}
-
 		
+		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration.Normalise();
+		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * _fDt;
+				
 		POINT CursorPos = _pServerPacket->PlayerInputs.CursorPos;
 		CursorPos.x -= 500;
 		CursorPos.y -= 500;
@@ -219,7 +219,7 @@ void CGame::AddPlayer(std::string _strUser)
 	PlayerStates tempPlayerState;
 	StringToStruct(_strUser.c_str(), NetworkValues::MAX_NAME_LENGTH, tempPlayerState.cPlayerName);
 	int iNumCurrent = m_plistPlayers->size();
-	tempPlayerState.f3Positions = { float(iNumCurrent * 5), 20.0f, 0.0f };
+	tempPlayerState.f3Positions = { float(iNumCurrent * 5), 1.0f, 0.0f };
 	tempPlayerState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempPlayerState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempPlayerState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
@@ -234,7 +234,7 @@ void CGame::AddPlayer(std::string _strUser)
 
 void CGame::RemovePlayer(std::string _strLeftPlayer)
 {
-	m_plistPlayers->erase(_strLeftPlayer);
+		m_plistPlayers->erase(_strLeftPlayer);
 }
 
 void CGame::SetPlayerStates(ClientDataPacket* _pDataToSend)
@@ -289,6 +289,25 @@ void CGame::SetEnemyStates(ClientDataPacket* _pDataToSend)
 
 }
 
+void CGame::SetPowUpStates(ClientDataPacket* _pDataToSend)
+{
+	//Run through the map of active clients
+	std::map< UINT, PowerUpStates>::iterator iterPowUp = m_pListPowerUps->begin();
+	int iPow = 0;
+	while (iterPowUp != m_pListPowerUps->end())
+	{
+		_pDataToSend->PowUpInfo[iPow] = iterPowUp->second;
+
+		//Get next power up
+		iterPowUp++;
+		//Increment the power up
+		iPow++;
+	}
+
+	_pDataToSend->iNumPowerUps = m_pListPowerUps->size();
+
+}
+
 void CGame::SpawnWave()
 {
 	//create Enemy State
@@ -296,17 +315,35 @@ void CGame::SpawnWave()
 	tempEnemyState.Etype = ET_LUST;
 
 	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
-	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 20.0f, 5.0f };
+	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, 5.0f };
 	tempEnemyState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
 
 	tempEnemyState.uiEnemyID = m_uiNextObjID++;
-	tempEnemyState.fMaxSpeed = 2.0f * m_uiNextObjID;
-	tempEnemyState.fMaxForce = 0.1f;
+	tempEnemyState.fMaxSpeed = 0.10f;
+	tempEnemyState.fMaxForce = 0.01f;
 
 	
 	//Add to the list of enemies
 	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
+
+
+	//create Enemy State
+	PowerUpStates tempPowUPState;
+	tempPowUPState.Etype = PU_SHIELD;
+	
+	tempPowUPState.f3Direction = { 0.0f, 0.0f, 1.0f };
+	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, -5.0f };
+	tempPowUPState.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempPowUPState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	
+	tempPowUPState.uiPowUpID = m_uiNextObjID++;
+	tempPowUPState.fMaxSpeed = 0.10f;
+	tempPowUPState.fMaxForce = 0.01f;
+
+
+	//Add to the list of enemies
+	m_pListPowerUps->insert(std::pair<UINT, PowerUpStates>(tempPowUPState.uiPowUpID, tempPowUPState));
 
 }
 

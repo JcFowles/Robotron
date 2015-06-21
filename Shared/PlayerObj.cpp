@@ -16,7 +16,7 @@
 #include "PlayerObj.h"
 
 
-CPlayerObj::CPlayerObj()
+CPlayerObj::CPlayerObj(IRenderer* _pRenderManager)
 {
 	m_f3UpVector = { 0.0f, 1.0f, 0.0f };
 		
@@ -26,8 +26,25 @@ CPlayerObj::CPlayerObj()
 	m_uiHealth = m_uiMaxHealth;
 	m_uiScore = 0;
 	
+	m_fLightRange = 0.5;
+
+	//Create light
+	D3DLightParameter PointLightParam;
+	PointLightParam.eLightType = D3DLIGHT_POINT;
+	PointLightParam.colorDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+	PointLightParam.colorAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+	PointLightParam.colorSpecular = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+
+	PointLightParam.vecPosition = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	PointLightParam.fRange = m_fLightRange;
+	PointLightParam.fAttnLinear = 0.01f;
+	
+	m_uiLightID = _pRenderManager->CreateLights(PointLightParam);
+	int c = 9;
+
 }
 
 CPlayerObj::~CPlayerObj()
 {
+
 }

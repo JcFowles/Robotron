@@ -21,7 +21,14 @@ CClientApp* CClientApp::s_pClientApp = 0;
 
 CClientApp::CClientApp(void)
 {
+	//Frame limiter
+	m_iFrameTimeStart = 0;
+	m_iFrameTimeEnd = 0;
+	m_iFrameTimeDifference = 0;
 
+	m_iSecondCounter = 0;
+	m_iFrameCounter = 0;
+	m_iFPS = 0;
 }
 
 CClientApp::~CClientApp(void)
@@ -178,6 +185,9 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_pInputManager = new CInputManager();
 	VALIDATE(m_pInputManager->Initialise(_hInstance, m_hWnd, m_iScreenWidth, m_iScreenHeight));
 
+
+	m_iLightningTimer = 0;
+
 	return true;
 
 }
@@ -272,6 +282,7 @@ void CClientApp::Process()
 	case GS_PLAY:
 	{
 		ProcessGameInput();
+		ProcessLightning();	
 	}
 		break;
 	default:
@@ -281,10 +292,35 @@ void CClientApp::Process()
 	//process received data
 	ProcessReceiveData();
 	
-	
+}
 
-	Sleep(16);
+void CClientApp::ProcessLightning()
+{
+	//Check to see if its time to flash lightning, approx every 4 seconds
+	if (m_iLightningTimer > 4)
+	{
+		//Flash lighting 2 in a seconds for 20 frames each
+		if ((m_iFrameCounter < 10) && (m_iFrameCounter > 1))
+		{
+			m_pGame->m_bLightning = true;
+		}
+		else if ((m_iFrameCounter > 10) && (m_iFrameCounter < 20))
+		{
+			m_pGame->m_bLightning = false;
+		}
+		else if ((m_iFrameCounter > 20) && (m_iFrameCounter < 40))
+		{
+			m_pGame->m_bLightning = true;
+		}
+		else if ((m_iFrameCounter > 40) && (m_iFrameCounter < 60))
+		{
+			m_pGame->m_bLightning = false;
 
+			//Reset the Lightning timer
+			m_iLightningTimer = 0;
+		}
+
+	}
 }
 
 void CClientApp::ProcessGameInput()
@@ -1377,19 +1413,75 @@ void CClientApp::ExitMenuDraw()
 //Render Frame
 bool CClientApp::RenderSingleFrame()
 {
+	//Start time
+	m_iFrameTimeStart = (int)timeGetTime();
+	//Use some time to ensure Delta tick not 0.0f
+	Sleep(1);
+
+	if (m_iFrameCounter == 1)
+	{
+		m_iLightningTimer++;
+	}
+	
 	//Is the client still active? if not return false
 	if (m_pClient->GetActive() == false)
 	{
 		return false;
 	}
-				
+	
+
 	Process();
 	Draw();
+
+	//Limit frames to roughly 60 frames per second
+	LimitFrame();
 		
 	return true;
 		
 }
 
+void CClientApp::LimitFrame()
+{
+	//End  the time
+	m_iFrameTimeEnd = (int)timeGetTime();
+
+	//Calculate the total time taken to render one frame
+	m_iFrameTimeDifference = m_iFrameTimeEnd - m_iFrameTimeStart;
+
+	//Increment the second counter by the frame difference
+	m_iSecondCounter += m_iFrameTimeDifference;
+	m_iFrameCounter++;
+
+	//Calculate remaining time to render frames at 60fps
+	int iTimeToWait;
+	if (m_iFrameCounter % 3 == 0)
+	{
+		//Every third frame wait 1 millisecond less to offset the 2 frames over the 16.667 (1000/60) mark
+		iTimeToWait = (16) - (m_iFrameTimeDifference);
+	}
+	else
+	{
+		iTimeToWait = (17) - (m_iFrameTimeDifference);
+	}
+
+	//Sleep only if the Rendering of the frame took less than 1/60th of a seconds
+	if (iTimeToWait > 0)
+	{
+		Sleep(iTimeToWait);
+		m_iSecondCounter += iTimeToWait;
+	}
+
+	if (m_iSecondCounter >= 1000)
+	{
+		//Remove one second from the counter. 
+		//Prevents integer wrap around
+		m_iSecondCounter -= 1000;
+		//FPS for this second is set to the number of frames rendered
+		m_iFPS = m_iFrameCounter;
+		//Reset the Frame counter
+		m_iFrameCounter = 0;
+	}
+}
 
 //Process received data
 void CClientApp::ReceiveDataThread()
@@ -1626,7 +1718,7 @@ void CClientApp::FindServers()
 	m_pClient->Broadcast(m_pServerPacket);
 
 	//TO DO: REMOVE AFTER ADDING FRAME LIMITER
-	Sleep(100);
+	//Sleep(100);
 	
 }
 
@@ -1713,6 +1805,7 @@ void CClientApp::LoadGame()
 
 void CClientApp::LoadingScreen()
 {
+	//TO DO: comment
 	std::string strLoading = "LOADING";
 	std::string strLoadingDots = "";
 	int iNumDots = 0;
@@ -1750,6 +1843,7 @@ void CClientApp::LoadingScreen()
 		iNumDots++;
 
 		m_pRenderManager->EndRender();
+
 		Sleep(100);
 	}
 	

@@ -180,7 +180,8 @@ protected:
 	float m_fDamage;
 
 	UINT m_uiObjectID;
-		
+	
+
 	float3 m_f3Position;
 	float3 m_f3Velocity;
 	float3 m_f3Direction;

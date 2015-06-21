@@ -65,12 +65,7 @@ bool CCameraStatic::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget,
 
 	//Initialise Up vector on z axis
 	m_VecUp = { 0.0f, 0.0f, 1.0f };
-
-	//Distance behind the the avatar
-	//m_f3PCDistBehind = 15.0f;
-	//Distance above the avatar
-	//m_f3PCDistUp = 3.0f;
-
+	
 	return true;
 }
 

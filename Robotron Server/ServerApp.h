@@ -74,12 +74,18 @@ public:
 	void Draw();
 
 	/***********************
-	* RenderSingleFrame: Render a single frame to the screen
+	* ProcessSingleFrame: Render a single frame to the screen
 	* @author: Jc Fowles
 	* @return: void
 	********************/
-	bool RenderSingleFrame();
+	bool ProcessSingleFrame();
 
+	/***********************
+	* LimitFrame: Limits the number of frames renders per second to roughly 60 frames
+	* @author: Jc Fowles
+	* @return: void
+	********************/
+	void LimitFrame();
 
 protected:
 
@@ -250,5 +256,14 @@ private:
 	
 	std::map< std::string, ClientInfo>* m_pMapClientInfo;
 
+
+	//Frame limiter
+	int m_iFrameTimeStart;
+	int m_iFrameTimeEnd;
+	int m_iFrameTimeDifference;
+
+	int m_iSecondCounter;
+	int m_iFrameCounter;
+	int m_iFPS;
 };
 

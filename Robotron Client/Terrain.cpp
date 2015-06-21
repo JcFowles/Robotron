@@ -71,10 +71,10 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 
 	//Set up and create the material of the terrain
 	MaterialValues Material;
-	Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
-	Material.f4Diffuse = { 0.4f, 0.3f, 0.3f, 1.0f };
-	Material.f4Emissive = { 0.4f, 0.3f, 0.3f, 1.0f };
-	Material.f4Specular = { 0.4f, 0.3f, 0.3f, 1.0f };
+	Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.fPower = { 1.0f };
 	
 	m_iMaterialID = _pRenderer->CreateMaterial(Material);

@@ -27,9 +27,10 @@ public:
 	/***********************
 	* C3DObject: Default Constructor for Player object class
 	* @author: Jc Fowles
+	* @parameter: IRenderer* _pRenderManager: RenderMangeer used to create the light
 	* @return:
 	********************/
-	CPlayerObj();
+	CPlayerObj(IRenderer* _pRenderManager);
 		
 	/***********************
 	* C3DObject: Default destructor for Player object class
@@ -40,6 +41,13 @@ public:
 
 	//Getter
 	
+	/***********************
+	* GetLightID: Return the players light ID
+	* @author: Jc Fowles
+	* @return: UINT: Players Light ID
+	********************/
+	UINT GetLightID() const { return m_uiLightID; }
+
 	/***********************
 	* GetScore: Return the players current score
 	* @author: Jc Fowles
@@ -69,7 +77,11 @@ public:
 	UINT GetHealth() const { return m_uiHealth; }
 	
 	//Setter
-		
+
+	//TO DO
+	float GetLightRange() const { return m_fLightRange; }
+	void SetLightRange(float _LightRange) { m_fLightRange = _LightRange; }
+
 	/***********************
 	* SetScore: Set the players score value
 	* @author: Jc Fowles
@@ -104,6 +116,10 @@ private:
 	UINT m_uiHealth;
 	UINT m_uiMaxHealth;
 	UINT m_uiScore;
+
+	UINT m_uiLightID;
+	float m_fLightRange;
+	
 };
 
 #endif //__PLAYER_OBJ_H__

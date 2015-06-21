@@ -178,7 +178,7 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdl
 		else
 		{
 			//Render a single frame
-			if (rServerApp.RenderSingleFrame() == false)
+			if (rServerApp.ProcessSingleFrame() == false)
 			{
 				break;
 			}

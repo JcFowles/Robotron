@@ -133,14 +133,6 @@ public:
 	virtual void SetClearColour(float _fRed, float _fGreen, float _fBlue);
 
 	/***********************
-	* SetLight: Set Light properties of the device
-	* @author: Jc Fowles
-	* @parameter: _pLightParameter: the light parameter to set the lights to
-	* @return: void
-	********************/
-	virtual void SetLights(D3DLightParameter _pLightParameter);
-
-	/***********************
 	* SetMaterial: Sets the default material to reflect all types and color lights
 	* @author: Jc Fowles
 	* @return: bool: return success
@@ -321,7 +313,20 @@ public:
 	* @return: UINT: a unique ID that is used to reference the created texture
 	********************/
 	virtual UINT CreateTexture(std::string _strFileName);
-	
+		
+	/***********************
+	* SetLight: Set Light properties of the device
+	* @author: Jc Fowles
+	* @parameter: _pLightParameter: the light parameter to create the lights
+	* @return: UINT: a unique ID that is used to reference the created lights
+	********************/
+	virtual UINT CreateLights(D3DLightParameter _pLightParameter);
+
+	//TO DO
+	virtual bool UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange);
+	virtual bool UpdateDirectionLight(int _LightID, bool bIsTurnedOn);
+
+
 	/***********************
 	* FillRectColor: Fill a rectangle with a passed in color
 	* @author: Jc Fowles
@@ -421,12 +426,16 @@ protected:
 	UINT m_iSurfaceKeyCount;
 	UINT m_iMaterialKeyCount;
 	UINT m_iTextureKeyCount;
+	UINT m_iLightKeyCount;
 
 	ID3DXFont* m_pTitleFont;
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
 
-	D3DLIGHT9 m_pDirectionalLight;
+	//D3DLIGHT9 m_pDirectionalLight;
+
+	
+	std::map<UINT, D3DLIGHT9*>* m_pLightMap;
 
 	bool m_bSpecular;
 
