@@ -20,7 +20,7 @@
 
 //Library includes
 //TO DO
-//#include <ctime>
+#include <ctime>
 //#include <WinSock2.h>
 //Local Includes
 #include "ServerApp.h"
@@ -120,7 +120,7 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 
 
 	
-	//Check if window was created succesfully
+	//Check if window was created successfully
 	if (!hWnd)
 	{
 		// Failed to create.
@@ -142,6 +142,8 @@ HWND CreateAndRegisterWindow(HINSTANCE _hInstance, int _iWidth, int _iHeight, LP
 ********************/
 int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdline, int _iCmdshow)
 {
+	//Seed the random generator
+	srand((unsigned int)time(NULL));
 
 	//Screen Resolution
 	const int kiWidth = 1000; 

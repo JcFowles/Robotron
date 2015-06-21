@@ -28,12 +28,10 @@ public:
 	/***********************
 	* CProjectileObj: Default Constructor for Projectile Object class
 	* @author: Jc Fowles
-	* @parameter: std::string _strPlayerName: The player that created this projectile
-	* @parameter: float3 _f3Position: The initial position of this projectile
-	* @parameter: float3 _f3Direction: The initial direction of this projectile
+	* @parameter: UINT _uiPlayerID: The ID of the player that created this projectile
 	* @return:
 	********************/
-	CProjectileObj(std::string _strPlayerName, float3 _f3Position, float3 _f3Direction);
+	CProjectileObj(UINT _uiPlayerID);
 		
 	/***********************
 	* ~CProjectileObj: Destructor for Projectile Object class
@@ -45,19 +43,18 @@ public:
 	//Getters
 		
 	/***********************
-	* GetPlayerName: Get the name of the player that released this projectile
+	* GetPlayerName: Get the ID of the player that released this projectile
 	* @author: Jc Fowles
-	* @return: std::string: The name of the player that released this projectile
+	* @return: UINT: The ID of the player that released this projectile
 	********************/
-	std::string GetPlayerName() const { return m_strPlayerName; }
+	UINT GetPlayerID() const { return m_uiPlayerID; }
 
 	//Setters
 	
 		
 private:
 	
-	std::string m_strPlayerName;
-	
+	UINT m_uiPlayerID;
 };
 
 #endif //__CPROJECTILE_OBJ_H__

@@ -5,6 +5,7 @@ CGame* CGame::s_pGame = 0;
 CGame::CGame()
 {
 	m_uiNextObjID = 0;
+	m_uiNextProjectileID = 0;
 }
 
 
@@ -14,10 +15,37 @@ CGame::~CGame()
 	delete m_plistPlayers;
 	m_plistPlayers = 0;
 
+	delete m_pMapPlayersIDs;
+	m_pMapPlayersIDs = 0;
+
 	//Delete enemy list
 	delete m_plistEnemies;
 	m_plistEnemies = 0;
 	
+	delete m_pListPowerUps;
+	m_pListPowerUps = 0;
+
+	delete m_pListProjectiles;
+	m_pListProjectiles = 0;
+
+
+	delete m_CreatedEnemies; 
+	m_CreatedEnemies = 0;
+	delete m_DestroyEnemies;
+	m_DestroyEnemies = 0;
+
+	delete m_CreatedPowerUp;
+	m_CreatedPowerUp = 0; 
+	
+	delete m_DestroyPowerUp;
+	m_DestroyPowerUp = 0;
+
+	delete m_CreatedProjectile;
+	m_CreatedProjectile = 0;
+
+	delete m_DestroyProjectile;
+	m_DestroyProjectile = 0;
+
 	delete m_pClock;
 	m_pClock = 0;
 
@@ -46,10 +74,25 @@ bool CGame::Initialise()
 
 	//Initialise player list
 	m_plistPlayers = new std::map < std::string, PlayerStates >;
+	m_pMapPlayersIDs = new std::map < UINT, std::string >;
 	m_plistEnemies = new std::map < UINT, EnemyStates > ;
 	m_pListPowerUps = new std::map < UINT, PowerUpStates > ;
+	m_pListProjectiles = new std::map < UINT, ProjectileStates > ;
+
+
+	m_CreatedEnemies = new std::queue<EnemyStates>;
+	m_DestroyEnemies = new std::queue<EnemyStates>;
+
+	m_CreatedPowerUp = new std::queue<PowerUpStates>;
+	m_DestroyPowerUp = new std::queue<PowerUpStates>;
+
+	m_CreatedProjectile = new std::queue<ProjectileStates>;
+	m_DestroyProjectile = new std::queue<ProjectileStates>;
+
+
 	//TO DO: move and update
-	SpawnWave();
+	//SpawnWave();
+	SpawnPowerUp();
 	//SpawnWave();
 	//SpawnWave();
 
@@ -61,16 +104,47 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 	//Process clock and get the delta tick
 	m_pClock->Process();
 	float fDT = m_pClock->GetDeltaTick();
-	
+
 	ProcessInput(fDT, _pServerPacket);
 	
 	
 	UpdatePlayers(_pClientPacket);
 	UpdateEnemies(_pClientPacket, fDT);
+	UpdateProjectile(_pClientPacket, fDT);
 
+	//If no Enemies spawn next wave
+	if (m_plistEnemies->size() < 1)
+	{
+		int NumEnemies = 0;
+		if (bMoreEnemies)
+		{
+			NumEnemies = m_iExtraEnemies;
+			bMoreEnemies = false;
+		}
+		else
+		{
+			NumEnemies = kiInitialNumEnemies + (m_plistPlayers->size()* kiNumEnemiesPP * m_uiStage);
+			if (NumEnemies >= NetworkValues::MAX_ENEMYS - 1)
+			{
+				
+				bMoreEnemies = true;
+				m_iExtraEnemies = NumEnemies - NetworkValues::MAX_ENEMYS - 1;
+				NumEnemies = NetworkValues::MAX_ENEMYS - 1;
+			}
+			else
+			{
+				bMoreEnemies = false;
+			}
+			m_uiStage++;
+		}
+		
+		
+		SpawnWave(NumEnemies);
+				
+
+	}
 
 }
-
 
 
 
@@ -80,6 +154,11 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 	std::string strUserName(_pServerPacket->clientInfo.cUserName);
 	std::map<std::string, PlayerStates>::iterator playerIter = m_plistPlayers->find(strUserName);
 	
+	if (playerIter->second.fFireRate > 0.0f)
+	{
+		playerIter->second.fFireRate -= _fDt;
+	}
+
 	if (playerIter != m_plistPlayers->end())
 	{
 
@@ -139,8 +218,14 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 
 		if (_pServerPacket->PlayerInputs.bActivate)
 		{
-			//Spawn a bullet
+			//Limit the fire rate
+			if (playerIter->second.fFireRate <= 0.0f)
+			{
+				SpawnProjectile(playerIter->second.f3Direction, playerIter->second.f3Positions, playerIter->second.uiPlayerID);
+				playerIter->second.fFireRate = kfFireRate;
+			}
 		}
+		
 
 	}
 }
@@ -168,6 +253,29 @@ void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 		playerIter->second.BBox.f3CollisionMax = playerIter->second.f3Positions + kfPlayerSize;
 					
 		//Check collisions
+		std::map<UINT, PowerUpStates>::iterator PowUpColIter = m_pListPowerUps->begin();
+		while (PowUpColIter != m_pListPowerUps->end())
+		{
+			
+			if (CheckCollision(playerIter->second.BBox, PowUpColIter->second.BBox))
+			{
+				//Get Power up points
+				playerIter->second.uiScore += PowUpColIter->second.uiPoints;
+
+				//Get Power Up ability
+				//TO DO:
+						
+				//Delete the power up
+				m_DestroyPowerUp->push(PowUpColIter->second);
+
+				break;
+				
+			}
+			
+
+			PowUpColIter++;
+		}
+
 
 		//If the enemy has collided with a player
 		std::map<std::string, PlayerStates>::iterator PlayerColIter = m_plistPlayers->begin();
@@ -233,70 +341,80 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt)
 	int iEnemy = 0;
 	while (enemyIter != enemyIterEnd)
 	{
-		switch (enemyIter->second.Etype)
+		bCollision = false;
+
+		if (enemyIter->second.fHealth <= 0.0f)
 		{
-		case ET_LUST:
-		{
-			UpdateLust(&enemyIter->second, _fDt);
-			fEnemySize = kfLustSize;
+			//Remove the enemy that is dead
+			m_DestroyEnemies->push(enemyIter->second);
 		}
-		break;
-		default:
-			break;
-		}
-
-
-		//Calculate Collision Box
-		enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
-		enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
-
-		//Check collisions
-
-		//If the enemy has collided with a player
-		std::map<std::string, PlayerStates>::iterator PlayerColIter = m_plistPlayers->begin();
-		while (PlayerColIter != m_plistPlayers->end())
+		else
+		//If the enemy is still alive process it
 		{
-			
-			if (CheckCollision(enemyIter->second.BBox, PlayerColIter->second.BBox))
+			switch (enemyIter->second.Etype)
 			{
-				bCollision = true;
+			case ET_LUST:
+			{
+				UpdateLust(&enemyIter->second, _fDt);
+				fEnemySize = kfLustSize;
+			}
+			break;
+			default:
 				break;
 			}
 
-			PlayerColIter++;
-		}
 
-		if (bCollision == false)
-		{
-			std::map<UINT, EnemyStates>::iterator EnemyColIter = m_plistEnemies->begin();
-			while (EnemyColIter != m_plistEnemies->end())
-			{
-				if (EnemyColIter != enemyIter)
-				{
-					if (CheckCollision(enemyIter->second.BBox, EnemyColIter->second.BBox))
-					{
-						bCollision = true;
-						break;
-					}
-				}
-				EnemyColIter++;
-			}
-		}
-		
-		if (bCollision == true)
-		{
-			//Set the position back to where it was
-			enemyIter->second.f3Positions -= enemyIter->second.f3Velocity;
-
-			//Then Reset its bounding box
+			//Calculate Collision Box
 			enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
 			enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
 
-			enemyIter->second.f3Velocity = enemyIter->second.f3Velocity*0.0f;
-			enemyIter->second.f3Acceleration = enemyIter->second.f3Acceleration * 0.0f;
+			//Check collisions
+
+			//If the enemy has collided with a player
+			std::map<std::string, PlayerStates>::iterator PlayerColIter = m_plistPlayers->begin();
+			while (PlayerColIter != m_plistPlayers->end())
+			{
+
+				if (CheckCollision(enemyIter->second.BBox, PlayerColIter->second.BBox))
+				{
+					bCollision = true;
+					break;
+				}
+
+				PlayerColIter++;
+			}
+
+			if (bCollision == false)
+			{
+				std::map<UINT, EnemyStates>::iterator EnemyColIter = m_plistEnemies->begin();
+				while (EnemyColIter != m_plistEnemies->end())
+				{
+					if (EnemyColIter != enemyIter)
+					{
+						if (CheckCollision(enemyIter->second.BBox, EnemyColIter->second.BBox))
+						{
+							bCollision = true;
+							break;
+						}
+					}
+					EnemyColIter++;
+				}
+			}
+
+			if (bCollision == true)
+			{
+				//Set the position back to where it was
+				enemyIter->second.f3Positions -= enemyIter->second.f3Velocity;
+
+				//Then Reset its bounding box
+				enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
+				enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
+
+				enemyIter->second.f3Velocity = enemyIter->second.f3Velocity*0.0f;
+				enemyIter->second.f3Acceleration = enemyIter->second.f3Acceleration * 0.0f;
+			}
+
 		}
-		
-				
 		enemyIter++;
 	}
 
@@ -332,6 +450,58 @@ void CGame::UpdateLust(EnemyStates* _pEnemy, float _fDt)
 	
 }
 
+void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT)
+{
+	std::map<UINT, ProjectileStates>::iterator BulletIter = m_pListProjectiles->begin();
+	int iBullet = 0;
+	while (BulletIter != m_pListProjectiles->end())
+	{
+		//Increase the bullet speed by delta tick
+		//BulletIter->second.f3Acceleration = BulletIter->second.f3Acceleration * fDT * (BulletIter->second.fMaxSpeed);
+
+		//Calculate the new position
+		BulletIter->second.f3Velocity += BulletIter->second.f3Direction.Normalise() * fDT * (BulletIter->second.fMaxSpeed);;
+		BulletIter->second.f3Velocity.Limit(BulletIter->second.fMaxSpeed);
+		BulletIter->second.f3Positions += BulletIter->second.f3Velocity;
+		
+		//Calculate bounding box
+		BulletIter->second.BBox.f3CollisionMin = BulletIter->second.f3Positions - kfPlayerSize;
+		BulletIter->second.BBox.f3CollisionMax = BulletIter->second.f3Positions + kfPlayerSize;
+
+
+		//Calculate Collision
+		std::map<UINT, EnemyStates>::iterator EnemyColIter = m_plistEnemies->begin();
+		while (EnemyColIter != m_plistEnemies->end())
+		{
+			if (CheckCollision(BulletIter->second.BBox, EnemyColIter->second.BBox))
+			{
+				//Decrease enemy Health
+				EnemyColIter->second.fHealth -= BulletIter->second.fDamage;
+
+				//Add points to the player
+				std::map<UINT, std::string>::iterator iterBulletOwnerName = m_pMapPlayersIDs->find(BulletIter->second.uiOwnerID);
+				std::map<std::string, PlayerStates>::iterator iterBulletOwner = m_plistPlayers->find(iterBulletOwnerName->second);
+				iterBulletOwner->second.uiScore += EnemyColIter->second.uiPoints;
+
+				//Delete the bullet
+				m_DestroyProjectile->push(BulletIter->second);
+				
+				break;
+			}
+
+			EnemyColIter++;
+		}
+
+		
+
+		//Set the player positions in the packet to send
+		_pClientPacket->ProjectilesInfo[iBullet].f3Positions = BulletIter->second.f3Positions;
+		
+		iBullet++;
+		BulletIter++;
+	}
+}
+
 void CGame::AddPlayer(std::string _strUser)
 {
 	//Create the player states
@@ -342,16 +512,21 @@ void CGame::AddPlayer(std::string _strUser)
 	tempPlayerState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempPlayerState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempPlayerState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempPlayerState.uiScore = 0;
+	tempPlayerState.fFireRate = kfFireRate;
 
 	//Collision Box
 	tempPlayerState.BBox.f3CollisionMin = tempPlayerState.f3Positions - kfPlayerSize;
 	tempPlayerState.BBox.f3CollisionMax = tempPlayerState.f3Positions + kfPlayerSize;
+
+	tempPlayerState.fHealth = 100.0f;
 
 	tempPlayerState.uiPlayerID = m_uiNextObjID++;
 	tempPlayerState.fMaxSpeed = 10.0f;
 	tempPlayerState.fMaxForce = 1.0f;
 	//Add the player and its states to the list
 	m_plistPlayers->insert(std::pair<std::string, PlayerStates>(_strUser, tempPlayerState));
+	m_pMapPlayersIDs->insert(std::pair<UINT, std::string>(tempPlayerState.uiPlayerID, _strUser));
 		
 }
 
@@ -431,51 +606,122 @@ void CGame::SetPowUpStates(ClientDataPacket* _pDataToSend)
 
 }
 
-void CGame::SpawnWave()
+void CGame::SpawnWave(int _NumToSpawn)
+{
+	
+	for (int i = 0; i < _NumToSpawn; i++)
+	{
+		float RandPosX = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		RandPosX = RandPosX * 256; //Surface Size //TO DO
+		RandPosX = RandPosX - 256 / 2; //set back to middle
+		float RandPosZ = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		RandPosZ = RandPosZ * 256; //Surface Size //TO DO
+		RandPosZ = RandPosZ - 256 / 2; //set back to middle
+		float3 f3Pos = { RandPosX, 1.0f, RandPosZ };
+		CreateLust(f3Pos);
+	}
+
+}
+
+
+
+void CGame::CreateLust(float3 _f3Pos)
 {
 	//create Enemy State
 	EnemyStates tempEnemyState;
 	tempEnemyState.Etype = ET_LUST;
 
 	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
-	tempEnemyState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, 5.0f };
+	tempEnemyState.f3Positions = _f3Pos;
 	tempEnemyState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.uiPoints = kuiLustPoints;
 
 	//Collision Box
 	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfLustSize;
 	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfLustSize;
 
 	tempEnemyState.uiEnemyID = m_uiNextObjID++;
-	tempEnemyState.fMaxSpeed = 3.00f;
+	tempEnemyState.fMaxSpeed = 5.00f;
 	tempEnemyState.fMaxForce = 30.0f;
-	tempEnemyState.fMaxAccel = 0.5f;
-	
+	tempEnemyState.fMaxAccel = 0.8f;
+
+	tempEnemyState.fHealth = kfLustHealth;
+
 	//Add to the list of enemies
 	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
 
+	//Add to the list of created
+	m_CreatedEnemies->push(tempEnemyState);
+}
 
+void CGame::SpawnPowerUp()
+{
 	//create Enemy State
 	PowerUpStates tempPowUPState;
 	tempPowUPState.Etype = PU_SHIELD;
-	
+
 	tempPowUPState.f3Direction = { 0.0f, 0.0f, 1.0f };
-	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, -5.0f };
+	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, -50.0f };
 	tempPowUPState.f3Velocity = { 0.0f, 0.0f, 0.0f };
 	tempPowUPState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempPowUPState.uiPoints = kuiShieldPoints;
 
 	//Collision Box
-	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfLustSize;
-	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfLustSize;
-	
+	tempPowUPState.BBox.f3CollisionMin = tempPowUPState.f3Positions - kfShieldSize;
+	tempPowUPState.BBox.f3CollisionMax = tempPowUPState.f3Positions + kfShieldSize;
+
 	tempPowUPState.uiPowUpID = m_uiNextObjID++;
 	tempPowUPState.fMaxSpeed = 0.10f;
 	tempPowUPState.fMaxForce = 0.1f;
 
-
 	//Add to the list of enemies
 	m_pListPowerUps->insert(std::pair<UINT, PowerUpStates>(tempPowUPState.uiPowUpID, tempPowUPState));
 
+	//Add to the list of created
+	m_CreatedPowerUp->push(tempPowUPState);
+}
+
+bool CGame::SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOnwerID)
+{
+	//Limit to the creation of the bullets 
+	if (m_pListProjectiles->size() <= NetworkValues::MAX_PROJECTILE - 1)
+	{
+		ProjectileStates tempProjectile;
+
+		tempProjectile.fMaxSpeed = 15.0f;
+
+		tempProjectile.f3Direction = _Direction;
+		tempProjectile.f3Positions = _Position;
+		tempProjectile.f3Velocity = { 0.0f, 0.0f, 0.0f };
+		tempProjectile.f3Acceleration = _Direction.Normalise();
+		tempProjectile.uiOwnerID = _uiOnwerID;
+
+		//Collision Box
+		tempProjectile.BBox.f3CollisionMin = tempProjectile.f3Positions - kfBulletSize;
+		tempProjectile.BBox.f3CollisionMax = tempProjectile.f3Positions + kfBulletSize;
+
+		tempProjectile.fDamage = kfBulletDamage;
+
+		tempProjectile.uiProjectileID = m_uiNextProjectileID++;
+
+		//Add to the list of enemies
+		m_pListProjectiles->insert(std::pair<UINT, ProjectileStates>(tempProjectile.uiProjectileID, tempProjectile));
+
+		//Add to the list of created
+		m_CreatedProjectile->push(tempProjectile);
+
+		return true;
+	}
+	else
+	{
+		//Too many bullets need to delete some
+		std::map < UINT, ProjectileStates > ::iterator projToDelete = m_pListProjectiles->begin();
+		m_DestroyProjectile->push(projToDelete->second);
+		m_pListProjectiles->erase(projToDelete->first);
+		return false;
+	}
+	
 }
 
 bool CGame::CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB)
@@ -491,6 +737,113 @@ bool CGame::CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB)
 	else
 	{
 		//The Bounding boxes are not colliding
+		return false;
+	}
+}
+
+
+//Creating and Deleting Objects
+bool CGame::GetNextCreatedEnemy(EnemyStates* _pEnemyState)
+{
+	if (m_CreatedEnemies->size() > 0)
+	{
+		//Get the next enemy state to create the enemy
+		*_pEnemyState = m_CreatedEnemies->front();
+		m_CreatedEnemies->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no enemies to create
+		return false;
+	}
+}
+
+bool CGame::GetNextCreatedPowerUp(PowerUpStates* _pPowUpState)
+{
+	if (m_CreatedPowerUp->size() > 0)
+	{
+		//Get the next power up state to create the power up
+		*_pPowUpState = m_CreatedPowerUp->front();
+		m_CreatedPowerUp->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no power ups to create
+		return false;
+	}
+}
+
+bool CGame::GetNextCreatedProjectile(ProjectileStates* _pProjectileState)
+{
+	if (m_CreatedProjectile->size() > 0)
+	{
+		//Get the next power up state to create the power up
+		*_pProjectileState = m_CreatedProjectile->front();
+		m_CreatedProjectile->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no power ups to create
+		return false;
+	}
+}
+
+bool CGame::GetNextDeletedEnemy(EnemyStates* _pEnemyState)
+{
+	if (m_DestroyEnemies->size() > 0)
+	{
+		//Get the next enemy state to create the enemy
+		*_pEnemyState = m_DestroyEnemies->front();
+		m_plistEnemies->erase(_pEnemyState->uiEnemyID);
+		m_DestroyEnemies->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no enemies to create
+		return false;
+	}
+}
+
+bool CGame::GetNextDeletedPowerUp(PowerUpStates* _pPowUpState)
+{
+	if (m_DestroyPowerUp->size() > 0)
+	{
+		//Get the next power up state to create the power up
+		*_pPowUpState = m_DestroyPowerUp->front();
+		m_pListPowerUps->erase(_pPowUpState->uiPowUpID);
+		m_DestroyPowerUp->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no power ups to create
+		return false;
+	}
+}
+
+bool CGame::GetNextDeletedProjectile(ProjectileStates* _pProjectileState)
+{
+	if (m_DestroyProjectile->size() > 0)
+	{
+		//Get the next power up state to create the power up
+		*_pProjectileState = m_DestroyProjectile->front();
+		m_pListProjectiles->erase(_pProjectileState->uiProjectileID);
+		m_DestroyProjectile->pop();
+
+		return true;
+	}
+	else
+	{
+		//There are no power ups to create
 		return false;
 	}
 }

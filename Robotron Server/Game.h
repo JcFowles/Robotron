@@ -49,7 +49,7 @@ public:
 	void UpdatePlayers(ClientDataPacket* _pClientPacket);
 	void UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt);
 	void UpdateLust(EnemyStates* _Enemy, float _fDt);
-	
+	void UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT);
 	
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
@@ -64,7 +64,60 @@ public:
 	********************/
 	bool CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB);
 	
-	void SpawnWave();
+	void SpawnWave(int _NumToSpawn);
+	void CreateLust(float3 _f3Pos);
+	void SpawnPowerUp();
+	bool SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOwnerID);
+
+	
+	/***********************
+	* GetNextCreatedEnemy: Returns the next enemy to create
+	* @author: Jc Fowles
+	* @Parameter: EnemyStates * _pEnemyState: EnemyState pointer to save the info used to create the new one
+	* @return: bool: true if enemy needs to be created or false if no enemies need to be created
+	********************/
+	bool GetNextCreatedEnemy(EnemyStates* _pEnemyState);
+
+	/***********************
+	* GetNextCreatedPowerUp: Returns the next power up to create
+	* @author: Jc Fowles
+	* @Parameter: PowerUpStates * _pPowUpState: PowerUpStates pointer to save the info used to create the new one
+	* @return: bool: true if power up needs to be created or false if no power up need to be created
+	********************/
+	bool GetNextCreatedPowerUp(PowerUpStates* _pPowUpState);
+
+	/***********************
+	* GetNextCreatedProjectile: Returns the next Projectile to create
+	* @author: Jc Fowles
+	* @Parameter: ProjectileStates* _pProjectileState: ProjectileStates pointer to save the info used to create the new one
+	* @return: bool: true if Projectile needs to be created or false if no Projectile need to be created
+	********************/
+	bool GetNextCreatedProjectile(ProjectileStates* _pProjectileState);
+		
+	/***********************
+	* GetNextDeletedPowerUp: Returns the next enemy to destroy
+	* @author: Jc Fowles
+	* @Parameter: EnemyStates* _pEnemyState: EnemyStates pointer to save the info used to delete it
+	* @return: bool: true if enemy needs to be delete or false if no enemy need to be deleted
+	********************/
+	bool GetNextDeletedEnemy(EnemyStates* _pEnemyState);
+
+	/***********************
+	* GetNextDeletedPowerUp: Returns the next Power Up to destroy
+	* @author: Jc Fowles
+	* @Parameter: PowerUpStates* _pPowUpState: PowerUpStates pointer to save the info used to delete it
+	* @return: bool: true if power up needs to be delete or false if no power up need to be deleted
+	********************/
+	bool GetNextDeletedPowerUp(PowerUpStates* _pPowUpState);
+
+	/***********************
+	* GetNextDeletedProjectile: Returns the next Projectile to destroy
+	* @author: Jc Fowles
+	* @Parameter: ProjectileStates * _pProjectileState: ProjectileStates pointer to save the info used to delete it
+	* @return: bool: true if Projectile needs to be delete or false if no Projectile need to be deleted
+	********************/
+	bool GetNextDeletedProjectile(ProjectileStates* _pProjectileState);
+
 private:
 	//Disallowing copies and extra constructions
 	CGame();
@@ -78,14 +131,35 @@ private:
 	CClock* m_pClock;
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
+	std::map<UINT, std::string>* m_pMapPlayersIDs;
+
+	
 	std::map<UINT, EnemyStates>* m_plistEnemies;
 	std::map<UINT, PowerUpStates>* m_pListPowerUps;
-			
+	std::map<UINT, ProjectileStates>* m_pListProjectiles;
+	
+	std::queue<EnemyStates>* m_CreatedEnemies;
+	std::queue<EnemyStates>* m_DestroyEnemies;
+	
+	std::queue<PowerUpStates>* m_CreatedPowerUp;
+	std::queue<PowerUpStates>* m_DestroyPowerUp;
+	
+	std::queue<ProjectileStates>* m_CreatedProjectile;
+	std::queue<ProjectileStates>* m_DestroyProjectile;
+
+
 	int m_iNumberPlayers;
 
 	UINT m_uiStage;
 
+	
+
 	UINT  m_uiNextObjID;
+	UINT m_uiNextProjectileID;
+
+
+	bool bMoreEnemies;
+	int m_iExtraEnemies;
 
 };
 

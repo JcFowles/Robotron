@@ -437,10 +437,21 @@ bool CD3D9Renderer::UpdateDirectionLight(int _LightID, bool bIsTurnedOn)
 	//Find the light to up date
 	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
 
+	if (bIsTurnedOn)
+	{
+		lightItter->second->Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+	}
+	else
+	{
+		lightItter->second->Diffuse = { 0.60f, 0.60f, 0.60f, 1.0f };
+	}
+
 	if (lightItter->second->Type == D3DLIGHT_DIRECTIONAL)
 	{
+		//Set the Light
+		m_pDevice->SetLight((_LightID), (lightItter->second));
 		//Turn light on or off
-		m_pDevice->LightEnable((_LightID), (bIsTurnedOn));
+		m_pDevice->LightEnable((_LightID), (true));
 	}
 	else
 	{

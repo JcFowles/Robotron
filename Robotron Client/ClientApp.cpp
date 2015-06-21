@@ -302,19 +302,19 @@ void CClientApp::ProcessLightning()
 		//Flash lighting 2 in a seconds for 20 frames each
 		if ((m_iFrameCounter < 10) && (m_iFrameCounter > 1))
 		{
-			m_pGame->m_bLightning = true;
+			m_pGame->SetLightning(true);
 		}
 		else if ((m_iFrameCounter > 10) && (m_iFrameCounter < 20))
 		{
-			m_pGame->m_bLightning = false;
+			m_pGame->SetLightning(false);
 		}
 		else if ((m_iFrameCounter > 20) && (m_iFrameCounter < 40))
 		{
-			m_pGame->m_bLightning = true;
+			m_pGame->SetLightning(true);
 		}
 		else if ((m_iFrameCounter > 40) && (m_iFrameCounter < 60))
 		{
-			m_pGame->m_bLightning = false;
+			m_pGame->SetLightning(false);
 
 			//Reset the Lightning timer
 			m_iLightningTimer = 0;
@@ -991,6 +991,13 @@ void CClientApp::Draw()
 	case GS_PLAY:
 	{
 		m_pGame->Draw();
+
+		DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+		int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+		int yPos = uiFontHeight + 2;
+		RenderText("Health: ", yPos, TEXT_LIST, false, dwTextFormat);
+		yPos += uiFontHeight + 2;
+		RenderText("Score: ", yPos, TEXT_LIST, false, dwTextFormat);
 	}
 		break;
 	
@@ -1606,6 +1613,36 @@ void CClientApp::ProcessReceiveData()
 			m_pGame->Process(m_pClientPacket);
 		}
 		break;
+		case PT_CREATE_ENEMY:
+		{
+			m_pGame->CreateEnemy(m_pClientPacket);
+		}
+		break;
+		case PT_CREATE_POWERUP:
+		{
+			m_pGame->CreatePowerUp(m_pClientPacket);
+		}
+		break;
+		case PT_CREATE_PROJECTILE:
+		{
+			m_pGame->CreateProjectile(m_pClientPacket);
+		}
+		break;
+		case PT_DELETE_ENEMY:
+		{
+			m_pGame->DeleteEnemy(m_pClientPacket);
+		}
+		break;
+		case PT_DELETE_POWERUP:
+		{
+			m_pGame->DeletePowerUp(m_pClientPacket);
+		}
+		break;
+		case PT_DELETE_PROJECTILE:
+		{
+			m_pGame->DeleteProjectile(m_pClientPacket);
+		}
+		break;
 		default:
 			break;
 		}
@@ -1793,7 +1830,6 @@ void CClientApp::LoadGame()
 
 	m_pGame = &(CGame::GetInstance());
 	m_pGame->Initialise(m_pRenderManager, m_strUserName);
-	m_pGame->SpawnWave(m_pClientPacket);
 	m_pGame->AddAllPlayers(m_pClientPacket);
 
 	m_bGameLoading = false;

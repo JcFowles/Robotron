@@ -26,7 +26,7 @@
 #include "../Shared/PlayerObj.h"
 #include "../Shared/EnemyObj.h"
 #include "../Shared/PowerUpObj.h"
-
+#include "../Shared/ProjectileObj.h"
 #include "../Shared/Graphics_Defines.h"
 #include "Terrain.h"
 #include "CameraStatic.h"
@@ -58,12 +58,39 @@ public:
 	bool AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd);
 	void AddAllPlayers(ClientDataPacket* _pClientPacket);
 	void RemovePlayer(std::string _strLeftPlayer);
-	void CreateEnemyLust();
+	
 
+	/***********************
+	* CreatePlayerAssest: Create the rendering assets for the player
+	* @author: Jc Fowles
+	* @return: int: Returns the material iD for saving, to reference when drawing
+	********************/
 	int CreatePlayerAssest();
+
+	/***********************
+	* CreateEnemyAssest: Create the rendering assets for the projectile
+	* @author: Jc Fowles
+	* @parameter: eEnemyTypes _EnemyType: The Type of enemy to create assets for
+	* @return: int: Returns the material iD for saving, to reference when drawing
+	********************/
 	int CreateEnemyAssest(eEnemyTypes _EnemyType);
+
+	/***********************
+	* CreatePowerUpAssest: Create the rendering assets for the Power up
+	* @author: Jc Fowles
+	* @parameter:ePowerType _Type: The Type of power up to create assets for
+	* @return: int: Returns the material iD for saving, to reference when drawing
+	********************/
 	int CreatePowerUpAssest(ePowerType _Type);
-	void SpawnWave(ClientDataPacket* _pClientPacket);
+	
+	/***********************
+	* CreatePRojectileAssest: Create the rendering assets for the projectile
+	* @author: Jc Fowles
+	* @return: int: Returns the material iD for saving, to reference when drawing
+	********************/
+	int CreateProjectileAssest();
+	
+
 
 	/***********************
 	* CreateCubeMesh: Creates a cube Mesh with origin in its very center
@@ -72,8 +99,62 @@ public:
 	* @return: CMesh*: Pointer to a created Cube mesh
 	********************/
 	CMesh* CreateCubeMesh(float _fCubeSize, int iTextureID);
+		
+	/***********************
+	* SetLightning: Set weather to strike lightning or not
+	* @author: Jc Fowles
+	* @parameter: bool _bLightning: Weather or not to strike lightning
+	* @return: void: 
+	********************/
+	void SetLightning(bool _bLightning){ m_bLightning = _bLightning; };
 
-	bool m_bLightning;
+	/***********************
+	* CreateEnemy: Create an enemy
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to create a enemy
+	* @return: void: 
+	********************/
+	void CreateEnemy(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* CreateEnemy: Create an Power UP
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to create a Power UP
+	* @return: void:
+	********************/
+	void CreatePowerUp(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* CreateEnemy: Create an Projectile
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to create a Projectile
+	* @return: void:
+	********************/
+	void CreateProjectile(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* DeleteEnemy: delete an enemy
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to delete a enemy
+	* @return: void:
+	********************/
+	void DeleteEnemy(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* DeleteEnemy: delete an Power UP
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to delete a Power UP
+	* @return: void:
+	********************/
+	void DeletePowerUp(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* DeleteProjectile: Delete an Projectile
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet containing info needed to delete a Projectile
+	* @return: void:
+	********************/
+	void DeleteProjectile(ClientDataPacket* _pClientPacket);
 
 private:
 	//Disallowing copies and extra constructions
@@ -89,8 +170,8 @@ private:
 	static CGame* s_pGame;
 	
 	std::map<std::string, CPlayerObj*>* m_plistPlayers;
-	CMesh* m_pPlayerMesh;
-	int m_iPlayerMaterialID;
+	
+	
 
 
 	int m_iDirectionID;
@@ -99,29 +180,29 @@ private:
 
 	std::map<UINT, CEnemyObj*>* m_pListEnemies;
 	std::map<UINT, CPowerUpObj*>* m_pListPowerUps;
+	std::map<UINT, CProjectileObj*>* m_pListBullets;
 
+	int m_iPlayerMaterialID;
 	std::map<eEnemyTypes, UINT>* m_iEnemyIDs;
 	std::map<ePowerType, UINT>* m_iPowerUpIDs;
-
-
+	int m_iBulletMaterialID;
+	
 	std::string m_strPlayerName;
 	CPlayerObj* m_pPlayerAvatar;
 	
-	
-	float m_fPlayerSize;
-	
+	CMesh* m_pPlayerMesh;
+	CMesh* m_pProjectileMesh;
 	std::map<eEnemyTypes, CMesh* >* m_pEnemyMesh;
 	std::map<ePowerType, CMesh* >* m_pPowerUpMesh;
 	
-	CMesh* m_pLustMesh;
-	CMesh* m_pWrathMesh;
-	CMesh* m_pSlothMesh;
+
+	
 	
 	CTerrain* m_pTerrain;
 	CCameraStatic* m_pCamera;
 
 	
-	//bool m_bLightning;
+	bool m_bLightning;
 
 	int m_iNumberPlayers;
 	int m_iIndexOfClientPlayer;

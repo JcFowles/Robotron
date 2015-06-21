@@ -38,8 +38,10 @@ namespace NetworkValues
 	unsigned const MAX_CLIENT_PORT = 60020; // 4 more than max users, why?? potential broken port maybe?
 	unsigned const MAX_USERS = 6;
 
-	unsigned const MAX_ENEMYS = 30; //TO DO: Calculate fancy formula, using increase per player and waves and min shit
-	unsigned const  MAX_POWERUPS = 10;
+	unsigned const MAX_ENEMYS = 100; //TO DO: Calculate fancy formula, using increase per player and waves and min shit
+	unsigned const MAX_POWERUPS = 10;
+	unsigned const MAX_PROJECTILE = 100;
+
 	//IP address of UDP server
 	const char ipAddUPD[INET_ADDRSTRLEN] = "127.0.0.1";
 	unsigned const MAX_CHAR_LENGTH = 255;
@@ -59,7 +61,16 @@ enum ePacketType
 	PT_QUIT,
 
 	PT_INPUT, 
-	PT_UPDATE
+	PT_UPDATE,
+
+	PT_CREATE_ENEMY,
+	PT_CREATE_POWERUP,
+	PT_CREATE_PROJECTILE,
+
+	PT_DELETE_ENEMY,
+	PT_DELETE_POWERUP,
+	PT_DELETE_PROJECTILE,
+
 };
 
 struct PlayerStates
@@ -78,8 +89,10 @@ struct PlayerStates
 	//Collision Box
 	BoundingBox BBox;
 
-	//TO DO: SCORE
-	//TO DO: Health
+	UINT uiScore;
+	float fHealth;
+
+	float fFireRate;
 	
 };
 
@@ -102,6 +115,9 @@ struct EnemyStates
 	//Collision Box
 	BoundingBox BBox; 
 
+	float fHealth;
+	UINT uiPoints;
+
 	
 };
 
@@ -123,6 +139,28 @@ struct PowerUpStates
 
 	//Collision Box
 	BoundingBox BBox;
+
+	UINT uiPoints;
+};
+
+struct ProjectileStates
+{
+	UINT uiProjectileID;
+	UINT uiOwnerID;
+	//TO DO: Add a type?
+
+	float3 f3Positions;
+	float3 f3Velocity;
+	float3 f3Direction;
+	float3 f3Acceleration;
+		
+	float fMaxSpeed;
+	float fMaxForce;
+	
+	//Collision Box
+	BoundingBox BBox;
+
+	float fDamage;
 };
 
 struct ClientInfo
@@ -166,6 +204,12 @@ struct ClientDataPacket
 	PlayerStates PlayerInfo[NetworkValues::MAX_USERS];
 	EnemyStates EnemyInfo[NetworkValues::MAX_ENEMYS];
 	PowerUpStates PowUpInfo[NetworkValues::MAX_POWERUPS];
+	ProjectileStates ProjectilesInfo[NetworkValues::MAX_PROJECTILE];
+
+	EnemyStates singleEnemyInfo;
+	PowerUpStates singlePowUpInfo;
+	ProjectileStates singleProjectileInfo;
+
 	UINT iNumPowerUps; 
 	UINT iNumEnemies;
 }; 

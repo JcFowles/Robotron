@@ -144,7 +144,11 @@ void CServerApp::Process()
 {	
 	ProcessReceiveData();
 
-	
+	if (m_bGameStart)
+	{
+		CheckDeletion();
+		CheckCreation();
+	}
 	
 }
 
@@ -691,3 +695,108 @@ bool CServerApp::SendToAll(ClientDataPacket* _pDataToSend)
 	return true;
 }
 
+void CServerApp::CheckCreation()
+{
+	//Check enemies
+	EnemyStates* pTempEnemy = new EnemyStates;
+	while (m_pGame->GetNextCreatedEnemy(pTempEnemy) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_CREATE_ENEMY;
+		//Save the enemy 
+		m_pClientPacket->singleEnemyInfo = *pTempEnemy;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempEnemy;
+	pTempEnemy = 0;
+
+
+	//Check Power Ups
+	PowerUpStates* pTempPowUp = new PowerUpStates;
+	while (m_pGame->GetNextCreatedPowerUp(pTempPowUp) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_CREATE_POWERUP;
+		//Save the power up
+		m_pClientPacket->singlePowUpInfo = *pTempPowUp;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempPowUp;
+	pTempPowUp = 0;
+
+	//Check Power Ups
+	ProjectileStates* pTempBullet = new ProjectileStates;
+	while (m_pGame->GetNextCreatedProjectile(pTempBullet) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_CREATE_PROJECTILE;
+		//Save the bullet
+		m_pClientPacket->singleProjectileInfo = *pTempBullet;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempBullet;
+	pTempBullet = 0;
+
+}
+
+void CServerApp::CheckDeletion()
+{
+	//Check enemies
+	EnemyStates* pTempEnemy = new EnemyStates;
+	while (m_pGame->GetNextDeletedEnemy(pTempEnemy) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_DELETE_ENEMY;
+		//Save the enemy 
+		m_pClientPacket->singleEnemyInfo = *pTempEnemy;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempEnemy;
+	pTempEnemy = 0;
+
+
+	//Check Power Ups
+	PowerUpStates* pTempPowUp = new PowerUpStates;
+	while (m_pGame->GetNextDeletedPowerUp(pTempPowUp) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_DELETE_POWERUP;
+		//Save the power up
+		m_pClientPacket->singlePowUpInfo = *pTempPowUp;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempPowUp;
+	pTempPowUp = 0;
+
+	//Check Power Ups
+	ProjectileStates* pTempBullet = new ProjectileStates;
+	while (m_pGame->GetNextDeletedProjectile(pTempBullet) == true)
+	{
+		//Add server info to client packet
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_DELETE_PROJECTILE;
+		//Save the bullet
+		m_pClientPacket->singleProjectileInfo = *pTempBullet;
+
+		SendToAll(m_pClientPacket);
+	}
+	delete pTempBullet;
+	pTempBullet = 0;
+
+}

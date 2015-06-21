@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : App_Defines.h 
-// Description : Header file containing Main application Defines, Structures, Enum, ect
+// Description : Header file containing Main application Defines, Structures, Enum, etc
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
@@ -29,11 +29,23 @@
 
 //Player Size
 const float kfPlayerSize = 1.0f;
+const float kfFireRate = 0.05f;
 //Enemy Sizes
 const float kfLustSize = 0.8f;
+const UINT kuiLustPoints = 10;
+const float kfLustHealth = 10.0f;
 
 //Power Up Size
 const float kfShieldSize = 0.5f;
+const UINT kuiShieldPoints = 10;
+//Projectile Size
+const float kfBulletSize = 0.1f;
+const float kfBulletDamage = 5.0f;
+
+//Number initial enemies to spawn 
+const int kiInitialNumEnemies = 12;
+//Number of enemies perPlayer to spawn
+const int kiNumEnemiesPP = 3;
 
 enum eMenuStates
 {
@@ -234,6 +246,26 @@ struct float3
 	float3 operator* (const float _f) const
 	{
 		return float3(_f * x, _f * y, _f * z);
+	}
+
+	/***********************
+	* operator==: Equal comparison operator
+	* @author: Jc Fowles
+	* @Parameter: const float _f: right hand side of the operator
+	* @return: bool: The result of the comparison
+	********************/
+	bool operator== (const float3 _f3) const
+	{
+		if ((x == _f3.x) &&
+			(y == _f3.y) &&
+			(z == _f3.z))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/***********************

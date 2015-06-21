@@ -15,15 +15,9 @@
 // Local Includes
 #include "ProjectileObj.h"
 
-CProjectileObj::CProjectileObj(std::string _strPlayerName, float3 _f3Position, float3 _f3Direction)
+CProjectileObj::CProjectileObj(UINT _uiPlayerID)
 {
-	m_strPlayerName = _strPlayerName;
-
-	m_f3Position = _f3Position;
-	m_f3Direction = _f3Direction;
-
-	//TO DO:
-	//Velocity, damage etc
+	m_uiPlayerID = _uiPlayerID;
 }
 
 

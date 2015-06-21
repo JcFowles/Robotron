@@ -86,6 +86,20 @@ public:
 	* @return: void
 	********************/
 	void LimitFrame();
+		
+	/***********************
+	* CheckCreation: Check if we need to send a creation message
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void CheckCreation();
+
+	/***********************
+	* CheckDeletion: Check if we need to send a Deletion message
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void CheckDeletion();
 
 protected:
 
@@ -143,7 +157,7 @@ private:
 	/***********************
 	* ProcessFind: Process the JOIN_REQUEST message
 	* @author: Jc Fowles
-	* @return: bool: Succesful joining or not
+	* @return: bool: Successful joining or not
 	********************/
 	bool ProcessJoinRequest();
 

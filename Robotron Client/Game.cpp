@@ -21,6 +21,9 @@ CGame::~CGame()
 	delete m_pPlayerMesh;
 	m_pPlayerMesh = 0;
 	
+	delete m_pProjectileMesh;
+	m_pProjectileMesh = 0;
+
 	//delete each mesh in map
 	std::map < eEnemyTypes, CMesh* >::iterator meshItter = m_pEnemyMesh->begin();
 	std::map < eEnemyTypes, CMesh* >::iterator meshItterEnd = m_pEnemyMesh->end();
@@ -88,6 +91,19 @@ CGame::~CGame()
 	m_pListPowerUps->clear();
 	delete m_pListPowerUps;
 	m_pListPowerUps = 0;
+	// Delete Bullet list
+	std::map <UINT, CProjectileObj* >::iterator itterBullet = m_pListBullets->begin();
+	while (itterBullet != m_pListBullets->end())
+	{
+		delete itterBullet->second;
+		itterBullet->second = 0;
+
+		itterBullet++;
+	}
+	m_pListBullets->clear();
+	delete m_pListBullets;
+	m_pListBullets = 0;
+
 
 	delete m_iEnemyIDs;
 	m_iEnemyIDs = 0;
@@ -119,7 +135,6 @@ void CGame::DestroyInstance()
 
 bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer)
 {	
-
 	m_strPlayerName = _ControllingPlayer;
 		
 	m_plistPlayers = new std::map < std::string, CPlayerObj* >;
@@ -129,6 +144,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	m_iPowerUpIDs = new std::map < ePowerType, UINT > ;
 	m_pListPowerUps = new std::map < UINT, CPowerUpObj* > ;
 	m_pPowerUpMesh = new std::map < ePowerType, CMesh* > ;
+	m_pListBullets = new std::map < UINT, CProjectileObj* > ;
 
 	m_pRenderManager = _RenderManager;
 		
@@ -160,10 +176,13 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	//Create the Shield power up assets
 	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_SHIELD, CreatePowerUpAssest(PU_SHIELD)));
 	
+	//Create Bullet asset
+	m_iBulletMaterialID = CreateProjectileAssest();
+
 	//Initialise DirectionLight
 	D3DLightParameter DirectiomLightParam;
 	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
-	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	DirectiomLightParam.colorDiffuse = D3DXCOLOR(0.6f, 0.6f, 0.6f, 1.0f); //If changing this change in updateDirtional light too
 	DirectiomLightParam.vecDirection = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
 
 	//Create the directionLight
@@ -171,13 +190,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Update the Direction Light
 	m_pRenderManager->UpdateDirectionLight(m_iDirectionID, true);
-
-	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 2.0f, 8.0f, 1.0f);
-	m_iLightningID = m_pRenderManager->CreateLights(DirectiomLightParam);
-	
-	//Update the Direction Light
-	m_pRenderManager->UpdateDirectionLight(m_iLightningID, false);
-
+		
 	m_bLightning = false;
 
 	return true;
@@ -192,53 +205,9 @@ void CGame::UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket
 	
 }
 
-
-
-void CGame::SpawnWave(ClientDataPacket* _pClientPacket)
-{
-	//Spawn Enemies
-	for (UINT iEnemy = 0; iEnemy < _pClientPacket->iNumEnemies; iEnemy++)
-	{
-
-		EnemyStates CurrentEnemyState = _pClientPacket->EnemyInfo[iEnemy];
-
-		std::pair<std::map<UINT, CEnemyObj*>::iterator, bool> MapEnemyIter;
-
-		//Create enemy object
-		CEnemyObj* tempEnemy = new CEnemyObj(CurrentEnemyState.Etype);
-		//Initialise the enemy Object with the Cube Mesh and set its coordinates
-		std::map<eEnemyTypes, CMesh* >::iterator EnemyMesh = m_pEnemyMesh->find(CurrentEnemyState.Etype);
-		tempEnemy->Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentEnemyState.uiEnemyID, CurrentEnemyState.f3Positions);
-
-		//Add the player to the map
-		MapEnemyIter = m_pListEnemies->insert(std::pair<UINT, CEnemyObj*>(CurrentEnemyState.uiEnemyID, tempEnemy));
-
-	}
-
-	//Spawn Power Ups
-	for (UINT iPowerUp = 0; iPowerUp < _pClientPacket->iNumPowerUps; iPowerUp++)
-	{
-
-		PowerUpStates CurrentPowUpState = _pClientPacket->PowUpInfo[iPowerUp];
-		
-		std::pair<std::map<UINT, CPowerUpObj*>::iterator, bool> MapEnemyIter;
-
-		//Create enemy object
-		CPowerUpObj* tempEnemy = new CPowerUpObj(CurrentPowUpState.Etype);
-		//Initialise the enemy Object with the Cube Mesh and set its coordinates
-		std::map<ePowerType, CMesh* >::iterator EnemyMesh = m_pPowerUpMesh->find(CurrentPowUpState.Etype);
-		tempEnemy->Initialise(m_pRenderManager, m_iPlayerMaterialID, EnemyMesh->second, CurrentPowUpState.uiPowUpID, CurrentPowUpState.f3Positions);
-
-		//Add the player to the map
-		MapEnemyIter = m_pListPowerUps->insert(std::pair<UINT, CPowerUpObj*>(CurrentPowUpState.uiPowUpID, tempEnemy));
-
-	}
-	
-}
-
 void CGame::Process(ClientDataPacket* _pClientPacket)
 {
-		
+	//Process players
 	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
 	std::map< std::string, CPlayerObj*>::iterator iterPlayerEnd = m_plistPlayers->end();
 	int iPlayer = 0;
@@ -249,6 +218,7 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 		//Set player Direction
 		iterPlayer->second->SetDirection(_pClientPacket->PlayerInfo[iPlayer].f3Direction);
 		
+		//Update the lights
 		if (iterPlayer->second->GetLightRange() > 5.0f)
 		{
 			iterPlayer->second->SetLightRange(1.0f);
@@ -259,10 +229,10 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 		}
 
 		m_pRenderManager->UpdatePointLight(iterPlayer->second->GetLightID(), true, iterPlayer->second->GetPosition(), iterPlayer->second->GetLightRange());
-				
-		m_pRenderManager->UpdateDirectionLight(m_iLightningID, m_bLightning);
-				
-
+			
+		//Lightning strike
+		m_pRenderManager->UpdateDirectionLight(m_iDirectionID, m_bLightning);
+		
 		if (iPlayer == m_iIndexOfClientPlayer)
 		{
 			m_pPlayerAvatar = iterPlayer->second;
@@ -287,6 +257,38 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 		iEnemy++;
 		enemyIter++;
 	}
+
+	int IDToDelete = -1;
+	//process projectiles
+	std::map<UINT, CProjectileObj*>::iterator BulletIter = m_pListBullets->begin();
+	int iBullet = 0;
+	while (BulletIter != m_pListBullets->end())
+	{
+		float3 pos = BulletIter->second->GetPosition();
+		//Set player position
+		BulletIter->second->SetPosition(_pClientPacket->ProjectilesInfo[iBullet].f3Positions);
+		//Set player Direction
+		BulletIter->second->SetDirection(_pClientPacket->ProjectilesInfo[iBullet].f3Direction);
+
+		//Bullet hasnt moved destroy it
+		if (pos == BulletIter->second->GetPosition())
+		{
+			IDToDelete = BulletIter->first;
+		}
+
+		iBullet++;
+		BulletIter++;
+	}
+
+	//We have a bullet to delete
+	if (IDToDelete >= 0)
+	{
+		std::map<UINT, CProjectileObj*>::iterator BulletIter = m_pListBullets->find(IDToDelete);
+		delete BulletIter->second;
+		BulletIter->second = 0;
+		m_pListBullets->erase(BulletIter->first);
+	}
+
 			
 	std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
 	m_pPlayerAvatar = playerItter->second;
@@ -309,6 +311,7 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 
 void CGame::Draw()
 {
+
 
 	//Draw every passed in from the server
 	m_pTerrain->Draw(m_pRenderManager);
@@ -343,6 +346,16 @@ void CGame::Draw()
 
 		iterPowUP++;
 	}
+
+	std::map< UINT, CProjectileObj*>::iterator iterBullet = m_pListBullets->begin();
+	while (iterBullet != m_pListBullets->end())
+	{
+		//Draw the Power UP avatar
+		iterBullet->second->Draw();
+
+		iterBullet++;
+	}
+
 
 }
 
@@ -480,6 +493,14 @@ void CGame::AddAllPlayers(ClientDataPacket* _pClientPacket)
 
 void CGame::RemovePlayer(std::string _strLeftPlayer)
 {
+	//Find player to remove
+	std::map<std::string, CPlayerObj*>::iterator playerToRemove = m_plistPlayers->find(_strLeftPlayer);
+	//Turn their light off
+	m_pRenderManager->UpdatePointLight(playerToRemove->second->GetLightID(), false, playerToRemove->second->GetPosition(), playerToRemove->second->GetLightRange());
+	//Delete the object
+	delete playerToRemove->second;
+	playerToRemove->second = 0;
+	//Remove from list
 	m_plistPlayers->erase(_strLeftPlayer);
 }
 
@@ -613,5 +634,142 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 	return iMatID;
 
 
+
+}
+
+int CGame::CreateProjectileAssest()
+{
+	std::string strFilePath = "";
+	
+	MaterialValues Material;
+	
+	//TO DO: bullet mesh
+	strFilePath = "Assets\\Wrath.png";
+	
+	Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Material.fPower = { 1.0f };
+
+	//Create the Texture/mesh for the Projectile
+	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+	m_pProjectileMesh = CreateCubeMesh(kfBulletSize, iTextureID);
+	
+	//Get the material Id used to reference the created material
+	UINT iMatID = m_pRenderManager->CreateMaterial(Material);
+
+	return iMatID;
+
+
+
+}
+
+//Create and Delete Objects
+
+void CGame::CreateEnemy(ClientDataPacket* _pClientPacket)
+{
+	EnemyStates EnemyInfo = _pClientPacket->singleEnemyInfo;
+
+	std::pair<std::map<UINT, CEnemyObj*>::iterator, bool> MapEnemyIter;
+
+	//Create enemy object
+	CEnemyObj* tempEnemy = new CEnemyObj(EnemyInfo.Etype);
+	//Initialise the enemy Object with the Cube Mesh and set its coordinates
+	std::map<eEnemyTypes, CMesh* >::iterator EnemyMesh = m_pEnemyMesh->find(EnemyInfo.Etype);
+	std::map<eEnemyTypes, UINT>::iterator enemyMatID = m_iEnemyIDs->find(EnemyInfo.Etype);
+	tempEnemy->Initialise(m_pRenderManager, enemyMatID->second, EnemyMesh->second, EnemyInfo.uiEnemyID, EnemyInfo.f3Positions);
+
+	//Add the player to the map
+	MapEnemyIter = m_pListEnemies->insert(std::pair<UINT, CEnemyObj*>(EnemyInfo.uiEnemyID, tempEnemy));
+}
+
+void CGame::CreatePowerUp(ClientDataPacket* _pClientPacket)
+{
+	PowerUpStates PowUpInfo = _pClientPacket->singlePowUpInfo;
+
+	std::pair<std::map<UINT, CPowerUpObj*>::iterator, bool> MapEnemyIter;
+
+	//Create enemy object
+	CPowerUpObj* tempEnemy = new CPowerUpObj(PowUpInfo.Etype);
+	//Initialise the enemy Object with the Cube Mesh and set its coordinates
+	std::map<ePowerType, CMesh* >::iterator powerUpMatMesh = m_pPowerUpMesh->find(PowUpInfo.Etype);
+	std::map<ePowerType, UINT>::iterator powerUpMatID = m_iPowerUpIDs->find(PowUpInfo.Etype);
+	tempEnemy->Initialise(m_pRenderManager, powerUpMatID->second, powerUpMatMesh->second, PowUpInfo.uiPowUpID, PowUpInfo.f3Positions);
+
+	//Add the player to the map
+	MapEnemyIter = m_pListPowerUps->insert(std::pair<UINT, CPowerUpObj*>(PowUpInfo.uiPowUpID, tempEnemy));
+}
+	
+void CGame::CreateProjectile(ClientDataPacket* _pClientPacket)
+{
+	ProjectileStates ProjectileInfo = _pClientPacket->singleProjectileInfo;
+
+	std::pair<std::map<UINT, CProjectileObj*>::iterator, bool> MapEnemyIter;
+
+	//Create enemy object
+	CProjectileObj* tempProj = new CProjectileObj(ProjectileInfo.uiOwnerID);
+	//Initialise the enemy Object with the Cube Mesh and set its coordinates
+	tempProj->Initialise(m_pRenderManager, m_iBulletMaterialID, m_pProjectileMesh, ProjectileInfo.uiProjectileID, ProjectileInfo.f3Positions);
+
+	//Add the player to the map
+	MapEnemyIter = m_pListBullets->insert(std::pair<UINT, CProjectileObj*>(ProjectileInfo.uiProjectileID, tempProj));
+}
+	
+void CGame::DeleteEnemy(ClientDataPacket* _pClientPacket)
+{
+	EnemyStates EnemyInfo = _pClientPacket->singleEnemyInfo;
+
+	std::map<UINT, CEnemyObj*>::iterator enemyToRemove = m_pListEnemies->find(EnemyInfo.uiEnemyID);
+	if (enemyToRemove == m_pListEnemies->end())
+	{
+		//Already deleted?
+		int c = 9;
+	}
+	else
+	{
+		//Delete the object
+		delete enemyToRemove->second;
+		enemyToRemove->second = 0;
+		//Remove from list
+		m_pListEnemies->erase(EnemyInfo.uiEnemyID);
+	}
+}
+	
+void CGame::DeletePowerUp(ClientDataPacket* _pClientPacket)
+{
+	PowerUpStates PowUpInfo = _pClientPacket->singlePowUpInfo;
+
+	std::map<UINT, CPowerUpObj*>::iterator PowUpToRemove = m_pListPowerUps->find(PowUpInfo.uiPowUpID);
+	if (PowUpToRemove == m_pListPowerUps->end())
+	{
+		//Already deleted?
+		int c = 9;
+	}
+	//Delete the object
+	delete PowUpToRemove->second;
+	PowUpToRemove->second = 0;
+	//Remove from list
+	m_pListPowerUps->erase(PowUpInfo.uiPowUpID);
+}
+	
+void CGame::DeleteProjectile(ClientDataPacket* _pClientPacket)
+{
+	ProjectileStates ProjectileInfo = _pClientPacket->singleProjectileInfo;
+
+	std::map<UINT, CProjectileObj*>::iterator bullerToRemove = m_pListBullets->find(ProjectileInfo.uiProjectileID);
+	if (bullerToRemove == m_pListBullets->end())
+	{
+		//Already deleted?
+		int c = 9;
+	}
+	else
+	{
+		//Delete the object
+		delete bullerToRemove->second;
+		bullerToRemove->second = 0;
+		//Remove from list
+		m_pListBullets->erase(ProjectileInfo.uiProjectileID);
+	}
 
 }
