@@ -111,6 +111,7 @@ public:
 	InputStates GetInputStates() { return m_InputStates; };
 	void SetInputStates(InputStates _PlayCont){ m_InputStates = _PlayCont; };
 	void ResetInputStates();
+
 	//Member variables
 public :
 	
