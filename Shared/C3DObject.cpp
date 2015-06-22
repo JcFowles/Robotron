@@ -42,7 +42,7 @@ C3DObject::~C3DObject()
 	//m_pMesh = 0;
 }
 
-void C3DObject::Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjectID, float3 _f3Pos)
+void C3DObject::Initialise(bool _bToggle, IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjectID, float3 _f3Pos)
 {
 	//Initialise member variables
 	m_pRenderManager = _pRenderManager;
@@ -54,6 +54,8 @@ void C3DObject::Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* 
 	m_iMaterialID = _iMaterialID;
 	
 	m_fSize = m_pMesh->GetSize();
+
+	m_bToggle = _bToggle;
 }
 
 void C3DObject::Draw()

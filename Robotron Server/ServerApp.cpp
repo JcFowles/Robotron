@@ -625,6 +625,9 @@ void CServerApp::SetGameState(ClientDataPacket* _pDataToSend)
 
 	//Set the PowerUpStates based on the game
 	m_pGame->SetPowUpStates(_pDataToSend);
+
+	//Set the Projectile states based on the game
+	m_pGame->SetProjectileStates(_pDataToSend);
 }
 
 bool CServerApp::AddUser(std::string _UserName, ClientInfo _ClientInfo)

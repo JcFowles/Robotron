@@ -30,6 +30,7 @@
 #include "../Shared/Graphics_Defines.h"
 #include "Terrain.h"
 #include "CameraStatic.h"
+#include "Camera.h"
 
 //TO DO: comment headers
 
@@ -49,6 +50,11 @@ public:
 
 	void Process(ClientDataPacket* _pClientPacket);
 	
+	void ProcessPlayers(ClientDataPacket* _pClientPacket);
+	void ProcessEnemies(ClientDataPacket* _pClientPacket);
+	void ProcessProjectiles(ClientDataPacket* _pClientPacket);
+	void ProcessPowerUps(ClientDataPacket* _pClientPacket);
+	void ProcessCamera();
 	//Render
 	void RenderSingleFrame();
 
@@ -155,6 +161,7 @@ public:
 	********************/
 	void DeleteProjectile(ClientDataPacket* _pClientPacket);
 
+	void SetCamera(eCameraType _eCameraType);
 private:
 	//Disallowing copies and extra constructions
 	CGame();
@@ -199,12 +206,18 @@ private:
 	
 	CTerrain* m_pTerrain;
 	CCameraStatic* m_pCamera;
+	CCamera* m_pDebugCamera;
 
 	
 	bool m_bLightning;
 
 	int m_iNumberPlayers;
 	int m_iIndexOfClientPlayer;
+
+	//Testing
+	ClientDataPacket* m_pClientPacket;
+
+	bool bToggle;
 };
 
 #endif //__CLIENT_GAME_H__

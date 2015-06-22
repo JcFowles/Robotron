@@ -53,7 +53,7 @@ public:
 	* @parameter: _f3Pos: Starting Z coordinate. Default to 0 if not specified
 	* @return: void
 	********************/
-	void Initialise(IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjID, float3 _f3Pos = { 0, 0, 0 });
+	void Initialise(bool _bToggle, IRenderer* _pRenderManager, int _iMaterialID, CMesh* _pMesh, UINT _ObjID, float3 _f3Pos = { 0, 0, 0 });
 	
 	/***********************
 	* Draw: Draws the 3D Object
@@ -167,6 +167,8 @@ protected:
 	void CalcWorldMatrix();
 	
 	//Member variables
+public:
+		bool m_bToggle;
 protected:
 	
 	IRenderer* m_pRenderManager;
@@ -189,9 +191,6 @@ protected:
 	CMesh* m_pMesh;
 	
 
-
-	//collision box
-	//Structs min max float3 
 
 };
 

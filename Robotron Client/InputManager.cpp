@@ -138,9 +138,14 @@ bool CInputManager::ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuff
 	//Run while loop until we has successfully got the passed in device state
 	while (true)
 	{
+		//No device
+		if (_pDIDevice == 0)
+		{
+			return false;
+		}
 		//Poll the device.
 		_pDIDevice->Poll();
-		
+
 		//Read in the state.
 		hResult = _pDIDevice->GetDeviceState(_iBufferSize, (LPVOID)_pDataBuffer);
 		if (SUCCEEDED(hResult))
@@ -149,7 +154,7 @@ bool CInputManager::ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuff
 		}
 
 		//Return false on all errors except not lost device or un-acquired device
-		if ((hResult != DIERR_INPUTLOST) && 
+		if ((hResult != DIERR_INPUTLOST) &&
 			(hResult != DIERR_NOTACQUIRED))
 		{
 			return false;
@@ -162,6 +167,8 @@ bool CInputManager::ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuff
 			//unable to acquire device
 			return false;
 		}
+		
+		
 	}
 	return true;
 }
@@ -212,6 +219,9 @@ void CInputManager::ProcessKeyBoard()
 	((m_cKeyStateBuffer[DIK_A] & 0x80))		 ? (m_InputStates.bLeftPress = true)	: (m_InputStates.bLeftPress = false);
 	((m_cKeyStateBuffer[DIK_D] & 0x80))		 ? (m_InputStates.bRightPress = true)	: (m_InputStates.bRightPress = false);
 	((m_cKeyStateBuffer[DIK_ESCAPE] & 0x80)) ? (m_InputStates.bEscape = true)		: (m_InputStates.bEscape = false);
+	((m_cKeyStateBuffer[DIK_TAB] & 0x80))	 ? (m_InputStates.bTab = true)			: (m_InputStates.bTab = false);
+	((m_cKeyStateBuffer[DIK_F1] & 0x80))	 ? (m_InputStates.bToggle = true)		: (m_InputStates.bToggle = false);
+	((m_cKeyStateBuffer[DIK_F4] & 0x80))	 ? (m_InputStates.bDebug = true)		: (m_InputStates.bDebug = false);
 }
 
 void CInputManager::ResetInputStates()

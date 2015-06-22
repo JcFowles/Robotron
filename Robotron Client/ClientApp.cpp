@@ -209,14 +209,12 @@ void CClientApp::Process()
 		//Process the selected menu item on mouse click up
 		if (m_strClickedMenu != "")
 		{
-			int c = 9;
+			if (m_pInputManager->GetInputStates().bActivate == false)
+			{
+				ProcessMenuSelection(m_strClickedMenu);
+				m_strClickedMenu = "";
+			}
 		}
-		if (m_pInputManager->GetInputStates().bActivate == false) 
-		{
-			ProcessMenuSelection(m_strClickedMenu);
-			m_strClickedMenu = "";
-		}
-
 
 		switch (m_eMenuState)
 		{
@@ -283,6 +281,16 @@ void CClientApp::Process()
 	{
 		ProcessGameInput();
 		ProcessLightning();	
+
+		if (m_bTab == true)
+		{
+			//Process on button release
+			if (m_pInputManager->GetInputStates().bToggle == false)
+			{
+				m_pGame->SetCamera(CAM_FIRST);
+				m_bTab = false;
+			}
+		}
 	}
 		break;
 	default:
@@ -325,6 +333,12 @@ void CClientApp::ProcessLightning()
 
 void CClientApp::ProcessGameInput()
 {
+	if (m_pInputManager->GetInputStates().bToggle == true)
+	{
+		//Tab button has been pressed
+		m_bTab = true;
+	}
+
 	//Set server info
 	SetClientInfo();
 	//Set up message

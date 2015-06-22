@@ -492,6 +492,7 @@ private:
 	//Graphic Variables
 	IRenderer* m_pRenderManager;
 
+	bool m_bTab;
 
 	//Frame Limiter
 	int m_iFrameTimeStart;

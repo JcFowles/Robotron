@@ -54,6 +54,7 @@ public:
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
 	void SetPowUpStates(ClientDataPacket* _pDataToSend);
+	void SetProjectileStates(ClientDataPacket* _pDataToSend);
 		
 	/***********************
 	* CheckCollision: Check if two bounding boxes are colliding

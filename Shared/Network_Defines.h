@@ -90,7 +90,7 @@ struct PlayerStates
 	BoundingBox BBox;
 
 	UINT uiScore;
-	float fHealth;
+	UINT uiHealth;
 
 	float fFireRate;
 	
@@ -161,6 +161,7 @@ struct ProjectileStates
 	BoundingBox BBox;
 
 	float fDamage;
+
 };
 
 struct ClientInfo
@@ -212,6 +213,8 @@ struct ClientDataPacket
 
 	UINT iNumPowerUps; 
 	UINT iNumEnemies;
+	UINT iNumProjectiles;
+	UINT iNumPlayers;
 }; 
 
 

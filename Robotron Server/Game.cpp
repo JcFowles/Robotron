@@ -4,10 +4,9 @@ CGame* CGame::s_pGame = 0;
 
 CGame::CGame()
 {
-	m_uiNextObjID = 0;
-	m_uiNextProjectileID = 0;
+	m_uiNextObjID = 1;
+	m_uiNextProjectileID = 1;
 }
-
 
 CGame::~CGame()
 {
@@ -91,10 +90,8 @@ bool CGame::Initialise()
 
 
 	//TO DO: move and update
-	//SpawnWave();
 	SpawnPowerUp();
-	//SpawnWave();
-	//SpawnWave();
+
 
 	return true;
 }
@@ -124,12 +121,12 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 		else
 		{
 			NumEnemies = kiInitialNumEnemies + (m_plistPlayers->size()* kiNumEnemiesPP * m_uiStage);
-			if (NumEnemies >= NetworkValues::MAX_ENEMYS - 1)
+			if (NumEnemies >= NetworkValues::MAX_ENEMYS )
 			{
 				
 				bMoreEnemies = true;
-				m_iExtraEnemies = NumEnemies - NetworkValues::MAX_ENEMYS - 1;
-				NumEnemies = NetworkValues::MAX_ENEMYS - 1;
+				m_iExtraEnemies = NumEnemies - NetworkValues::MAX_ENEMYS ;
+				NumEnemies = NetworkValues::MAX_ENEMYS ;
 			}
 			else
 			{
@@ -457,8 +454,7 @@ void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT)
 	while (BulletIter != m_pListProjectiles->end())
 	{
 		//Increase the bullet speed by delta tick
-		//BulletIter->second.f3Acceleration = BulletIter->second.f3Acceleration * fDT * (BulletIter->second.fMaxSpeed);
-
+		
 		//Calculate the new position
 		BulletIter->second.f3Velocity += BulletIter->second.f3Direction.Normalise() * fDT * (BulletIter->second.fMaxSpeed);;
 		BulletIter->second.f3Velocity.Limit(BulletIter->second.fMaxSpeed);
@@ -519,7 +515,7 @@ void CGame::AddPlayer(std::string _strUser)
 	tempPlayerState.BBox.f3CollisionMin = tempPlayerState.f3Positions - kfPlayerSize;
 	tempPlayerState.BBox.f3CollisionMax = tempPlayerState.f3Positions + kfPlayerSize;
 
-	tempPlayerState.fHealth = 100.0f;
+	tempPlayerState.uiHealth = 100;
 
 	tempPlayerState.uiPlayerID = m_uiNextObjID++;
 	tempPlayerState.fMaxSpeed = 10.0f;
@@ -565,6 +561,8 @@ void CGame::SetPlayerStates(ClientDataPacket* _pDataToSend)
 		//Increment the iUser
 		iUser++;
 	}
+
+	_pDataToSend->iNumPlayers = m_plistPlayers->size();
 }
 
 void CGame::SetEnemyStates(ClientDataPacket* _pDataToSend)
@@ -603,7 +601,24 @@ void CGame::SetPowUpStates(ClientDataPacket* _pDataToSend)
 	}
 
 	_pDataToSend->iNumPowerUps = m_pListPowerUps->size();
+}
 
+void CGame::SetProjectileStates(ClientDataPacket* _pDataToSend)
+{
+	//Run through the map of active clients
+	std::map< UINT, ProjectileStates>::iterator iterBullet = m_pListProjectiles->begin();
+	int iBullet = 0;
+	while (iterBullet != m_pListProjectiles->end())
+	{
+		_pDataToSend->ProjectilesInfo[iBullet] = iterBullet->second;
+
+		//Get next bullet
+		iterBullet++;
+		//Increment the bullet
+		iBullet++;
+	}
+
+	_pDataToSend->iNumProjectiles = m_pListProjectiles->size();
 }
 
 void CGame::SpawnWave(int _NumToSpawn)
@@ -648,11 +663,15 @@ void CGame::CreateLust(float3 _f3Pos)
 
 	tempEnemyState.fHealth = kfLustHealth;
 
+	std::pair<std::map<UINT, EnemyStates>::iterator, bool> mapIter;
 	//Add to the list of enemies
-	m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
+	mapIter = m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
 
-	//Add to the list of created
-	m_CreatedEnemies->push(tempEnemyState);
+	if (mapIter.second != false)
+	{
+		//Add to the list of created
+		m_CreatedEnemies->push(tempEnemyState);
+	}
 }
 
 void CGame::SpawnPowerUp()
@@ -674,18 +693,23 @@ void CGame::SpawnPowerUp()
 	tempPowUPState.uiPowUpID = m_uiNextObjID++;
 	tempPowUPState.fMaxSpeed = 0.10f;
 	tempPowUPState.fMaxForce = 0.1f;
-
+	
+	std::pair<std::map<UINT, PowerUpStates>::iterator, bool> mapIter;
 	//Add to the list of enemies
-	m_pListPowerUps->insert(std::pair<UINT, PowerUpStates>(tempPowUPState.uiPowUpID, tempPowUPState));
-
-	//Add to the list of created
-	m_CreatedPowerUp->push(tempPowUPState);
+	mapIter = m_pListPowerUps->insert(std::pair<UINT, PowerUpStates>(tempPowUPState.uiPowUpID, tempPowUPState));
+	
+	if (mapIter.second != false)
+	{
+		//Add to the list of created
+		m_CreatedPowerUp->push(tempPowUPState);
+	}
+	
 }
 
 bool CGame::SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOnwerID)
 {
 	//Limit to the creation of the bullets 
-	if (m_pListProjectiles->size() <= NetworkValues::MAX_PROJECTILE - 1)
+	if (m_pListProjectiles->size() <= NetworkValues::MAX_PROJECTILE)
 	{
 		ProjectileStates tempProjectile;
 
@@ -704,10 +728,15 @@ bool CGame::SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOnwerID
 		tempProjectile.fDamage = kfBulletDamage;
 
 		tempProjectile.uiProjectileID = m_uiNextProjectileID++;
-
+		
+		std::pair<std::map<UINT, ProjectileStates>::iterator, bool> mapIter;
 		//Add to the list of enemies
-		m_pListProjectiles->insert(std::pair<UINT, ProjectileStates>(tempProjectile.uiProjectileID, tempProjectile));
+		mapIter = m_pListProjectiles->insert(std::pair<UINT, ProjectileStates>(tempProjectile.uiProjectileID, tempProjectile));
 
+		if (mapIter.second == false)
+		{
+			return false;
+		}
 		//Add to the list of created
 		m_CreatedProjectile->push(tempProjectile);
 

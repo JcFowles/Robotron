@@ -29,7 +29,7 @@
 
 //Player Size
 const float kfPlayerSize = 1.0f;
-const float kfFireRate = 0.05f;
+const float kfFireRate = 0.8f;
 //Enemy Sizes
 const float kfLustSize = 0.8f;
 const UINT kuiLustPoints = 10;
@@ -39,7 +39,7 @@ const float kfLustHealth = 10.0f;
 const float kfShieldSize = 0.5f;
 const UINT kuiShieldPoints = 10;
 //Projectile Size
-const float kfBulletSize = 0.1f;
+const float kfBulletSize = 0.2f;
 const float kfBulletDamage = 5.0f;
 
 //Number initial enemies to spawn 
@@ -92,6 +92,13 @@ enum ePowerType
 	//TO DO: More
 };
 
+enum eCameraType
+{
+	CAM_THIRD,
+	CAM_FIRST,
+	CAM_DEBUG
+};
+
 struct InputStates
 {
 	bool bUpPress;
@@ -100,7 +107,19 @@ struct InputStates
 	bool bRightPress;
 	bool bActivate;
 	bool bEscape;
+	bool bToggle;
+	
+	bool bTab;
 	POINT CursorPos;
+
+	bool bDebug;
+	bool bDBugUp;
+	bool bDBugDown;
+	bool bDBugLeft;
+	bool bDBugRight;
+	bool bDFoward;
+	bool bDBack;
+
 };
 
 //Vector with 2 float values
