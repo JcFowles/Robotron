@@ -686,13 +686,17 @@ void CGame::RemovePlayer(std::string _strLeftPlayer)
 {
 	//Find player to remove
 	std::map<std::string, CPlayerObj*>::iterator playerToRemove = m_plistPlayers->find(_strLeftPlayer);
-	//Turn their light off
-	m_pRenderManager->UpdatePointLight(playerToRemove->second->GetLightID(), false, playerToRemove->second->GetPosition(), playerToRemove->second->GetLightRange());
-	//Delete the object
-	delete playerToRemove->second;
-	playerToRemove->second = 0;
-	//Remove from list
-	m_plistPlayers->erase(_strLeftPlayer);
+
+	if (playerToRemove != m_plistPlayers->end())
+	{
+		//Turn their light off
+		m_pRenderManager->UpdatePointLight(playerToRemove->second->GetLightID(), false, playerToRemove->second->GetPosition(), playerToRemove->second->GetLightRange());
+		//Delete the object
+		delete playerToRemove->second;
+		playerToRemove->second = 0;
+		//Remove from list
+		m_plistPlayers->erase(_strLeftPlayer);
+	}
 }
 
 int CGame::CreatePlayerAssest()

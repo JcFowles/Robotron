@@ -216,6 +216,9 @@ void CClientApp::Process()
 			}
 		}
 
+		//Clear server list to be filled with the servers still active
+		m_pMapActiveServers->clear();
+
 		switch (m_eMenuState)
 		{
 		case MS_MAIN:
@@ -235,13 +238,6 @@ void CClientApp::Process()
 			{
 			case HS_SERVER_NAME:
 			{
-				//If m_strActiveServers didnt need to be processed remove them
-				if (m_bMenuClicked == false)
-				{
-					//Clear server list
-					m_pMapActiveServers->clear();
-				}
-
 				//Broadcast to find servers
 				FindServers();
 			}
@@ -1169,6 +1165,8 @@ void CClientApp::JoinMenuDraw()
 			}
 
 		}
+
+		
 				
 		uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 		iYPos = m_iScreenHeight - (2*uiFontHeight);
@@ -1760,9 +1758,8 @@ void CClientApp::FindServers()
 	SetClientInfo();
 	//Broad Cast message
 	m_pClient->Broadcast(m_pServerPacket);
-
-	//TO DO: REMOVE AFTER ADDING FRAME LIMITER
-	//Sleep(100);
+		
+	Sleep(100);
 	
 }
 
@@ -1932,4 +1929,6 @@ void CClientApp::ResetData()
 		m_pGame = 0;
 	}
 	
+	//Clear server list
+	m_pMapActiveServers->clear();
 }
