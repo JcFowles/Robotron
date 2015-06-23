@@ -45,7 +45,7 @@ public:
 	bool Initialise();
 
 	/***********************
-	* Process: Process the clock class, Ie procces the Delta tick
+	* Process: Process the clock class, Ie process the Delta tick
 	* @author: Jc Fowles
 	* @return: void
 	********************/
@@ -68,6 +68,11 @@ private:
 	********************/
 	CClock(const CClock& _kr);
 	
+	/***********************
+	* operator=: Overloaded assignment operator
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CClock& operator= (const CClock& _kr);
 	
 	// Member Variables

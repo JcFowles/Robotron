@@ -48,6 +48,10 @@ public:
 
 	void Draw();
 
+	void DrawPlayers();
+	void DrawEnemies();
+	void DrawPowerUps();
+	void RenderTeamScores(ClientDataPacket* _pClientPacket);
 	void Process(ClientDataPacket* _pClientPacket);
 	
 	void ProcessPlayers(ClientDataPacket* _pClientPacket);
@@ -95,8 +99,6 @@ public:
 	********************/
 	int CreateProjectileAssest();
 	
-
-
 	/***********************
 	* CreateCubeMesh: Creates a cube Mesh with origin in its very center
 	* @author: Jc Fowles
@@ -160,12 +162,38 @@ public:
 	* @return: void:
 	********************/
 	void DeleteProjectile(ClientDataPacket* _pClientPacket);
+		
+	/***********************
+	* ToggleCamera: Toggle camera between first and third person camera
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void ToggleCamera();
 
-	void SetCamera(eCameraType _eCameraType);
+	
+	
 private:
 	//Disallowing copies and extra constructions
+
+	/***********************
+	* CGame: Constructor of the Game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CGame();
+
+	/***********************
+	* CGame: Copy Constructor of the game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CGame(const CGame& _kr);
+
+	/***********************
+	* operator=: Overloaded assignment operator
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CGame& operator= (const CGame& _kr);
 
 	//member variables
@@ -177,13 +205,9 @@ private:
 	
 	std::map<std::string, CPlayerObj*>* m_plistPlayers;
 	
-	
-
-
 	int m_iDirectionID;
 	int m_iLightningID;
-
-
+	
 	std::map<UINT, CEnemyObj*>* m_pListEnemies;
 	std::map<UINT, CPowerUpObj*>* m_pListPowerUps;
 	std::map<UINT, CProjectileObj*>* m_pListBullets;
@@ -200,15 +224,11 @@ private:
 	CMesh* m_pProjectileMesh;
 	std::map<eEnemyTypes, CMesh* >* m_pEnemyMesh;
 	std::map<ePowerType, CMesh* >* m_pPowerUpMesh;
-	
-
-	
-	
+			
 	CTerrain* m_pTerrain;
 	CCameraStatic* m_pCamera;
 	CCamera* m_pDebugCamera;
-
-	
+		
 	bool m_bLightning;
 
 	int m_iNumberPlayers;
@@ -218,6 +238,11 @@ private:
 	ClientDataPacket* m_pClientPacket;
 
 	bool bToggle;
+	bool bTab; // TO DO
+
+	bool m_bPauseItemSelected;
+	std::string m_strPauseItem;
+
 };
 
 #endif //__CLIENT_GAME_H__

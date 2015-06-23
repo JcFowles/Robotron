@@ -96,18 +96,15 @@ bool CGame::Initialise()
 	return true;
 }
 
-void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClientPacket)
+void CGame::Process(ClientDataPacket* _pClientPacket)
 {
 	//Process clock and get the delta tick
 	m_pClock->Process();
-	float fDT = m_pClock->GetDeltaTick();
-
-	ProcessInput(fDT, _pServerPacket);
-	
-	
+	m_fDt = m_pClock->GetDeltaTick();
+		
 	UpdatePlayers(_pClientPacket);
-	UpdateEnemies(_pClientPacket, fDT);
-	UpdateProjectile(_pClientPacket, fDT);
+	UpdateEnemies(_pClientPacket);
+	UpdateProjectile(_pClientPacket);
 
 	//If no Enemies spawn next wave
 	if (m_plistEnemies->size() < 1)
@@ -143,9 +140,7 @@ void CGame::Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClient
 
 }
 
-
-
-void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
+void CGame::ProcessInput(ServerDataPacket* _pServerPacket)
 {
 	//Get the users who sent the packets name
 	std::string strUserName(_pServerPacket->clientInfo.cUserName);
@@ -153,7 +148,7 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 	
 	if (playerIter->second.fFireRate > 0.0f)
 	{
-		playerIter->second.fFireRate -= _fDt;
+		playerIter->second.fFireRate -= m_fDt;
 	}
 
 	if (playerIter != m_plistPlayers->end())
@@ -203,7 +198,7 @@ void CGame::ProcessInput(float _fDt, ServerDataPacket* _pServerPacket)
 		}
 		
 		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration.Normalise();
-		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * _fDt;
+		playerIter->second.f3Acceleration = playerIter->second.f3Acceleration * m_fDt;
 				
 		POINT CursorPos = _pServerPacket->PlayerInputs.CursorPos;
 		CursorPos.x -= 500;
@@ -327,7 +322,7 @@ void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 	}
 }
 
-void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt)
+void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 {
 	float fEnemySize = 0.0f;
 	bool bCollision = false;
@@ -352,7 +347,7 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt)
 			{
 			case ET_LUST:
 			{
-				UpdateLust(&enemyIter->second, _fDt);
+				UpdateLust(&enemyIter->second);
 				fEnemySize = kfLustSize;
 			}
 			break;
@@ -417,7 +412,7 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt)
 
 }
 
-void CGame::UpdateLust(EnemyStates* _pEnemy, float _fDt)
+void CGame::UpdateLust(EnemyStates* _pEnemy)
 {
 	std::map<std::string, PlayerStates>::iterator PlayerIter = m_plistPlayers->begin();
 	std::map<std::string, PlayerStates>::iterator ClosestPlayer = PlayerIter;
@@ -442,12 +437,12 @@ void CGame::UpdateLust(EnemyStates* _pEnemy, float _fDt)
 	_pEnemy->f3Target = ClosestPlayer->second.f3Positions;
 
 	//Steerings
-	seek(_pEnemy, _fDt);
+	seek(_pEnemy, m_fDt);
 		
 	
 }
 
-void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT)
+void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket)
 {
 	std::map<UINT, ProjectileStates>::iterator BulletIter = m_pListProjectiles->begin();
 	int iBullet = 0;
@@ -456,7 +451,7 @@ void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT)
 		//Increase the bullet speed by delta tick
 		
 		//Calculate the new position
-		BulletIter->second.f3Velocity += BulletIter->second.f3Direction.Normalise() * fDT * (BulletIter->second.fMaxSpeed);;
+		BulletIter->second.f3Velocity += BulletIter->second.f3Direction.Normalise() * m_fDt * (BulletIter->second.fMaxSpeed);;
 		BulletIter->second.f3Velocity.Limit(BulletIter->second.fMaxSpeed);
 		BulletIter->second.f3Positions += BulletIter->second.f3Velocity;
 		

@@ -119,6 +119,15 @@ public:
 	********************/
 	void ProcessSinglePlayer(int _iInput);
 
+	
+	/***********************
+	* PauseMenuSelect: Process the pause menu selection
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Which pause item was selected
+	* @return: void: 
+	********************/
+	void PauseMenuSelect(std::string _strMenuItem);
+
 	/***********************
 	* ProcessMenuSelection: process the menu selection
 	* @author: Jc Fowles
@@ -134,6 +143,14 @@ public:
 	********************/
 	void Draw();
 		
+	
+	/***********************
+	* DrawPause: Draw the pause menu
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void DrawPause();
+
 	/***********************
 	* MainMenuDraw: Draw the main menu
 	* @author: Jc Fowles
@@ -390,46 +407,76 @@ public:
 
 
 	//TO DO:
-
-	
-	
+		
+	/***********************
+	* SinglePlayerSelect: Process the single player options menu selection
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Menu item that was selected
+	* @return: void: 
+	********************/
 	void SinglePlayerSelect(std::string _strMenuItem);
-	void EnterUserName(int _iYpos);
-
+		
+	/***********************
+	* DrawUserName: Renders the user name that the users enters as they enter it
+	* @author: Jc Fowles
+	* @Parameter: int _iYpos: screen y position to render the user name
+	* @return: void: 
+	********************/
+	void DrawUserName(int _iYpos);
+		
+	/***********************
+	* AddUser: Add a user to the list of clients 
+	* @author: Jc Fowles
+	* @Parameter: std::string _strPlayerName: The clients user name
+	* @Parameter: ClientInfo _clientInfo: The clients information
+	* @return: bool: successful add of user
+	********************/
 	bool AddUser(std::string _strPlayerName, ClientInfo _clientInfo);
-
+		
+	/***********************
+	* ResetData: Reset the client app states 
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void ResetData();
-
+		
+	/***********************
+	* LoadGame: Process loading up the games
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void LoadGame();
-
+		
+	/***********************
+	* LoadingScreen: Render a active loading screen
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void LoadingScreen();
 
 protected:
 
 private:
 	/***********************
-	* CGame: Constructor of the Game instance
+	* CClientApp: Constructor of the Client app instance
 	* @author: Jc Fowles
 	* @return:
 	********************/
 	CClientApp();
 
 	/***********************
-	* CGame: Copy Constructor of the Game instance
+	* CClientApp: Copy Constructor of the Client app instance
 	* @author: Jc Fowles
 	* @return:
 	********************/
 	CClientApp(const CClientApp& _kr);
 
 	/***********************
-	* operator=: Overloaded
+	* operator=: Overloaded assignment operator
 	* @author: Jc Fowles
 	* @return:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
-
-	
-
 
 	//Member Variables
 public:
@@ -455,6 +502,7 @@ private:
 	std::vector<std::string> m_strOptionsMenu;
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
+	std::vector<std::string> m_strPauseOptions;
 	bool m_bGameLoading;
 	bool m_bsinglePlayer;
 	bool m_bMenuClicked;
@@ -492,7 +540,10 @@ private:
 	//Graphic Variables
 	IRenderer* m_pRenderManager;
 
+	bool m_bCamToggle;
 	bool m_bTab;
+	bool m_bPauseToggle;
+	bool m_bGamePause;
 
 	//Frame Limiter
 	int m_iFrameTimeStart;

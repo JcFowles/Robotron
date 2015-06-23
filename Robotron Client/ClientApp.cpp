@@ -146,6 +146,10 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_strExitOptions.push_back("Yes - Close The Game");
 	m_strExitOptions.push_back("No - Take Me Back");
 	
+	m_strPauseOptions.push_back("Resume");
+	m_strPauseOptions.push_back("Options");
+	m_strPauseOptions.push_back("Exit");
+
 	m_eGameState = GS_MENU;
 	m_eHostState = HS_DEFAULT;
 	m_eMenuState = MS_MAIN;
@@ -178,7 +182,6 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	//TO DO: Full screen???
 	bool bFullScreen = false;
 	VALIDATE(m_pRenderManager->Initialise(_iScreenWidth, _iScreenHeight, _hWnd, bFullScreen));
-
 	
 
 	//Initialise the the input manager
@@ -194,16 +197,14 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 
 //Process based on states
 void CClientApp::Process()
-{
-	
+{	
 	//Reset the player inputs
 	m_pInputManager->ResetInputStates();
 	//Process the Player the inputs
 	m_pInputManager->ProcessInput();
 	
-	switch (m_eGameState)
-	{
-	case GS_MENU:
+	//Process menu selection if we are in pause screen or menu state
+	if ((m_bGamePause == true) || (m_eGameState == GS_MENU))
 	{
 		//Menu selected on mouse click down
 		//Process the selected menu item on mouse click up
@@ -215,78 +216,104 @@ void CClientApp::Process()
 				m_strClickedMenu = "";
 			}
 		}
+	}
 
+
+	switch (m_eGameState)
+	{
+		case GS_MENU:
+		{
+			
 		//Clear server list to be filled with the servers still active
 		m_pMapActiveServers->clear();
 
 		switch (m_eMenuState)
 		{
-		case MS_MAIN:
-		{
-			//Reset Data
-			ResetData();
-		}
-		break;
-		case MS_MULTI_PLAYER:
-		{
-			//Reset Data
-			ResetData();
-		}
-		case MS_JOIN_GAME:
-		{
-			switch (m_eHostState)
+			case MS_MAIN:
 			{
-			case HS_SERVER_NAME:
+				//Reset Data
+				ResetData();
+			}
+			break;
+			case MS_MULTI_PLAYER:
 			{
-				//Broadcast to find servers
-				FindServers();
+				//Reset Data
+				ResetData();
+			}
+			case MS_JOIN_GAME:
+			{
+				switch (m_eHostState)
+				{
+				case HS_SERVER_NAME:
+				{
+					//Broadcast to find servers
+					FindServers();
+				}
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+			case MS_HOST_GAME:
+			{
+				switch (m_eHostState)
+				{
+				case HS_DONE:
+				{
+					//open server app
+					OpenServerApp();
+				}
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+			case MS_LOBBY:
+			{
+				RequestUserList();
 			}
 				break;
 			default:
 				break;
-			}
-		}
-			break;
-		case MS_HOST_GAME:
-		{
-			switch (m_eHostState)
-			{
-			case HS_DONE:
-			{
-				//open server app
-				OpenServerApp();
-			}
-				break;
-			default:
-				break;
-			}
-		}
-			break;
-		case MS_LOBBY:
-		{
-			RequestUserList();
-		}
-			break;
-		default:
-			break;
 		}
 
 	}
 		break;
 	case GS_PLAY:
 	{
+			
+		//Send input info to server
 		ProcessGameInput();
-		ProcessLightning();	
+		
 
-		if (m_bTab == true)
+		//Process the lighting 
+		ProcessLightning();
+
+		//Check if we need to toggle camera view between first and third person
+		if (m_bCamToggle == true)
 		{
 			//Process on button release
 			if (m_pInputManager->GetInputStates().bToggle == false)
 			{
-				m_pGame->SetCamera(CAM_FIRST);
-				m_bTab = false;
+				m_pGame->ToggleCamera();
+				m_bCamToggle = false;
 			}
 		}
+
+		// Check if we need to toggle the pause screen
+		if (m_bPauseToggle == true)
+		{
+			//Process on button release
+			if (m_pInputManager->GetInputStates().bEscape == false)
+			{
+				//Toggle the pause screen
+				m_bGamePause = !m_bGamePause;
+				m_bPauseToggle = false;
+			}
+		}
+
 	}
 		break;
 	default:
@@ -329,22 +356,34 @@ void CClientApp::ProcessLightning()
 
 void CClientApp::ProcessGameInput()
 {
+	//Tab button has been pressed
+	m_bTab = m_pInputManager->GetInputStates().bTab;
+	//Toggle button has been pressed
 	if (m_pInputManager->GetInputStates().bToggle == true)
 	{
-		//Tab button has been pressed
-		m_bTab = true;
+		m_bCamToggle = true;
 	}
 
-	//Set server info
-	SetClientInfo();
-	//Set up message
-	m_pServerPacket->packetType = PT_INPUT;
+	//Esc has been pressed
+	if (m_pInputManager->GetInputStates().bEscape == true)
+	{
+		m_bPauseToggle = true;
+	}
 
-	//get the player input states
-	m_pServerPacket->PlayerInputs = m_pInputManager->GetInputStates();
+	//Only send input date to the server if the game is not paused
+	if (m_bGamePause == false)
+	{
+		//Set server info
+		SetClientInfo();
+		//Set up message
+		m_pServerPacket->packetType = PT_INPUT;
 
-	//Send the inputs
-	m_pClient->SendData(m_pServerPacket);
+		//get the player input states
+		m_pServerPacket->PlayerInputs = m_pInputManager->GetInputStates();
+
+		//Send the inputs
+		m_pClient->SendData(m_pServerPacket);
+	}
 
 }
 
@@ -377,10 +416,17 @@ void CClientApp::ProcessTextInputs(int _iInput)
 
 }
 
+//Process menu selection inputs
 void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 {
 	//Reset menu clicked
 	m_bMenuClicked = false;
+
+	//Are we in a pause screen
+	if (m_bGamePause == true)
+	{
+		PauseMenuSelect(_strMenuItem);
+	}
 
 	//Depending on the current game state run the designated Menu select 
 	switch (m_eMenuState)
@@ -513,7 +559,56 @@ void CClientApp::ProcessHostGame(int _iInput)
 	}
 }
 
-//Process menu selection inputs
+void CClientApp::PauseMenuSelect(std::string _strMenuItem)
+{
+	unsigned int iPauseItem;
+	for (iPauseItem = 0; iPauseItem < m_strPauseOptions.size(); iPauseItem++)
+	{
+		if (_strMenuItem == m_strPauseOptions[iPauseItem])
+		{
+			break;
+		}
+	}
+
+	switch (iPauseItem)
+	{
+	case 0: //Resume
+	{
+		//set pause to false
+		m_bGamePause = false;
+		//Set Toggle to false as well
+		m_bPauseToggle = false;
+	}
+	break;
+	case 1: //Options
+	{
+		//set game state to menu 
+		m_eGameState = GS_MENU;
+		//and set menu state to options
+		m_eMenuState = MS_OPTIONS;
+	}
+	break;
+	case 2: //Exit 
+	{
+		SetClientInfo();
+		//other Aspects of message to send
+		m_pServerPacket->packetType = PT_LEAVE;
+		//Send message
+		m_pClient->SendData(m_pServerPacket);
+
+		m_pRenderManager->Clear(true, true, false);
+		//Reset Data
+		ResetData();
+		
+		//set game state to menu 
+		m_eGameState = GS_MENU;
+		//Set menu state to exit
+		m_eMenuState = MS_MAIN;
+	}
+	break;
+	}
+}
+
 void CClientApp::MainMenuSelect(std::string _strMenuItem)
 {
 	//Run through main menu options
@@ -743,8 +838,18 @@ void CClientApp::OptionsMenuSelect(std::string _strMenuItem)
 	//Back button was clicked
 	if (_strMenuItem == "\t Back")
 	{
-		m_pRenderManager->Clear(true, true, false);
-		m_eMenuState = MS_MAIN;
+
+		if (m_bGamePause == true)
+		{
+			//Game is running therefore return to the game not menu
+			m_pRenderManager->Clear(true, true, false);
+			m_eGameState = GS_PLAY;
+		}
+		else
+		{
+			m_pRenderManager->Clear(true, true, false);
+			m_eMenuState = MS_MAIN;
+		}
 	}
 
 	//Switch on which text rect was clicked on, 
@@ -812,8 +917,10 @@ void CClientApp::ExitMenuSelect(std::string _strMenuItem)
 
 	case 1: //NO
 	{
+		
 		m_pRenderManager->Clear(true, true, false);
 		m_eMenuState = MS_MAIN;
+
 	}break;
 
 	default:
@@ -866,7 +973,7 @@ void CClientApp::ConvertTextInput(std::string* _strText, int _iInput)
 	*_strText = strTemp;
 }
 
-void CClientApp::EnterUserName(int _iYPos)
+void CClientApp::DrawUserName(int _iYPos)
 {
 	//***Host MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
@@ -997,18 +1104,52 @@ void CClientApp::Draw()
 			break;
 		}
 	}
-		break;
+	break;
 	case GS_PLAY:
 	{
 		m_pGame->Draw();
+
+		//If tab key is down draw the players scores 
+		if (m_bTab)
+		{
+			m_pGame->RenderTeamScores(m_pClientPacket);
+		}
+
+		//Render pause menu
+		if (m_bGamePause == true)
+		{
+			DrawPause();
+		}
 	}
-		break;
+	break;
 	
 	}
 
 
-
 	m_pRenderManager->EndRender();
+}
+
+void CClientApp::DrawPause()
+{
+	int iYPos = (m_iScreenHeight / 16);
+	DWORD dwTextFormat;
+	
+	//***TITLE***
+	dwTextFormat = DT_CENTER | DT_TOP | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+
+	////***Pause***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos += 230;
+
+	RenderText("Pause", iYPos, TEXT_MENU, false, dwTextFormat);
+	iYPos += (uiFontHeight + 10);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	for (unsigned int i = 0; i < m_strPauseOptions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 40);
+		RenderText(m_strPauseOptions[i], iYPos, TEXT_LIST, true, dwTextFormat);
+	}
 }
 
 void CClientApp::MainMenuDraw()
@@ -1043,7 +1184,7 @@ void CClientApp::SinglePlayerMenuDraw()
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
 	//User name
-	EnterUserName(iYPos);
+	DrawUserName(iYPos);
 
 }
 
@@ -1250,7 +1391,7 @@ void CClientApp::HostMenuDraw()
 		break;
 	case HS_USER_NAME:
 	{
-		EnterUserName(iYPos);
+		DrawUserName(iYPos);
 	}
 		break;
 	case HS_DONE:
@@ -1615,37 +1756,58 @@ void CClientApp::ProcessReceiveData()
 		break;
 		case PT_UPDATE:
 		{
-			m_pGame->Process(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->Process(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_CREATE_ENEMY:
 		{
-			m_pGame->CreateEnemy(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->CreateEnemy(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_CREATE_POWERUP:
 		{
-			m_pGame->CreatePowerUp(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->CreatePowerUp(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_CREATE_PROJECTILE:
 		{
-			m_pGame->CreateProjectile(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->CreateProjectile(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_DELETE_ENEMY:
 		{
-			m_pGame->DeleteEnemy(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->DeleteEnemy(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_DELETE_POWERUP:
 		{
-			m_pGame->DeletePowerUp(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->DeletePowerUp(m_pClientPacket);
+			}
 		}
 		break;
 		case PT_DELETE_PROJECTILE:
 		{
-			m_pGame->DeleteProjectile(m_pClientPacket);
+			if (m_pGame != 0)
+			{
+				m_pGame->DeleteProjectile(m_pClientPacket);
+			}
 		}
 		break;
 		default:
@@ -1833,7 +1995,9 @@ void CClientApp::LoadGame()
 	std::thread LoadingTread = std::thread(&CClientApp::LoadingScreen, (this));
 
 	m_pGame = &(CGame::GetInstance());
+	
 	m_pGame->Initialise(m_pRenderManager, m_strUserName);
+	
 	m_pGame->AddAllPlayers(m_pClientPacket);
 
 	m_bGameLoading = false;
@@ -1916,6 +2080,8 @@ void CClientApp::ResetData()
 	m_strUserName = "";
 
 	m_bIsHost = false;
+	m_bGamePause = false;
+	m_bPauseToggle = false;
 
 	m_pClient->Reset();
 

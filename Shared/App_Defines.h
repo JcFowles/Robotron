@@ -29,7 +29,7 @@
 
 //Player Size
 const float kfPlayerSize = 1.0f;
-const float kfFireRate = 0.8f;
+const float kfFireRate = 0.2f;
 //Enemy Sizes
 const float kfLustSize = 0.8f;
 const UINT kuiLustPoints = 10;

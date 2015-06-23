@@ -323,10 +323,33 @@ public:
 	virtual UINT CreateLights(D3DLightParameter _pLightParameter);
 
 	//TO DO
+	/***********************
+	* UpdatePointLight: Update the the point light
+	* @author: Jc Fowles
+	* @parameter: _pLightParameter: the light parameter to create the lights
+	* @return: UINT: a unique ID that is used to reference the created lights
+	********************/
+	
+	/***********************
+	* UpdatePointLight: Update the pulsating point light around the players
+	* @author: Jc Fowles
+	* @Parameter: int _LightID: Id to which light to update
+	* @Parameter: bool bIsTurnedOn: value to turn on or off the light
+	* @Parameter: float3 _f3Pos: position of the light
+	* @Parameter: float _fRange: The range that the point light spreads out to
+	* @return: bool: Successful Update
+	********************/
 	virtual bool UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange);
+		
+	/***********************
+	* UpdateDirectionLight: Update the directional light used for the lighting effect
+	* @author: Jc Fowles
+	* @Parameter: int _LightID: Id to which light to update
+	* @Parameter: bool bIsTurnedOn: value to turn on or off the light
+	* @return: bool: 
+	********************/
 	virtual bool UpdateDirectionLight(int _LightID, bool bIsTurnedOn);
-
-
+	
 	/***********************
 	* FillRectColor: Fill a rectangle with a passed in color
 	* @author: Jc Fowles
@@ -432,9 +455,6 @@ protected:
 	ID3DXFont* m_pMenuFont;
 	ID3DXFont* m_pListFont;
 
-	//D3DLIGHT9 m_pDirectionalLight;
-
-	
 	std::map<UINT, D3DLIGHT9*>* m_pLightMap;
 
 	bool m_bSpecular;

@@ -150,6 +150,14 @@ void CServerApp::Process()
 		CheckCreation();
 	}
 	
+	//Add server info to client packet
+	SetServerInfo();
+	//Send to all so so has left
+	m_pClientPacket->packetType = PT_UPDATE;
+
+	m_pGame->Process(m_pClientPacket);
+
+	SendToAll(m_pClientPacket);
 }
 
 void CServerApp::Draw()
@@ -334,14 +342,8 @@ void CServerApp::ProcessReceiveData()
 		}
 		case PT_INPUT:
 		{
-			//Add server info to client packet
-			SetServerInfo();
-			//Send to all so so has left
-			m_pClientPacket->packetType = PT_UPDATE;
-			
-			m_pGame->Process(m_pServerPacket, m_pClientPacket);
-
-			SendToAll(m_pClientPacket);
+			//Process the inputs
+			m_pGame->ProcessInput(m_pServerPacket);		
 		}
 		break;
 		default:

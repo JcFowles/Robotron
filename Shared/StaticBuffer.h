@@ -115,8 +115,19 @@ protected:
 	
 
 private:
-	//disallow copies
+	
+	/***********************
+	* CStaticBuffer: Constructor of the StaticBuffer class
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CStaticBuffer(const CStaticBuffer& _kr);
+
+	/***********************
+	* operator=: Overloaded assignment operator
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	CStaticBuffer& operator=(const CStaticBuffer& _kr);
 
 	// Member Variables

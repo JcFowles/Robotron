@@ -109,7 +109,22 @@ public:
 	* @return: InputStates: The input states
 	********************/
 	InputStates GetInputStates() { return m_InputStates; };
+
+	//TO DO
+	
+	/***********************
+	* SetInputStates: Set the input stats based on the sate of the input device
+	* @author: Jc Fowles
+	* @Parameter: InputStates _PlayCont: The input states
+	* @return: void: 
+	********************/
 	void SetInputStates(InputStates _PlayCont){ m_InputStates = _PlayCont; };
+		
+	/***********************
+	* ResetInputStates: Reset the input states 
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void ResetInputStates();
 
 	//Member variables

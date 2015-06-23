@@ -39,17 +39,17 @@ public:
 
 	bool Initialise();
 
-	void Process(ServerDataPacket* _pServerPacket, ClientDataPacket* _pClientPacket);
-	void ProcessInput(float _fDt, ServerDataPacket* _pServerPacket);
+	void Process(ClientDataPacket* _pClientPacket);
+	void ProcessInput( ServerDataPacket* _pServerPacket);
 
 
 	
 	void AddPlayer(std::string _strUser);
 	void RemovePlayer(std::string _strLeftPlayer);
 	void UpdatePlayers(ClientDataPacket* _pClientPacket);
-	void UpdateEnemies(ClientDataPacket* _pClientPacket, float _fDt);
-	void UpdateLust(EnemyStates* _Enemy, float _fDt);
-	void UpdateProjectile(ClientDataPacket* _pClientPacket, float fDT);
+	void UpdateEnemies(ClientDataPacket* _pClientPacket);
+	void UpdateLust(EnemyStates* _Enemy);
+	void UpdateProjectile(ClientDataPacket* _pClientPacket);
 	
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
@@ -153,6 +153,7 @@ private:
 
 	UINT m_uiStage;
 
+	float m_fDt;
 	
 
 	UINT  m_uiNextObjID;

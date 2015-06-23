@@ -155,7 +155,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	m_pTerrain = new CTerrain();
 	ScalarVertex TerrainScalar = { 1.0f, 0.0f, 1.0f };
 	std::string strImagePath = "Assets\\Heightmap.bmp";
-	m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar);
+	VALIDATE(m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar));
 	m_pTerrain->SetCenter({ 0, 0, 0 });
 
 	//Create the Camera
@@ -164,7 +164,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	D3DXVECTOR3 D3DPosition = { 0.0f, 100.0f, 0.0f };
 	//Initialise the Camera target
 	D3DXVECTOR3 D3DLookAt = { 0.0f, 0.0f, 0.0f };
-	m_pCamera->Initialise(D3DPosition, D3DLookAt, false);
+	VALIDATE(m_pCamera->Initialise(D3DPosition, D3DLookAt, false));
 	m_pCamera->Process(m_pRenderManager);
 		
 	//Create player assets
@@ -459,40 +459,19 @@ void CGame::ProcessCamera()
 	m_pCamera->Process(m_pRenderManager);
 }
 
-
 void CGame::Draw()
 {
 	//Draw every passed in from the server
 	m_pTerrain->Draw(m_pRenderManager);
 		
-	//Loop through all players
-	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
-	std::map< std::string, CPlayerObj*>::iterator iterPlayerEnd = m_plistPlayers->end();
-	while (iterPlayer != iterPlayerEnd)
-	{
-		//Draw the player avatar
-		iterPlayer->second->Draw();
-
-		iterPlayer++;
-	}
-
-	std::map< UINT, CEnemyObj*>::iterator iterEnemy = m_pListEnemies->begin();
-	while (iterEnemy != m_pListEnemies->end())
-	{
-		//Draw the Enemy avatar
-		iterEnemy->second->Draw();
-
-		iterEnemy++;
-	}
-
-	std::map< UINT, CPowerUpObj*>::iterator iterPowUP = m_pListPowerUps->begin();
-	while (iterPowUP != m_pListPowerUps->end())
-	{
-		//Draw the Power UP avatar
-		iterPowUP->second->Draw();
-
-		iterPowUP++;
-	}
+	//Draw players
+	DrawPlayers();
+	//Draw enemies
+	DrawEnemies();
+	//Draw Power Ups
+	DrawPowerUps();
+	//Draw Projectile
+	
 
 	std::map< UINT, CProjectileObj*>::iterator iterBullet = m_pListBullets->begin();
 	while (iterBullet != m_pListBullets->end())
@@ -533,6 +512,95 @@ void CGame::Draw()
 	HudRec.bottom = iTop + TextHieght;
 	m_pRenderManager->RenderText(strScore, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
 
+	//TO DO: Render the tab screen added to the game instead of the client app
+
+}
+
+void CGame::DrawPlayers()
+{
+	//Loop through all players
+	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
+	while (iterPlayer != m_plistPlayers->end())
+	{
+		//Draw the player avatar
+		iterPlayer->second->Draw();
+
+		iterPlayer++;
+	}
+}
+
+void CGame::DrawEnemies()
+{
+	std::map< UINT, CEnemyObj*>::iterator iterEnemy = m_pListEnemies->begin();
+	while (iterEnemy != m_pListEnemies->end())
+	{
+		//Draw the Enemy avatar
+		iterEnemy->second->Draw();
+
+		iterEnemy++;
+	}
+}
+
+void CGame::DrawPowerUps()
+{
+	std::map< UINT, CPowerUpObj*>::iterator iterPowUP = m_pListPowerUps->begin();
+	while (iterPowUP != m_pListPowerUps->end())
+	{
+		//Draw the Power UP avatar
+		iterPowUP->second->Draw();
+
+		iterPowUP++;
+	}
+}
+//TO DO Drawing Functions
+
+void CGame::RenderTeamScores(ClientDataPacket* _pClientPacket)
+{
+	RECT ScoreDisplayRect;
+	DWORD dwTextFormat; 
+	DWORD dwTextColor = D3DCOLOR_XRGB(255, 255, 255); //Change Color
+
+	//Rect size set up
+	ScoreDisplayRect.top = 200;
+	ScoreDisplayRect.left = 200;
+	ScoreDisplayRect.right = 800;
+	ScoreDisplayRect.bottom = 230;
+
+	//Display the headings
+	std::string strNameHeading = " Player";
+	std::string strScoreHeading = " Score ";
+	std::string strHealthHeading = " Health ";
+
+	dwTextFormat = DT_LEFT | DT_VCENTER| DT_SINGLELINE ;
+	m_pRenderManager->RenderText(strNameHeading, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+	dwTextFormat = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+	m_pRenderManager->RenderText(strScoreHeading, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+	dwTextFormat = DT_RIGHT | DT_VCENTER | DT_SINGLELINE;
+	m_pRenderManager->RenderText(strHealthHeading, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+		
+	ScoreDisplayRect.left += 20;
+	ScoreDisplayRect.right -= 30;
+
+	//Loop through each player
+	std::map<std::string, CPlayerObj*>::iterator iterPlayer;
+	for (UINT iPlayer = 0; iPlayer < _pClientPacket->iNumPlayers; iPlayer++)
+	{
+		ScoreDisplayRect.top += 30;
+		ScoreDisplayRect.bottom += 30;
+		
+		//Get player info, name, score, and current health
+		std::string strPlayerName(_pClientPacket->PlayerInfo[iPlayer].cPlayerName);
+		std::string strPlayerScore = std::to_string(_pClientPacket->PlayerInfo[iPlayer].uiScore);
+		std::string strPlayerHealth = std::to_string(_pClientPacket->PlayerInfo[iPlayer].uiHealth);
+
+		//Render the player information
+		dwTextFormat = DT_LEFT | DT_VCENTER | DT_SINGLELINE;
+		m_pRenderManager->RenderText(strPlayerName, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+		dwTextFormat = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+		m_pRenderManager->RenderText(strPlayerScore, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+		dwTextFormat = DT_RIGHT | DT_VCENTER | DT_SINGLELINE;
+		m_pRenderManager->RenderText(strPlayerHealth, ScoreDisplayRect, dwTextColor, TEXT_LIST, dwTextFormat);
+	}
 }
 
 CMesh* CGame::CreateCubeMesh(float _fCubeSize, int iTextureID)
@@ -935,8 +1003,6 @@ void CGame::CreateProjectile(ClientDataPacket* _pClientPacket)
 	}
 }
 
-
-
 void CGame::DeleteEnemy(ClientDataPacket* _pClientPacket)
 {
 	EnemyStates EnemyInfo = _pClientPacket->singleEnemyInfo;
@@ -998,7 +1064,8 @@ void CGame::DeleteProjectile(ClientDataPacket* _pClientPacket)
 
 }
 
-void CGame::SetCamera(eCameraType _eCameraType)
+void CGame::ToggleCamera()
 {
 	m_pCamera->ToggleType();
 }
+
