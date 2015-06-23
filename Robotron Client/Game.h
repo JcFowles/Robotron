@@ -39,19 +39,78 @@ class CGame
 public:
 
 	//Singleton Methods
+	
+	/***********************
+	* GetInstance: Returns a reference to the singleton CGame object, if one does not exist create one
+	* @author: Jc Fowles
+	* @return: CGame& : Returns a reference to the singleton game object
+	********************/
 	static CGame& GetInstance();
+
+	/***********************
+	* DestroyInstance: Destroys the singleton CGame object
+	* @author: Jc Fowles
+	* @return: void
+	********************/
 	static void DestroyInstance();
 
+	/***********************
+	* ~CGame: Destructor of the CGame instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
 	~CGame(void);
-
+		
+	/***********************
+	* Initialise: Initialise the Game Instance
+	* @author: Jc Fowles
+	* @Parameter: IRenderer * _RenderManager: Render manager used to render all assest
+	* @Parameter: std::string _ControllingPlayer: Name of the player who owns and controls this game
+	* @return: bool: 
+	********************/
 	bool Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer);
-
+		
+	/***********************
+	* Draw: Draw all the assets of the game
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void Draw();
 
+	/***********************
+	* DrawPlayers: Draw the all the player assets of the game
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void DrawPlayers();
+
+	/***********************
+	* DrawEnemies: Draw the all the enemy assets of the game
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void DrawEnemies();
+
+	/***********************
+	* DrawPowerUps: Draw the all the power up assets of the game
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void DrawPowerUps();
+
+	/***********************
+	* RenderTeamScores: renders the score board to the screen
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void RenderTeamScores(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* Process: Process All the assets of the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket* _pClientPacket: Client packet used to update the assets
+	* @return: void:
+	********************/
 	void Process(ClientDataPacket* _pClientPacket);
 	
 	void ProcessPlayers(ClientDataPacket* _pClientPacket);

@@ -36,7 +36,7 @@ public:
 	/***********************
 	* GetInstance: Returns a reference to the singleton ClientApp object, if one does not exist create one
 	* @author: Jc Fowles
-	* @return: CGame& : Returns a reference to the singleton game object
+	* @return: CClientApp& : Returns a reference to the singleton ClientApp object
 	********************/
 	static CClientApp& GetInstance();
 		
@@ -404,9 +404,6 @@ public:
 	* @return: void:
 	********************/
 	void ProcessLightning();
-
-
-	//TO DO:
 		
 	/***********************
 	* SinglePlayerSelect: Process the single player options menu selection
