@@ -148,16 +148,17 @@ void CServerApp::Process()
 	{
 		CheckDeletion();
 		CheckCreation();
-	}
+
+		SetServerInfo();
+		//Send to all so so has left
+		m_pClientPacket->packetType = PT_UPDATE;
 	
-	//Add server info to client packet
-	SetServerInfo();
-	//Send to all so so has left
-	m_pClientPacket->packetType = PT_UPDATE;
+		m_pGame->Process(m_pClientPacket);
+		float3 fuckYouServer = m_pClientPacket->EnemyInfo[0].f3Direction;
 
-	m_pGame->Process(m_pClientPacket);
-
-	SendToAll(m_pClientPacket);
+		//Add server info to client packet
+		SendToAll(m_pClientPacket);
+	}	
 }
 
 void CServerApp::Draw()
@@ -228,7 +229,6 @@ void CServerApp::LimitFrame()
 		m_iFrameCounter = 0;
 	}
 }
-
 
 //Process receive data
 void CServerApp::ReceiveDataThread()
@@ -456,7 +456,7 @@ void CServerApp::ProcessActive()
 		std::vector<std::string> listPlayers;
 
 		//Single player
-		if (m_bSinglePlayer == true)
+		if ((m_bSinglePlayer == true) || (m_strServerName == "Debug"))
 		{
 
 			std::map< std::string, ClientInfo>::iterator iterClient = m_pMapClientInfo->begin();

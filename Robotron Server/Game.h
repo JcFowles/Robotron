@@ -19,6 +19,7 @@
 #define __SERVER_GAME_H__
 
 //Library Includes
+#include <fstream>
 
 //Local Includes
 #include "../Shared/Network_Defines.h"
@@ -46,12 +47,14 @@ public:
 	
 	void AddPlayer(std::string _strUser);
 	void RemovePlayer(std::string _strLeftPlayer);
-	void UpdatePlayers(ClientDataPacket* _pClientPacket);
-	void UpdateEnemies(ClientDataPacket* _pClientPacket);
+	void UpdatePlayers();
+	void UpdateEnemies();
 	void UpdateLust(EnemyStates* _Enemy);
-	void UpdateProjectile(ClientDataPacket* _pClientPacket);
+	void UpdateSloth(EnemyStates* _pEnemy);
+	void UpdateWrath(EnemyStates* _pEnemy);
+	void UpdateProjectile();
 	
-	void UpdatePowerUp(ClientDataPacket* _pClientPacket);
+	void UpdatePowerUp();
 	void UpdateShield(PowerUpStates* _pPowerUp);
 
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
@@ -173,6 +176,11 @@ private:
 	bool m_iWrath;
 	int m_iSlothCount;
 
+
+	float m_fTerrainDepth;
+	float m_fTerrainWidth;
+
+	bool bToggle;
 };
 
 #endif //__SERVER_GAME_H__

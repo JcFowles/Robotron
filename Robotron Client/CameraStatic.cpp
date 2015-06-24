@@ -48,7 +48,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 
 		//Set position 
 		m_vecPosition = _vecPosition;
-		D3DXVECTOR3 AddHeight = { 0.0f, 50.0f, -50.0f };
+		D3DXVECTOR3 AddHeight = { 0.0f, 50.0f, 0.0f };
 		m_vecPosition += AddHeight;
 
 		//Which way is up for the avatar

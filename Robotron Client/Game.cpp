@@ -153,7 +153,7 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Create and set up the terrain
 	m_pTerrain = new CTerrain();
-	ScalarVertex TerrainScalar = { 1.0f, 0.0f, 1.0f };
+	ScalarVertex TerrainScalar = { kfScalarWidth, kfScalarHeight, kfScalarDepth };
 	std::string strImagePath = "Assets\\Heightmap.bmp";
 	VALIDATE(m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar));
 	m_pTerrain->SetCenter({ 0, 0, 0 });
@@ -172,6 +172,8 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Create the lust enemy assets
 	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_LUST, CreateEnemyAssest(ET_LUST)));
+	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_SLOTH, CreateEnemyAssest(ET_SLOTH)));
+	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_WRATH, CreateEnemyAssest(ET_WRATH)));
 
 	//Create the Shield power up assets
 	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_SHIELD, CreatePowerUpAssest(PU_SHIELD)));
@@ -199,14 +201,6 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 		
 }
 
-void CGame::UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket)
-{
-	
-
-	
-	
-}
-
 void CGame::Process(ClientDataPacket* _pClientPacket)
 {
 	//process players
@@ -215,6 +209,8 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	ProcessEnemies(_pClientPacket);
 	//Process Projectiles
 	ProcessProjectiles(_pClientPacket);
+	//Process power ups
+	ProcessPowerUps(_pClientPacket);
 	//Process Camera
 	ProcessCamera();
 
@@ -307,13 +303,26 @@ void CGame::ProcessEnemies(ClientDataPacket* _pClientPacket)
 		EnemyStates EnemyInfo = _pClientPacket->EnemyInfo[iEnemy];
 		UINT uiID = EnemyInfo.uiEnemyID;
 		enemyIter = m_pListEnemies->find(uiID);
-
+		
 		if (enemyIter != m_pListEnemies->end())
 		{
 			//Set player position
 			enemyIter->second->SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
+
+			float3 fuckYou = _pClientPacket->EnemyInfo[iEnemy].f3Direction;
+
+
+
+			if (fuckYou.Magnitude() > 1.0f)
+			{
+				int c = 0;
+			}
+			else
+			{
+				int c = 8;
+			}
 			//Set player Direction
-			enemyIter->second->SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
+			enemyIter->second->SetDirection(fuckYou.Normalise());
 			//toggle toggle value to state that this has been updated
 			enemyIter->second->m_bToggle = bToggle;
 
@@ -512,8 +521,7 @@ void CGame::Draw()
 	HudRec.bottom = iTop + TextHieght;
 	m_pRenderManager->RenderText(strScore, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
 
-	//TO DO: Render the tab screen added to the game instead of the client app
-
+	
 }
 
 void CGame::DrawPlayers()
@@ -818,10 +826,43 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 	case ET_PRIDE:
 		break;
 	case ET_WRATH:
+	{
+		strFilePath = "Assets\\Wrath.png";
+		fEnemySize = kfWrathSize;
+
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fEnemySize, iTextureID);
+		//Add mesh to map
+		m_pEnemyMesh->insert(std::pair<eEnemyTypes, CMesh* >(ET_WRATH, pTempMesh));
+	}
 		break;
 	case ET_GREED:
 		break;
 	case ET_SLOTH:
+	{
+		strFilePath = "Assets\\Sloth.png";
+		fEnemySize = kfSlothSize;
+
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fEnemySize, iTextureID);
+		//Add mesh to map
+		m_pEnemyMesh->insert(std::pair<eEnemyTypes, CMesh* >(ET_SLOTH, pTempMesh));
+
+	}
 		break;
 	case ET_ENVY:
 		break;
@@ -834,7 +875,7 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 
 		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 1.0f, 0.0f, 0.0f, 1.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
 	}
@@ -865,7 +906,7 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
 
@@ -876,7 +917,7 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_SHIELD, pTempMesh));
 
 	}
-	
+	break;
 	default:
 	{
 		strFilePath = "";
@@ -884,7 +925,7 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 
 		Material.f4Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 1.0f, 0.0f, 0.0f, 1.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
 	}

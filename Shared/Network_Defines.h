@@ -73,14 +73,32 @@ enum ePacketType
 
 };
 
+struct SteeringStates
+{
+	float3 f3TargetPosition;
+	float fTargetSpeed;
+	float3 f3TargetVelocity;
+
+	//float3 f3Target;
+	float3 f3Velocity;
+	float3 f3Acceleration;
+
+	float fSize;
+	float fMaxSpeed;
+	float fMaxForce;
+	float fMaxAccel;
+	float fWanderAngle;
+
+};
+
 struct PlayerStates
 {
 	char cPlayerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	UINT uiPlayerID;
 
 	float3 f3Positions;
-	float3 f3Velocity;
 	float3 f3Direction;
+	float3 f3Velocity;
 	float3 f3Acceleration;
 	
 	float fMaxSpeed;
@@ -100,26 +118,17 @@ struct EnemyStates
 {
 	UINT uiEnemyID;
 	eEnemyTypes Etype;
-
+	
 	float3 f3Positions;
-	float3 f3Velocity;
 	float3 f3Direction;
-	float3 f3Acceleration;
 
-	float3 f3Target;
-
-	float fMaxSpeed;
-	float fMaxForce;
-	float fMaxAccel;
-
-	float fWanderAngle;
+	SteeringStates SteeringInfo;
 
 	//Collision Box
 	BoundingBox BBox; 
 
 	float fHealth;
 	UINT uiPoints;
-	
 	
 };
 
@@ -129,17 +138,9 @@ struct PowerUpStates
 	ePowerType Etype;
 
 	float3 f3Positions;
-	float3 f3Velocity;
 	float3 f3Direction;
-	float3 f3Acceleration;
-
-	float3 f3Target;
-
-	float fMaxSpeed;
-	float fMaxForce;
-	float fMaxAccel;
-
-	float fWanderAngle;
+	
+	SteeringStates SteeringInfo;
 
 	//Collision Box
 	BoundingBox BBox;
@@ -153,20 +154,20 @@ struct ProjectileStates
 	UINT uiProjectileID;
 	UINT uiOwnerID;
 	
-	float3 f3Positions;
-	float3 f3Velocity;
-	float3 f3Direction;
-	float3 f3Acceleration;
-		
 	float fMaxSpeed;
-	float fMaxForce;
-	
+	float3 f3Velocity;
+	float3 f3Acceleration;
+	float3 f3Positions;
+	float3 f3Direction;
+		
 	//Collision Box
 	BoundingBox BBox;
 
 	float fDamage;
 
 };
+
+
 
 struct ClientInfo
 {

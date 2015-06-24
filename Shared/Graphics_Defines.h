@@ -100,7 +100,7 @@ struct D3DLightParameter
 struct ScalarVertex
 {
 	float fScalarWidth;		//X-axis
-	float fScalarHeight;	//Y-axis	
+	float fScalarHeight;	//Y-axis
 	float fScalarDepth;		//Z-axis
 };
 

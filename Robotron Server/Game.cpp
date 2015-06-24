@@ -1,5 +1,6 @@
 #include "Game.h"
 
+
 CGame* CGame::s_pGame = 0;
 
 CGame::CGame()
@@ -89,9 +90,23 @@ bool CGame::Initialise()
 	m_DestroyProjectile = new std::queue<ProjectileStates>;
 
 
+	//Get the width and height on the terrain
+	UINT uiHeight, uiWidth;
+	std::ifstream in("..\\Shared\\Assets\\Heightmap.bmp");
+	
+	in.seekg(18);
+	in.read((char*)&uiWidth, 4);
+	in.read((char*)&uiHeight, 4);
+	
+	m_fTerrainDepth = (float)uiHeight * kfScalarDepth;
+	m_fTerrainWidth = (float)uiWidth * kfScalarWidth;
+	
 	//TO DO: move and update
 	SpawnPowerUp();
 
+	m_iLustCount = 0;
+	m_iSlothCount = 0;
+	m_iWrath = false;
 
 	return true;
 }
@@ -102,9 +117,14 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 	m_pClock->Process();
 	m_fDt = m_pClock->GetDeltaTick();
 		
-	UpdatePlayers(_pClientPacket);
-	UpdateEnemies(_pClientPacket);
-	UpdateProjectile(_pClientPacket);
+	UpdatePlayers();
+
+	if (m_plistPlayers->size() > 0)
+	{
+		UpdateEnemies();
+		UpdateProjectile();
+		UpdatePowerUp();
+	}
 
 	//If no Enemies spawn next wave
 	if (m_plistEnemies->size() < 1)
@@ -132,12 +152,13 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 			m_uiStage++;
 		}
 		
+		m_iLustCount = NumEnemies;
+		m_iSlothCount = m_iLustCount / 13;
 		
-		SpawnWave(NumEnemies);
-				
-
+		((m_uiStage % 5) == 5) ? m_iWrath = true : m_iWrath = false;
+		
+		SpawnWave();
 	}
-
 }
 
 void CGame::ProcessInput(ServerDataPacket* _pServerPacket)
@@ -222,9 +243,8 @@ void CGame::ProcessInput(ServerDataPacket* _pServerPacket)
 	}
 }
 
-void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
+void CGame::UpdatePlayers()
 {
-
 	bool bCollision = false;
 
 	//Process list of players
@@ -315,14 +335,14 @@ void CGame::UpdatePlayers(ClientDataPacket* _pClientPacket)
 		}
 				
 		//Set the player positions in the packet to send
-		_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
+		//_pClientPacket->PlayerInfo[iPlayer].f3Positions = playerIter->second.f3Positions;
 
 		iPlayer++;
 		playerIter++;
 	}
 }
 
-void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
+void CGame::UpdateEnemies()
 {
 	float fEnemySize = 0.0f;
 	bool bCollision = false;
@@ -351,6 +371,17 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 				fEnemySize = kfLustSize;
 			}
 			break;
+			case ET_SLOTH:
+			{
+				UpdateSloth(&enemyIter->second);
+				fEnemySize = kfSlothSize;
+			}
+			break;
+			case ET_WRATH:
+			{
+				UpdateWrath(&enemyIter->second);
+				fEnemySize = kfWrathSize;
+			}
 			default:
 				break;
 			}
@@ -396,17 +427,19 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 			if (bCollision == true)
 			{
 				//Set the position back to where it was
-				enemyIter->second.f3Positions -= enemyIter->second.f3Velocity;
+				enemyIter->second.f3Positions -= enemyIter->second.SteeringInfo.f3Velocity;
 
 				//Then Reset its bounding box
 				enemyIter->second.BBox.f3CollisionMin = enemyIter->second.f3Positions - fEnemySize;
 				enemyIter->second.BBox.f3CollisionMax = enemyIter->second.f3Positions + fEnemySize;
 
-				enemyIter->second.f3Velocity = enemyIter->second.f3Velocity*0.0f;
-				enemyIter->second.f3Acceleration = enemyIter->second.f3Acceleration * 0.0f;
+				//Set velocity and acceleration to Zero 
+				enemyIter->second.SteeringInfo.f3Velocity = enemyIter->second.SteeringInfo.f3Velocity*0.0f;
+				enemyIter->second.SteeringInfo.f3Acceleration = enemyIter->second.SteeringInfo.f3Acceleration * 0.0f;
 			}
-
 		}
+
+		//Next Enemy
 		enemyIter++;
 	}
 
@@ -414,6 +447,7 @@ void CGame::UpdateEnemies(ClientDataPacket* _pClientPacket)
 
 void CGame::UpdateLust(EnemyStates* _pEnemy)
 {
+	//Find the closest player
 	std::map<std::string, PlayerStates>::iterator PlayerIter = m_plistPlayers->begin();
 	std::map<std::string, PlayerStates>::iterator ClosestPlayer = PlayerIter;
 	float fDistance = abs((PlayerIter->second.f3Positions - _pEnemy->f3Positions).Magnitude());
@@ -434,15 +468,45 @@ void CGame::UpdateLust(EnemyStates* _pEnemy)
 	}
 
 	//Set the target to the the closest player
-	_pEnemy->f3Target = ClosestPlayer->second.f3Positions;
+	_pEnemy->SteeringInfo.f3TargetPosition = ClosestPlayer->second.f3Positions;
+	
+	//Flock
+	flocking(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, &_pEnemy->f3Direction, m_plistEnemies, m_fDt);
+	
+	
 
-	//Steerings
-	seek(_pEnemy, m_fDt);
-		
+}
+
+void CGame::UpdateSloth(EnemyStates* _pEnemy)
+{
+	
+	float2 TerrainContainment = { m_fTerrainWidth, m_fTerrainDepth };
+	if (Contain(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, TerrainContainment))
+	{
+		//If not out side containment field wander
+		_pEnemy->SteeringInfo.fMaxForce = 1.0;
+		_pEnemy->SteeringInfo.fMaxAccel = 0.80f;
+		Wander(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, &_pEnemy->f3Direction, m_fDt);
+	}
+	else
+	{
+		//If about to leave containment field seek the centre
+		_pEnemy->SteeringInfo.fMaxForce = 4.0;
+		_pEnemy->SteeringInfo.fMaxAccel = 1.0f;
+		float3 seek = Seek(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, &_pEnemy->f3Direction, m_fDt);
+		ApplyForce(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, &_pEnemy->f3Direction, seek, m_fDt);
+
+		Update(&_pEnemy->SteeringInfo, &_pEnemy->f3Positions, &_pEnemy->f3Direction, m_fDt);
+	}
 	
 }
 
-void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket)
+void CGame::UpdateWrath(EnemyStates* _pEnemy)
+{
+	//TO DO: Wrath
+}
+
+void CGame::UpdateProjectile()
 {
 	std::map<UINT, ProjectileStates>::iterator BulletIter = m_pListProjectiles->begin();
 	int iBullet = 0;
@@ -482,14 +546,102 @@ void CGame::UpdateProjectile(ClientDataPacket* _pClientPacket)
 
 			EnemyColIter++;
 		}
-
-		
-
-		//Set the player positions in the packet to send
-		_pClientPacket->ProjectilesInfo[iBullet].f3Positions = BulletIter->second.f3Positions;
-		
+				
 		iBullet++;
 		BulletIter++;
+	}
+}
+
+void CGame::UpdatePowerUp()
+{
+	float powerUpSize = 0.0f;
+
+	std::map<UINT, PowerUpStates>::iterator PowerUpIter = m_pListPowerUps->begin();
+	while (PowerUpIter != m_pListPowerUps->end())
+	{
+
+		switch (PowerUpIter->second.Etype)
+		{
+		case PU_SHIELD:
+		{
+			UpdateShield(&PowerUpIter->second);
+			powerUpSize = kfShieldSize;
+		}
+		break;
+		default:
+			break;
+		}
+
+		//Calculate Collision Box
+		PowerUpIter->second.BBox.f3CollisionMin = PowerUpIter->second.f3Positions - powerUpSize;
+		PowerUpIter->second.BBox.f3CollisionMax = PowerUpIter->second.f3Positions + powerUpSize;
+						
+		PowerUpIter++;
+	}
+	
+	
+}
+
+void CGame::UpdateShield(PowerUpStates* _pPowerUp)
+{
+	//Steering - wander and contain, with seek
+	float2 TerrainContainment = { m_fTerrainWidth, m_fTerrainDepth };
+	if (Contain(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, TerrainContainment))
+	{
+		if (m_plistPlayers->size() > 0)
+		{
+			//Find the closest player
+			std::map<std::string, PlayerStates>::iterator PlayerIter = m_plistPlayers->begin();
+			std::map<std::string, PlayerStates>::iterator ClosestPlayer = PlayerIter;
+			float fDistance = abs((PlayerIter->second.f3Positions - _pPowerUp->f3Positions).Magnitude());
+
+			while (PlayerIter != m_plistPlayers->end())
+			{
+				float fNewDist = abs((PlayerIter->second.f3Positions - _pPowerUp->f3Positions).Magnitude());
+
+				if (fNewDist < fDistance)
+				{
+					//Update the Distance
+					fDistance = fNewDist;
+					//The player Iter is closer than the current player, so save the closest player to this one
+					ClosestPlayer = PlayerIter;
+				}
+
+				PlayerIter++;
+			}
+
+			//Set the target to the the closest player
+			_pPowerUp->SteeringInfo.f3TargetPosition = ClosestPlayer->second.f3Positions;
+			_pPowerUp->SteeringInfo.fTargetSpeed = (ClosestPlayer->second.f3Velocity).Magnitude();
+			_pPowerUp->SteeringInfo.f3TargetVelocity = ClosestPlayer->second.f3Velocity;
+
+			if ((_pPowerUp->SteeringInfo.f3TargetPosition - _pPowerUp->f3Positions).Magnitude() > 20.0f)
+			{
+				_pPowerUp->SteeringInfo.fMaxForce = 1.0;
+				_pPowerUp->SteeringInfo.fMaxAccel = 0.80f;
+				Wander(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, &_pPowerUp->f3Direction, m_fDt);
+			}
+			else
+			{
+				_pPowerUp->SteeringInfo.fMaxForce = 6.0f;
+				_pPowerUp->SteeringInfo.fMaxAccel = 2.0f;
+				_pPowerUp->SteeringInfo.fMaxAccel = 20.0f;
+				Evade(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, &_pPowerUp->f3Direction, m_fDt);
+			}
+
+		}
+		
+	}
+	else
+	{
+		//If about to leave containment field seek the centre
+		_pPowerUp->SteeringInfo.fMaxForce = 6.0f;
+		_pPowerUp->SteeringInfo.fMaxAccel = 1.0f;
+		float3 seek = Seek(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, &_pPowerUp->f3Direction, m_fDt);
+		ApplyForce(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, &_pPowerUp->f3Direction, seek, m_fDt);
+
+		Update(&_pPowerUp->SteeringInfo, &_pPowerUp->f3Positions, &_pPowerUp->f3Direction, m_fDt);
+
 	}
 }
 
@@ -523,7 +675,7 @@ void CGame::AddPlayer(std::string _strUser)
 
 void CGame::RemovePlayer(std::string _strLeftPlayer)
 {
-		m_plistPlayers->erase(_strLeftPlayer);
+	m_plistPlayers->erase(_strLeftPlayer);
 }
 
 void CGame::SetPlayerStates(ClientDataPacket* _pDataToSend)
@@ -616,24 +768,41 @@ void CGame::SetProjectileStates(ClientDataPacket* _pDataToSend)
 	_pDataToSend->iNumProjectiles = m_pListProjectiles->size();
 }
 
-void CGame::SpawnWave(int _NumToSpawn)
+void CGame::SpawnWave()
 {
-	
-	for (int i = 0; i < _NumToSpawn; i++)
+	//Create Lust enemies
+	for (int i = 0; i < m_iLustCount; i++)
 	{
-		float RandPosX = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		RandPosX = RandPosX * 256; //Surface Size //TO DO
-		RandPosX = RandPosX - 256 / 2; //set back to middle
-		float RandPosZ = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		RandPosZ = RandPosZ * 256; //Surface Size //TO DO
-		RandPosZ = RandPosZ - 256 / 2; //set back to middle
+		float RandPosX = (float)(rand() / (float)RAND_MAX);
+		float RandPosZ = (float)(rand() / (float)RAND_MAX);
+		RandPosX = (rand() % (int)m_fTerrainWidth) - ((m_fTerrainWidth - 15) / 2);
+		RandPosZ = (rand() % (int)m_fTerrainDepth) - ((m_fTerrainDepth - 15) / 2);
 		float3 f3Pos = { RandPosX, 1.0f, RandPosZ };
 		CreateLust(f3Pos);
 	}
+	//Create Sloth enemies
+	for (int i = 0; i < m_iSlothCount; i++)
+	{
+		float RandPosX = (float)(rand() / (float)RAND_MAX);
+		float RandPosZ = (float)(rand() / (float)RAND_MAX);
+		RandPosX = (rand() % (int)m_fTerrainWidth) - ((m_fTerrainWidth - 15) / 2);
+		RandPosZ = (rand() % (int)m_fTerrainDepth) - ((m_fTerrainDepth - 15) / 2);
+		float3 f3Pos = { RandPosX, 1.0f, RandPosZ };
+		CreateSloth(f3Pos);
+	}
+	//Create Wrath enemies //TO DO
+	if (m_iWrath)
+	{
+		float RandPosX = (float)(rand() / (float)RAND_MAX);
+		float RandPosZ = (float)(rand() / (float)RAND_MAX);
+		RandPosX = (rand() % (int)m_fTerrainWidth) - ((m_fTerrainWidth - 15) / 2);
+		RandPosZ = (rand() % (int)m_fTerrainDepth) - ((m_fTerrainDepth - 15) / 2);
+		float3 f3Pos = { RandPosX, 1.0f, RandPosZ };
+		CreateWrath(f3Pos);
+	}
+
 
 }
-
-
 
 void CGame::CreateLust(float3 _f3Pos)
 {
@@ -643,20 +812,92 @@ void CGame::CreateLust(float3 _f3Pos)
 
 	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
 	tempEnemyState.f3Positions = _f3Pos;
-	tempEnemyState.f3Velocity = { 0.0f, 0.0f, 0.0f };
-	tempEnemyState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
-	tempEnemyState.uiPoints = kuiLustPoints;
+	tempEnemyState.uiPoints = 10;
+	tempEnemyState.fHealth = 10.0f;
+	tempEnemyState.uiEnemyID = m_uiNextObjID++;
 
 	//Collision Box
 	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfLustSize;
 	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfLustSize;
+	
+	//Steering info
+	tempEnemyState.SteeringInfo.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.fMaxSpeed = 5.0f;
+	tempEnemyState.SteeringInfo.fMaxForce = 2.0f;
+	tempEnemyState.SteeringInfo.fMaxAccel = 1.0f;
+	tempEnemyState.SteeringInfo.fWanderAngle = 0.0f;
+	tempEnemyState.SteeringInfo.fSize = kfLustSize;
 
+	std::pair<std::map<UINT, EnemyStates>::iterator, bool> mapIter;
+	//Add to the list of enemies
+	mapIter = m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
+
+	if (mapIter.second != false)
+	{
+		//Add to the list of created
+		m_CreatedEnemies->push(tempEnemyState);
+	}
+}
+
+void CGame::CreateSloth(float3 _f3Pos)
+{
+	//create Enemy State
+	EnemyStates tempEnemyState;
+	tempEnemyState.Etype = ET_SLOTH;
+	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
+	tempEnemyState.f3Positions = _f3Pos;
+	tempEnemyState.uiPoints = 50;
+	tempEnemyState.fHealth = 50.0f;
 	tempEnemyState.uiEnemyID = m_uiNextObjID++;
-	tempEnemyState.fMaxSpeed = 5.00f;
-	tempEnemyState.fMaxForce = 30.0f;
-	tempEnemyState.fMaxAccel = 0.8f;
+	
+	//Collision Box
+	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfSlothSize;
+	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfSlothSize;
+	
+	//Steering info
+	tempEnemyState.SteeringInfo.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.fMaxSpeed = 4.0f;
+	tempEnemyState.SteeringInfo.fMaxForce = 1.0f;
+	tempEnemyState.SteeringInfo.fMaxAccel = 0.8f;
+	tempEnemyState.SteeringInfo.fWanderAngle = 0.0f;
+	tempEnemyState.SteeringInfo.fSize = kfSlothSize;
 
-	tempEnemyState.fHealth = kfLustHealth;
+	std::pair<std::map<UINT, EnemyStates>::iterator, bool> mapIter;
+	//Add to the list of enemies
+	mapIter = m_plistEnemies->insert(std::pair<UINT, EnemyStates>(tempEnemyState.uiEnemyID, tempEnemyState));
+
+	if (mapIter.second != false)
+	{
+		//Add to the list of created
+		m_CreatedEnemies->push(tempEnemyState);
+	}
+}
+
+void CGame::CreateWrath(float3 _f3Pos)
+{
+	//create Enemy State
+	EnemyStates tempEnemyState;
+	tempEnemyState.Etype = ET_WRATH;
+	tempEnemyState.f3Direction = { 0.0f, 0.0f, 1.0f };
+	tempEnemyState.f3Positions = _f3Pos;
+	tempEnemyState.uiPoints = 250;
+	tempEnemyState.fHealth = 100.0f;
+	tempEnemyState.uiEnemyID = m_uiNextObjID++;
+
+	//Collision Box
+	tempEnemyState.BBox.f3CollisionMin = tempEnemyState.f3Positions - kfWrathSize;
+	tempEnemyState.BBox.f3CollisionMax = tempEnemyState.f3Positions + kfWrathSize;
+
+	//Steering info
+	tempEnemyState.SteeringInfo.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempEnemyState.SteeringInfo.fMaxSpeed = 5.0f;
+	tempEnemyState.SteeringInfo.fMaxForce = 1.0f;
+	tempEnemyState.SteeringInfo.fMaxAccel = 0.8f;
+	tempEnemyState.SteeringInfo.fWanderAngle = 0.0f;
+	tempEnemyState.SteeringInfo.fSize = kfWrathSize;
 
 	std::pair<std::map<UINT, EnemyStates>::iterator, bool> mapIter;
 	//Add to the list of enemies
@@ -676,18 +917,22 @@ void CGame::SpawnPowerUp()
 	tempPowUPState.Etype = PU_SHIELD;
 
 	tempPowUPState.f3Direction = { 0.0f, 0.0f, 1.0f };
-	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5), 1.0f, -50.0f };
-	tempPowUPState.f3Velocity = { 0.0f, 0.0f, 0.0f };
-	tempPowUPState.f3Acceleration = { 0.0f, 0.0f, 0.0f };
-	tempPowUPState.uiPoints = kuiShieldPoints;
+	tempPowUPState.f3Positions = { float(m_uiNextObjID * 5) + 5, 1.0f, 0.0f };
+	tempPowUPState.uiPoints = 10;
+	tempPowUPState.uiPowUpID = m_uiNextObjID++;
 
 	//Collision Box
 	tempPowUPState.BBox.f3CollisionMin = tempPowUPState.f3Positions - kfShieldSize;
 	tempPowUPState.BBox.f3CollisionMax = tempPowUPState.f3Positions + kfShieldSize;
-
-	tempPowUPState.uiPowUpID = m_uiNextObjID++;
-	tempPowUPState.fMaxSpeed = 0.10f;
-	tempPowUPState.fMaxForce = 0.1f;
+	
+	//Steering info
+	tempPowUPState.SteeringInfo.f3Velocity = { 0.0f, 0.0f, 0.0f };
+	tempPowUPState.SteeringInfo.f3Acceleration = { 0.0f, 0.0f, 0.0f };
+	tempPowUPState.SteeringInfo.fMaxSpeed = 2.0f;
+	tempPowUPState.SteeringInfo.fMaxForce = 1.0f;
+	tempPowUPState.SteeringInfo.fMaxAccel = 0.2f;
+	tempPowUPState.SteeringInfo.fWanderAngle = 0.0f;
+	tempPowUPState.SteeringInfo.fSize = kfShieldSize;
 	
 	std::pair<std::map<UINT, PowerUpStates>::iterator, bool> mapIter;
 	//Add to the list of enemies
@@ -712,8 +957,6 @@ bool CGame::SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOnwerID
 
 		tempProjectile.f3Direction = _Direction;
 		tempProjectile.f3Positions = _Position;
-		tempProjectile.f3Velocity = { 0.0f, 0.0f, 0.0f };
-		tempProjectile.f3Acceleration = _Direction.Normalise();
 		tempProjectile.uiOwnerID = _uiOnwerID;
 
 		//Collision Box

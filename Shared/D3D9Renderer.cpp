@@ -181,7 +181,6 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	//Initialise Map of lights
 	m_pLightMap = new std::map < UINT, D3DLIGHT9* > ;
 
-	//TO DO : Put in Game??
 	//Initialise DirectionLight
 	D3DLightParameter DirectiomLightParam;
 	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
@@ -906,20 +905,20 @@ void CD3D9Renderer::EndRender()
 }
 
 void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYPos, D3DCOLOR _color)
-{//TO DO:
-//	//Return the Font Description
-//	D3DXFONT_DESCA fontDesc;
-//	m_pDebugFont->GetDescA(&fontDesc);
-//
-//	//Create the text space as a RECT based on the string length and character sizes
-//	RECT rect = { _iXPos, _iYPos, _iXPos + (_strInfo.length() * (fontDesc.Width + 3)), (_iYPos + fontDesc.Height + 3) };
-//
-//	m_pDebugFont->DrawTextA(NULL,				//Not used
-//						_strInfo.c_str(),		//The String to draw to the screen
-//						-1,						//String is null terminated
-//						&rect,					//RECT to draw the text into
-//						DT_TOP | DT_LEFT,		//Top justified and left Aligned
-//						_color);				//The color of text
+{
+	//Return the Font Description
+	//D3DXFONT_DESCA fontDesc;
+	//m_pDebugFont->GetDescA(&fontDesc);
+
+	//Create the text space as a RECT based on the string length and character sizes
+	//RECT rect = { _iXPos, _iYPos, _iXPos + (_strInfo.length() * (fontDesc.Width + 3)), (_iYPos + fontDesc.Height + 3) };
+
+	//m_pDebugFont->DrawTextA(NULL,				//Not used
+	//					_strInfo.c_str(),		//The String to draw to the screen
+	//					-1,						//String is null terminated
+	//					&rect,					//RECT to draw the text into
+	//					DT_TOP | DT_LEFT,		//Top justified and left Aligned
+	//					_color);				//The color of text
 }
 
 void CD3D9Renderer::CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp)

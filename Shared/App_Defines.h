@@ -36,20 +36,12 @@ const float kfPlayerSize = 1.0f;
 const float kfFireRate = 0.2f;
 //Enemy Sizes
 const float kfLustSize = 0.8f;
-const UINT kuiLustPoints = 10;
-const float kfLustHealth = 10.0f;
-
 const float kfSlothSize = 2.0f;
-const UINT kuiSlothPoints = 50;
-const float kfSlothHealth = 50.0f;
-
-const float kfWrathSize = 4.0f;
-const UINT kuiWrathPoints = 250;
-const float kfWrathHealth = 100.0f;
+const float kfWrathSize = 3.0f;
 
 //Power Up Size
 const float kfShieldSize = 0.5f;
-const UINT kuiShieldPoints = 10;
+
 //Projectile Size
 const float kfBulletSize = 0.2f;
 const float kfBulletDamage = 5.0f;
@@ -58,6 +50,13 @@ const float kfBulletDamage = 5.0f;
 const int kiInitialNumEnemies = 12;
 //Number of enemies perPlayer to spawn
 const int kiNumEnemiesPP = 3;
+
+//Terrain Info
+const float kfScalarWidth = 0.20f;		//X-axis
+const float kfScalarHeight = 0.0f;		//Y-axis	
+const float kfScalarDepth = 0.20f;		//Z-axis
+
+
 
 enum eMenuStates
 {
@@ -279,6 +278,19 @@ struct float3
 		return float3(_f * x, _f * y, _f * z);
 	}
 
+	
+
+	/***********************
+	* operator*: Multiplication operator
+	* @author: Jc Fowles
+	* @Parameter: const float _f: right hand side of the operator
+	* @return: float3: The result of the Multiplication
+	********************/
+	float3 operator/ (const float _f) const
+	{
+		return float3(x/_f, y/_f , z/_f);
+	}
+
 	/***********************
 	* operator==: Equal comparison operator
 	* @author: Jc Fowles
@@ -325,7 +337,11 @@ struct float3
 		else
 		{
 			//Return the normalized vector 
-			return ((*this)*(1 / mag));
+			this->x = (this->x / mag);
+			this->y = (this->y / mag);
+			this->z = (this->z / mag);
+
+			return (*this);
 		}
 	}
 

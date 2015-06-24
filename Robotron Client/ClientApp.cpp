@@ -485,11 +485,14 @@ void CClientApp::ProcessSinglePlayer(int _iInput)
 {
 	if (_iInput == 13)	//Enter Key
 	{
-		//Send Creation
-		m_strServerName = "Single";
-		
-		//Open the Server
-		OpenServerApp();
+		if (m_strUserName.length() >= 1)
+		{
+			//Send Creation
+			m_strServerName = "Single";
+
+			//Open the Server
+			OpenServerApp();
+		}
 	}
 	else
 	{
@@ -512,8 +515,11 @@ void CClientApp::ProcessHostGame(int _iInput)
 			{
 				if (_iInput == 13)	//Enter Key
 				{
-					//Go to input user name
-					m_eHostState = HS_USER_NAME;
+					if (m_strServerName.length() >= 1)
+					{
+						//Go to input user name
+						m_eHostState = HS_USER_NAME;
+					}
 				}
 				else
 				{
@@ -528,22 +534,24 @@ void CClientApp::ProcessHostGame(int _iInput)
 		{
 			if (_iInput == 13) //Enter Key
 			{
-				if (m_eMenuState == MS_HOST_GAME)
+				if (m_strUserName.length() >= 1)
 				{
-					//Ready to host server
-					m_eHostState = HS_DONE;
-					m_bJoinError = false;
-				}
-				else if (m_eMenuState == MS_JOIN_GAME)
-				{
-					//Request to join selected server
-					//Initialize request
-					m_pServerPacket->packetType = PT_JOIN_REQUEST;
-					//Add Client info to server packet
-					SetClientInfo();
-					//Send message 
-					m_pClient->SendData(m_pServerPacket);
-					
+					if (m_eMenuState == MS_HOST_GAME)
+					{
+						//Ready to host server
+						m_eHostState = HS_DONE;
+						m_bJoinError = false;
+					}
+					else if (m_eMenuState == MS_JOIN_GAME)
+					{
+						//Request to join selected server
+						//Initialize request
+						m_pServerPacket->packetType = PT_JOIN_REQUEST;
+						//Add Client info to server packet
+						SetClientInfo();
+						//Send message 
+						m_pClient->SendData(m_pServerPacket);
+					}
 				}
 			}
 			else
@@ -958,7 +966,8 @@ void CClientApp::ConvertTextInput(std::string* _strText, int _iInput)
 		m_bJoinError = false;
 	}
 	else if ((_iInput >= 65 && _iInput <= 90) ||
-		(_iInput >= 97 && _iInput <= 122))
+		     (_iInput >= 97 && _iInput <= 122)||
+			 (_iInput >= 48  && _iInput <= 57))
 	{
 		//Only add to the string if its within length limits
 		if (strTemp.length() < NetworkValues::MAX_NAME_LENGTH)

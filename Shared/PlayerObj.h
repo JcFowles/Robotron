@@ -77,9 +77,20 @@ public:
 	UINT GetHealth() const { return m_uiHealth; }
 	
 	//Setter
-
-	//TO DO
+		
+	/***********************
+	* GetLightRange: Get the range of the point light
+	* @author: Jc Fowles
+	* @return: float: The range of the point light
+	********************/
 	float GetLightRange() const { return m_fLightRange; }
+
+	/***********************
+	* SetLightRange: Set the range of the point light
+	* @author: Jc Fowles
+	* @Parameter: float _LightRange: value to set the range to 
+	* @return: void: 
+	********************/
 	void SetLightRange(float _LightRange) { m_fLightRange = _LightRange; }
 
 	/***********************
