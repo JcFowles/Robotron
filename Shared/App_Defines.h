@@ -19,9 +19,13 @@
 #pragma comment( lib, "winmm.lib" )
 #pragma comment(lib, "Ws2_32.lib")
 
+//Defines
+#define _USE_MATH_DEFINES
+
 //library includes
 #include <cassert>
 #include <string>
+#include <math.h>
 
 //Local Includes
 
@@ -34,6 +38,14 @@ const float kfFireRate = 0.2f;
 const float kfLustSize = 0.8f;
 const UINT kuiLustPoints = 10;
 const float kfLustHealth = 10.0f;
+
+const float kfSlothSize = 2.0f;
+const UINT kuiSlothPoints = 50;
+const float kfSlothHealth = 50.0f;
+
+const float kfWrathSize = 4.0f;
+const UINT kuiWrathPoints = 250;
+const float kfWrathHealth = 100.0f;
 
 //Power Up Size
 const float kfShieldSize = 0.5f;
@@ -399,6 +411,17 @@ inline std::string WideStringToString(wchar_t* _wstr)
 
 	//Return the converted standard string
 	return strConverted;
+}
+
+/***********************
+* DegreesToRadians: Converts degrees to radians
+* @author: Jc Fowles
+* @parameter: float _fDegrees: Angle in Degrees to convert
+* @return: float: Angle in Radians
+********************/
+inline float DegreesToRadians(float _fDegrees)
+{
+	return ((_fDegrees * (float)M_PI) / 180.0f);
 }
 
 #define VALIDATE(a) if (!a) return (false)

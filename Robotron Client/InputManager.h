@@ -25,8 +25,6 @@
 //local include
 #include "..\shared\App_Defines.h"
 
-//TO DO : Comment Headers
-
 class CInputManager
 {
 public:
@@ -109,9 +107,7 @@ public:
 	* @return: InputStates: The input states
 	********************/
 	InputStates GetInputStates() { return m_InputStates; };
-
-	//TO DO
-	
+		
 	/***********************
 	* SetInputStates: Set the input stats based on the sate of the input device
 	* @author: Jc Fowles

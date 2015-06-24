@@ -22,3 +22,8 @@
  * 
  *Lighting sound effects
  **/
+
+
+/*
+ *render wave number
+ **/

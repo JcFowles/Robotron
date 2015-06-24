@@ -32,8 +32,6 @@
 #include "CameraStatic.h"
 #include "Camera.h"
 
-//TO DO: comment headers
-
 class CGame
 {
 public:
@@ -112,19 +110,78 @@ public:
 	* @return: void:
 	********************/
 	void Process(ClientDataPacket* _pClientPacket);
-	
+		
+	/***********************
+	* ProcessPlayers: Process All the player assets of the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Client packet used to update the assets
+	* @return: void: 
+	********************/
 	void ProcessPlayers(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* ProcessEnemies: Process All the enemies assets of the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Client packet used to update the assets
+	* @return: void:
+	********************/
 	void ProcessEnemies(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* ProcessProjectiles: Process All the projectiles assets of the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Client packet used to update the assets
+	* @return: void:
+	********************/
 	void ProcessProjectiles(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* ProcessPowerUps: Process All the power ups assets of the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Client packet used to update the assets
+	* @return: void:
+	********************/
 	void ProcessPowerUps(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* ProcessCamera: Process the camera view of the game
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void ProcessCamera();
+
 	//Render
+		
+	/***********************
+	* RenderSingleFrame: Process and draw a single frame
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void RenderSingleFrame();
-
-	void UpdatePlayerList(std::vector<std::string> _Players, ClientDataPacket* _pClientPacket);
-
+		
+	/***********************
+	* AddPlayer: Add a player to the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Packet with the players infomation
+	* @Parameter: std::string _strPlayerToAdd: Name of the player to add
+	* @return: bool: 
+	********************/
 	bool AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerToAdd);
+	
+	/***********************
+	* AddAllPlayers: Add all the players to the game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Packet with all the players infomation
+	* @return: void: 
+	********************/
 	void AddAllPlayers(ClientDataPacket* _pClientPacket);
+	
+	/***********************
+	* RemovePlayer: Remove a player from the game
+	* @author: Jc Fowles
+	* @Parameter: std::string _strLeftPlayer: the name of the player you are removing
+	* @return: void: 
+	********************/
 	void RemovePlayer(std::string _strLeftPlayer);
 	
 

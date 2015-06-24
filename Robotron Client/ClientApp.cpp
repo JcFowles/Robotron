@@ -174,12 +174,13 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_pMapActiveServers = new std::multimap< std::string, ServerInfo>;
 	m_pMapActiveClients = new std::map< std::string, ClientInfo>;
 	m_pSelectedServer = new std::pair < std::string, ServerInfo > ;
+	
 	//Create and run separate thread to constantly receive data
 	m_RecieveThread = std::thread(&CClientApp::ReceiveDataThread, (this));
 	
 	//Initialise Graphic variables
 	m_pRenderManager = new CD3D9Renderer();
-	//TO DO: Full screen???
+	
 	bool bFullScreen = false;
 	VALIDATE(m_pRenderManager->Initialise(_iScreenWidth, _iScreenHeight, _hWnd, bFullScreen));
 	

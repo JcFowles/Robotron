@@ -111,7 +111,6 @@ private:
 	float m_fSurfaceWidth;
 	float m_fSurfaceDepth;
 
-	//TO DO: Not used
 	float m_fRotPitch;
 	float m_fRotYaw;
 	float m_fRotRoll;

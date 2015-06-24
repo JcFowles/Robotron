@@ -321,15 +321,7 @@ public:
 	* @return: UINT: a unique ID that is used to reference the created lights
 	********************/
 	virtual UINT CreateLights(D3DLightParameter _pLightParameter);
-
-	//TO DO
-	/***********************
-	* UpdatePointLight: Update the the point light
-	* @author: Jc Fowles
-	* @parameter: _pLightParameter: the light parameter to create the lights
-	* @return: UINT: a unique ID that is used to reference the created lights
-	********************/
-	
+		
 	/***********************
 	* UpdatePointLight: Update the pulsating point light around the players
 	* @author: Jc Fowles

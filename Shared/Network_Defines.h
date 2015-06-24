@@ -35,10 +35,10 @@ namespace NetworkValues
 	unsigned const DEFAULT_SERVER_PORT = 60995;
 	unsigned const MAX_SERVER_PORT = 61000;
 	unsigned const DEFAULT_CLIENT_PORT = 60000;
-	unsigned const MAX_CLIENT_PORT = 60020; // 4 more than max users, why?? potential broken port maybe?
+	unsigned const MAX_CLIENT_PORT = 60010; // 4 more than max users, why?? potential broken port maybe?
 	unsigned const MAX_USERS = 6;
 
-	unsigned const MAX_ENEMYS = 100; //TO DO: Calculate fancy formula, using increase per player and waves and min shit
+	unsigned const MAX_ENEMYS = 100; 
 	unsigned const MAX_POWERUPS = 10;
 	unsigned const MAX_PROJECTILE = 100;
 
@@ -112,12 +112,14 @@ struct EnemyStates
 	float fMaxForce;
 	float fMaxAccel;
 
+	float fWanderAngle;
+
 	//Collision Box
 	BoundingBox BBox; 
 
 	float fHealth;
 	UINT uiPoints;
-
+	
 	
 };
 
@@ -137,18 +139,20 @@ struct PowerUpStates
 	float fMaxForce;
 	float fMaxAccel;
 
+	float fWanderAngle;
+
 	//Collision Box
 	BoundingBox BBox;
-
+	
 	UINT uiPoints;
 };
+
 
 struct ProjectileStates
 {
 	UINT uiProjectileID;
 	UINT uiOwnerID;
-	//TO DO: Add a type?
-
+	
 	float3 f3Positions;
 	float3 f3Velocity;
 	float3 f3Direction;

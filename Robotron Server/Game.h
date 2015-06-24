@@ -42,7 +42,7 @@ public:
 	void Process(ClientDataPacket* _pClientPacket);
 	void ProcessInput( ServerDataPacket* _pServerPacket);
 
-
+	//TO DO:COMMENT
 	
 	void AddPlayer(std::string _strUser);
 	void RemovePlayer(std::string _strLeftPlayer);
@@ -51,6 +51,9 @@ public:
 	void UpdateLust(EnemyStates* _Enemy);
 	void UpdateProjectile(ClientDataPacket* _pClientPacket);
 	
+	void UpdatePowerUp(ClientDataPacket* _pClientPacket);
+	void UpdateShield(PowerUpStates* _pPowerUp);
+
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
 	void SetPowUpStates(ClientDataPacket* _pDataToSend);
@@ -65,8 +68,10 @@ public:
 	********************/
 	bool CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB);
 	
-	void SpawnWave(int _NumToSpawn);
+	void SpawnWave();
 	void CreateLust(float3 _f3Pos);
+	void CreateSloth(float3 _f3Pos);
+	void CreateWrath(float3 _f3Pos);
 	void SpawnPowerUp();
 	bool SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOwnerID);
 
@@ -125,6 +130,7 @@ private:
 	CGame(const CGame& _kr);
 	CGame& operator= (const CGame& _kr);
 	
+
 	//member variables
 private:
 		
@@ -162,6 +168,10 @@ private:
 
 	bool bMoreEnemies;
 	int m_iExtraEnemies;
+
+	int m_iLustCount;
+	bool m_iWrath;
+	int m_iSlothCount;
 
 };
 
