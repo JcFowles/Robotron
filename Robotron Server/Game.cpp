@@ -102,7 +102,7 @@ bool CGame::Initialise()
 	m_fTerrainWidth = (float)uiWidth * kfScalarWidth;
 	
 	//TO DO: move and update
-	SpawnPowerUp();
+	//SpawnPowerUp();
 
 	m_iLustCount = 0;
 	m_iSlothCount = 0;
@@ -152,10 +152,27 @@ void CGame::Process(ClientDataPacket* _pClientPacket)
 			m_uiStage++;
 		}
 		
-		m_iLustCount = NumEnemies;
-		m_iSlothCount = m_iLustCount / 13;
+		if (m_uiStage == 1)
+		{
+			m_iLustCount = 1;
+			SpawnPowerUp();
+		}
+		else
+		{
+			m_iLustCount = NumEnemies;
+			m_iSlothCount = m_iLustCount / 13;
+		}
+		//((m_uiStage % 5) == 1) ? m_iWrath = true : m_iWrath = false;
 		
-		((m_uiStage % 5) == 5) ? m_iWrath = true : m_iWrath = false;
+		int powerUpNum = (10 - m_plistPlayers->size());
+		if (powerUpNum > 0)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				SpawnPowerUp();
+			}
+		}
+		
 		
 		SpawnWave();
 	}

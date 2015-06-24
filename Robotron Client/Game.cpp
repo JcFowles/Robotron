@@ -1007,11 +1007,20 @@ void CGame::CreatePowerUp(ClientDataPacket* _pClientPacket)
 	//Initialise the Power Up Object with the Cube Mesh and set its coordinates
 	std::map<ePowerType, CMesh* >::iterator powerUpMatMesh = m_pPowerUpMesh->find(PowUpInfo.Etype);
 	std::map<ePowerType, UINT>::iterator powerUpMatID = m_iPowerUpIDs->find(PowUpInfo.Etype);
-	tempPowUp->Initialise(bToggle, m_pRenderManager, powerUpMatID->second, powerUpMatMesh->second, PowUpInfo.uiPowUpID, PowUpInfo.f3Positions);
+	if (powerUpMatID != m_iPowerUpIDs->end() && powerUpMatMesh != m_pPowerUpMesh->end())
+	{
+		tempPowUp->Initialise(bToggle, m_pRenderManager, powerUpMatID->second, powerUpMatMesh->second, PowUpInfo.uiPowUpID, PowUpInfo.f3Positions);
 
-	//Add the player to the map
-	MapPowUpIter = m_pListPowerUps->insert(std::pair<UINT, CPowerUpObj*>(PowUpInfo.uiPowUpID, tempPowUp));
-
+		//Add the player to the map
+		MapPowUpIter = m_pListPowerUps->insert(std::pair<UINT, CPowerUpObj*>(PowUpInfo.uiPowUpID, tempPowUp));
+	}
+	else
+	{
+		//delete the temp variable
+		delete tempPowUp;
+		tempPowUp = 0;
+		
+	}
 	//if the Enemy wasnt added 
 	if (MapPowUpIter.second == false)
 	{

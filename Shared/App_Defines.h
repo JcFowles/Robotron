@@ -52,9 +52,9 @@ const int kiInitialNumEnemies = 12;
 const int kiNumEnemiesPP = 3;
 
 //Terrain Info
-const float kfScalarWidth = 0.20f;		//X-axis
+const float kfScalarWidth = 0.50f;		//X-axis
 const float kfScalarHeight = 0.0f;		//Y-axis	
-const float kfScalarDepth = 0.20f;		//Z-axis
+const float kfScalarDepth = 0.50f;		//Z-axis
 
 
 
