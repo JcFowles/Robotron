@@ -21,16 +21,16 @@
 //Local includes
 #include "../Shared/Network_Defines.h"
 #include "../Shared/Clock.h"
-#include "../Shared/IRenderer.h"
-#include "../Shared/Mesh.h"
-#include "../Shared/PlayerObj.h"
-#include "../Shared/EnemyObj.h"
-#include "../Shared/PowerUpObj.h"
-#include "../Shared/ProjectileObj.h"
+#include "IRenderer.h"
+#include "Mesh.h"
+#include "PlayerObj.h"
+#include "EnemyObj.h"
+#include "PowerUpObj.h"
+#include "ProjectileObj.h"
 #include "../Shared/Graphics_Defines.h"
 #include "Terrain.h"
 #include "CameraStatic.h"
-#include "Camera.h"
+#include "DebugCamera.h"
 
 class CGame
 {
@@ -286,7 +286,15 @@ public:
 	********************/
 	void ToggleCamera();
 
-	
+	void CameraMove(float _fUnit);
+	void CameraPitch(float _fUnit);
+	void CameraYaw(float _fUnit);
+	//TO DO:
+	CDebugCamera* GetDebugCam() const { return m_pDebugCam; }
+	void SetDebugCam(CDebugCamera* _DebugCam) { m_pDebugCam = _DebugCam; }
+
+	bool GetDebug() const { return m_bDebug; }
+	void SetDebug(bool _Debug) { m_bDebug = _Debug; }
 	
 private:
 	//Disallowing copies and extra constructions
@@ -311,6 +319,8 @@ private:
 	* @return:
 	********************/
 	CGame& operator= (const CGame& _kr);
+
+	
 
 	//member variables
 private:
@@ -342,9 +352,12 @@ private:
 	std::map<ePowerType, CMesh* >* m_pPowerUpMesh;
 			
 	CTerrain* m_pTerrain;
+
 	CCameraStatic* m_pCamera;
-	CCamera* m_pDebugCamera;
-		
+	CDebugCamera* m_pDebugCam;
+	
+	bool m_bDebug;
+	
 	bool m_bLightning;
 
 	int m_iNumberPlayers;
@@ -354,7 +367,7 @@ private:
 	ClientDataPacket* m_pClientPacket;
 
 	bool bToggle;
-	bool bTab; // TO DO
+	//bool bTab; // TO DO
 
 	bool m_bPauseItemSelected;
 	std::string m_strPauseItem;

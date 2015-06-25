@@ -17,6 +17,9 @@ CGame::~CGame()
 	delete m_pCamera;
 	m_pCamera = 0;
 
+	delete m_pDebugCam;
+	m_pDebugCam = 0;
+
 	//delete Mesh
 	delete m_pPlayerMesh;
 	m_pPlayerMesh = 0;
@@ -158,15 +161,12 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	VALIDATE(m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar));
 	m_pTerrain->SetCenter({ 0, 0, 0 });
 
-	//Create the Camera
-	m_pCamera = new CCameraStatic();
-	//Initialise the camera position
-	D3DXVECTOR3 D3DPosition = { 0.0f, 100.0f, 0.0f };
-	//Initialise the Camera target
-	D3DXVECTOR3 D3DLookAt = { 0.0f, 0.0f, 0.0f };
-	VALIDATE(m_pCamera->Initialise(D3DPosition, D3DLookAt, false));
-	m_pCamera->Process(m_pRenderManager);
-		
+	
+
+	m_pDebugCam = new CDebugCamera();
+	VALIDATE(m_pDebugCam->Initialise(m_pRenderManager));
+	m_bDebug = false;
+
 	//Create player assets
 	m_iPlayerMaterialID = CreatePlayerAssest();
 
@@ -308,21 +308,9 @@ void CGame::ProcessEnemies(ClientDataPacket* _pClientPacket)
 		{
 			//Set player position
 			enemyIter->second->SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
-
-			float3 fuckYou = _pClientPacket->EnemyInfo[iEnemy].f3Direction;
-
-
-
-			if (fuckYou.Magnitude() > 1.0f)
-			{
-				int c = 0;
-			}
-			else
-			{
-				int c = 8;
-			}
+						
 			//Set player Direction
-			enemyIter->second->SetDirection(fuckYou.Normalise());
+			enemyIter->second->SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
 			//toggle toggle value to state that this has been updated
 			enemyIter->second->m_bToggle = bToggle;
 
@@ -449,23 +437,30 @@ void CGame::ProcessPowerUps(ClientDataPacket* _pClientPacket)
 
 void CGame::ProcessCamera()
 {
-	//Process Camera	
-	std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
-	m_pPlayerAvatar = playerItter->second;
+	if (m_bDebug)
+	{
+		m_pDebugCam->Process();
+	}
+	else
+	{
+		//Process Camera	
+		std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+		m_pPlayerAvatar = playerItter->second;
 
-	D3DXVECTOR3 d3dVPos;
-	d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
-	d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
-	d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
+		D3DXVECTOR3 d3dVPos;
+		d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
+		d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
+		d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
 
-	D3DXVECTOR3 d3dVUp;
-	d3dVUp.x = m_pPlayerAvatar->GetUpVector().x;
-	d3dVUp.y = m_pPlayerAvatar->GetUpVector().y;
-	d3dVUp.z = m_pPlayerAvatar->GetUpVector().z;
+		D3DXVECTOR3 d3dVUp;
+		d3dVUp.x = m_pPlayerAvatar->GetUpVector().x;
+		d3dVUp.y = m_pPlayerAvatar->GetUpVector().y;
+		d3dVUp.z = m_pPlayerAvatar->GetUpVector().z;
 
-	//Set the camera
-	m_pCamera->SetCamera(d3dVPos, d3dVPos, d3dVUp);
-	m_pCamera->Process(m_pRenderManager);
+		//Set the camera
+		m_pCamera->SetCamera(d3dVPos, d3dVPos, d3dVUp);
+		m_pCamera->Process(m_pRenderManager);
+	}
 }
 
 void CGame::Draw()
@@ -701,12 +696,34 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 	std::string strName(tempState.cPlayerName);
 	MapClientIter = m_plistPlayers->insert(std::pair<std::string, CPlayerObj*>(strName, tempPlayer));
 	
+	//if the player wasnt added 
+	if (MapClientIter.second == false)
+	{
+		//delete the temp variable
+		delete tempPlayer;
+		tempPlayer = 0;
+
+		//Return the bool part(second)
+		//false if the element already exists
+		return false;
+	}
+
 	//If this is the controlling players object save it
 	if (tempState.cPlayerName == m_strPlayerName)
 	{
 		//Find the controlling player in the map
 		std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
 		m_pPlayerAvatar = playerItter->second;
+
+		//Create the Camera
+		m_pCamera = new CCameraStatic();
+		//Initialise the camera position
+		D3DXVECTOR3 D3DPosition = { playerItter->second->GetPosition().x, playerItter->second->GetPosition().y + 50.0f, playerItter->second->GetPosition().z };
+		//Initialise the Camera target
+		D3DXVECTOR3 D3DLookAt = { playerItter->second->GetPosition().x, playerItter->second->GetPosition().y, playerItter->second->GetPosition().z };
+		(m_pCamera->Initialise(D3DPosition, D3DLookAt, false));
+		m_pCamera->Process(m_pRenderManager);
+
 	}
 	
 	//if the player wasnt added 
@@ -1119,3 +1136,17 @@ void CGame::ToggleCamera()
 	m_pCamera->ToggleType();
 }
 
+void CGame::CameraMove(float _fUnit)
+{
+	m_pDebugCam->Move(_fUnit);
+}
+
+void CGame::CameraPitch(float _fUnit)
+{
+	m_pDebugCam->Pitch(_fUnit);
+}
+
+void CGame::CameraYaw(float _fUnit)
+{
+	m_pDebugCam->Yaw(_fUnit);
+}

@@ -24,8 +24,6 @@
 //Local Includes
 #include "../Shared/Network_Defines.h"
 #include "../Shared/Clock.h"
-#include "../Shared/IRenderer.h"
-#include "../Shared/PlayerObj.h"
 #include "SteerLib.h"
 
 

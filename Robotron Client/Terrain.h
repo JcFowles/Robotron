@@ -17,9 +17,9 @@
 #define __TERRAIN_H__
 
 // Local Includes
-#include "../Shared/IRenderer.h"
-#include "../Shared/StaticBuffer.h"
-#include "../Shared/VertexUV.h"
+#include "IRenderer.h"
+#include "StaticBuffer.h"
+#include "VertexUV.h"
 
 #pragma once
 class CTerrain

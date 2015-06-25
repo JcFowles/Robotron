@@ -123,6 +123,9 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_iScreenWidth = _iScreenWidth;
 	m_iScreenHeight = _iScreenHeight;
 
+	m_pClock = new CClock();
+	VALIDATE(m_pClock->Initialise());
+
 	//Initialise Game Variables
 	m_bIsHost = false;
 	m_bServerCreated = false;
@@ -284,37 +287,7 @@ void CClientApp::Process()
 		break;
 	case GS_PLAY:
 	{
-			
-		//Send input info to server
-		ProcessGameInput();
-		
-
-		//Process the lighting 
-		ProcessLightning();
-
-		//Check if we need to toggle camera view between first and third person
-		if (m_bCamToggle == true)
-		{
-			//Process on button release
-			if (m_pInputManager->GetInputStates().bToggle == false)
-			{
-				m_pGame->ToggleCamera();
-				m_bCamToggle = false;
-			}
-		}
-
-		// Check if we need to toggle the pause screen
-		if (m_bPauseToggle == true)
-		{
-			//Process on button release
-			if (m_pInputManager->GetInputStates().bEscape == false)
-			{
-				//Toggle the pause screen
-				m_bGamePause = !m_bGamePause;
-				m_bPauseToggle = false;
-			}
-		}
-
+		ProcessGamePlay();
 	}
 		break;
 	default:
@@ -324,6 +297,94 @@ void CClientApp::Process()
 	//process received data
 	ProcessReceiveData();
 	
+}
+
+void CClientApp::ProcessGamePlay()
+{
+	//Send input info to server
+	ProcessGameInput();
+
+	//Process the lighting 
+	ProcessLightning();
+
+	//Check if we need to toggle camera view between first and third person
+	if (m_bCamToggle == true)
+	{
+		//Process on button release
+		if (m_pInputManager->GetInputStates().bToggle == false)
+		{
+			m_pGame->ToggleCamera();
+			m_bCamToggle = false;
+		}
+	}
+
+	// Check if we need to toggle the pause screen
+	if (m_bPauseToggle == true)
+	{
+		//Process on button release
+		if (m_pInputManager->GetInputStates().bEscape == false)
+		{
+			//Toggle the pause screen
+			m_bGamePause = !m_bGamePause;
+			m_bPauseToggle = false;
+		}
+	}
+
+	// Check if we need to toggle the debug camera
+	if (m_bDebugToggle == true)
+	{
+		//Process on button release
+		if (m_pInputManager->GetInputStates().bDebug == false)
+		{
+			//Toggle the pause screen
+			m_bDebug = !m_bDebug;
+			m_pGame->SetDebug(m_bDebug);
+			m_bDebugToggle = false;
+		}
+	}
+}
+
+void CClientApp::ProcessDebugInput()
+{
+	
+	if ((m_pInputManager->GetInputStates().bDBugLeft) &&
+		(!(m_pInputManager->GetInputStates().bDBugRight)))
+	{
+		//Turn Left
+		m_pGame->CameraYaw(-m_fDeltaTick);
+	}
+	if ((m_pInputManager->GetInputStates().bDBugRight) &&
+		(!(m_pInputManager->GetInputStates().bDBugLeft)))
+	{
+		//Turn Right
+		m_pGame->CameraYaw(m_fDeltaTick);
+	}
+	if ((m_pInputManager->GetInputStates().bDBugUp) &&
+		(!(m_pInputManager->GetInputStates().bDBugDown)))
+	{
+		//Turn Up
+		m_pGame->CameraPitch(m_fDeltaTick);
+	}
+	if ((m_pInputManager->GetInputStates().bDBugDown) &&
+		(!(m_pInputManager->GetInputStates().bDBugUp)))
+	{
+		//Turn Down
+		m_pGame->CameraPitch(-m_fDeltaTick);
+	}
+	if ((m_pInputManager->GetInputStates().bDFoward) &&
+		(!(m_pInputManager->GetInputStates().bDBack)))
+	{
+		//Move forward
+		m_pGame->CameraMove(m_fDeltaTick);
+	}
+	if ((m_pInputManager->GetInputStates().bDBack) &&
+		(!(m_pInputManager->GetInputStates().bDFoward)))
+	{
+		//Move backward
+		m_pGame->CameraMove(-m_fDeltaTick);
+	}
+	
+
 }
 
 void CClientApp::ProcessLightning()
@@ -371,8 +432,20 @@ void CClientApp::ProcessGameInput()
 		m_bPauseToggle = true;
 	}
 
-	//Only send input date to the server if the game is not paused
-	if (m_bGamePause == false)
+	//F4 for the debug camera has been pressed
+	if (m_pInputManager->GetInputStates().bDebug == true)
+	{
+		m_bDebugToggle = true;
+	}
+
+	if (m_bDebug)
+	{
+		ProcessDebugInput();
+	}
+
+
+	//Only send input date to the server if the game is not paused or in debug mode
+	if ((m_bGamePause == false))// && (m_bDebug == false ))
 	{
 		//Set server info
 		SetClientInfo();
@@ -1576,6 +1649,9 @@ void CClientApp::ExitMenuDraw()
 //Render Frame
 bool CClientApp::RenderSingleFrame()
 {
+	m_pClock->Process();
+	m_fDeltaTick = m_pClock->GetDeltaTick();
+
 	//Start time
 	m_iFrameTimeStart = (int)timeGetTime();
 	//Use some time to ensure Delta tick not 0.0f
@@ -1984,7 +2060,7 @@ void CClientApp::OpenServerApp()
 #endif
 #ifndef _DEBUG
 		//TO DO: change file path for final release
-		filename = "..\\Release\\Robotron Server";
+		filename = "Robotron Server";
 #endif
 
 		//TO DO: hide server
@@ -1993,6 +2069,7 @@ void CClientApp::OpenServerApp()
 
 		//Robotron Server.exe was unable to open for some reason.
 		//Reason as to why it didnt open look up the value of iError
+		// PP: Assert
 		assert(("Unable to open server", iError > 32)); //Unable to open server
 	}
 }

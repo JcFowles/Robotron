@@ -24,8 +24,10 @@
 //Local Includes
 #include "Game.h"
 #include "Client.h"
-#include "../Shared/D3D9Renderer.h"
+#include "D3D9Renderer.h"
 #include "InputManager.h"
+#include "DebugCamera.h"
+#include "..//Shared//Clock.h"
 
 
 class CClientApp
@@ -451,6 +453,20 @@ public:
 	********************/
 	void LoadingScreen();
 
+	/***********************
+	* ProcessGamePlay: Process the game play
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessGamePlay();
+
+	/***********************
+	* ProcessDebugInput: Process the Debug input states
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void ProcessDebugInput();
+
 protected:
 
 private:
@@ -474,6 +490,7 @@ private:
 	* @return:
 	********************/
 	CClientApp& operator= (const CClientApp& _kr);
+	
 
 	//Member Variables
 public:
@@ -486,10 +503,12 @@ private:
 	int m_iScreenWidth;
 	int	m_iScreenHeight;
 	
+
 	//Game Variables
 	static CClientApp* s_pClientApp;
 	CGame* m_pGame;
-
+	CClock* m_pClock;
+	float m_fDeltaTick;
 	eGameStates m_eGameState;
 	eMenuStates m_eMenuState;
 	eHostStates m_eHostState;
@@ -541,6 +560,8 @@ private:
 	bool m_bTab;
 	bool m_bPauseToggle;
 	bool m_bGamePause;
+	bool m_bDebugToggle;
+	bool m_bDebug;
 
 	//Frame Limiter
 	int m_iFrameTimeStart;

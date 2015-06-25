@@ -92,7 +92,7 @@ bool CGame::Initialise()
 
 	//Get the width and height on the terrain
 	UINT uiHeight, uiWidth;
-	std::ifstream in("..\\Shared\\Assets\\Heightmap.bmp");
+	std::ifstream in("Assets\\Heightmap.bmp");
 	
 	in.seekg(18);
 	in.read((char*)&uiWidth, 4);

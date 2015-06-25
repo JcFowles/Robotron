@@ -154,8 +154,7 @@ void CServerApp::Process()
 		m_pClientPacket->packetType = PT_UPDATE;
 	
 		m_pGame->Process(m_pClientPacket);
-		float3 fuckYouServer = m_pClientPacket->EnemyInfo[0].f3Direction;
-
+		
 		//Add server info to client packet
 		SendToAll(m_pClientPacket);
 	}	

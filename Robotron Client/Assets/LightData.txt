@@ -1,5 +1,5 @@
                  Light ID : 0
-                 Light On : False
+                 Light On : True
                Light Type : D3DLIGHT_DIRECTIONAL
         (All Light Types) :  
             Ambient Color : 0.0, 0.0, 0.0, 0.0
@@ -19,7 +19,7 @@
                  Fall Off : 0.0
 
                  Light ID : 1
-                 Light On : False
+                 Light On : True
                Light Type : D3DLIGHT_POINT
         (All Light Types) :  
             Ambient Color : 0.0, 0.0, 0.0, 0.0
@@ -39,7 +39,7 @@
                  Fall Off : 0.0
 
                  Light ID : 2
-                 Light On : False
+                 Light On : True
                Light Type : D3DLIGHT_SPOT
         (All Light Types) :  
             Ambient Color : 0.0, 0.0, 0.0, 0.0

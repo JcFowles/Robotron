@@ -19,7 +19,7 @@
 //TO DO: Rename, edit function headers, change to used float3 instead of D3DXVECTOR3
 
 //Local includes
-#include "../shared/IRenderer.h"
+#include "IRenderer.h"
 
 class CCameraStatic
 {

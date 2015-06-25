@@ -221,7 +221,16 @@ void CInputManager::ProcessKeyBoard()
 	((m_cKeyStateBuffer[DIK_ESCAPE] & 0x80)) ? (m_InputStates.bEscape = true)		: (m_InputStates.bEscape = false);
 	((m_cKeyStateBuffer[DIK_TAB] & 0x80))	 ? (m_InputStates.bTab = true)			: (m_InputStates.bTab = false);
 	((m_cKeyStateBuffer[DIK_F1] & 0x80))	 ? (m_InputStates.bToggle = true)		: (m_InputStates.bToggle = false);
+	
+	//Debug camera controls
 	((m_cKeyStateBuffer[DIK_F4] & 0x80))	 ? (m_InputStates.bDebug = true)		: (m_InputStates.bDebug = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD4] & 0x80)) ? (m_InputStates.bDBugLeft = true)	: (m_InputStates.bDBugLeft = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD6] & 0x80)) ? (m_InputStates.bDBugRight = true)	: (m_InputStates.bDBugRight = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD8] & 0x80)) ? (m_InputStates.bDBugUp = true)		: (m_InputStates.bDBugUp = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD2] & 0x80)) ? (m_InputStates.bDBugDown = true)	: (m_InputStates.bDBugDown = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD5] & 0x80)) ? (m_InputStates.bDFoward = true)		: (m_InputStates.bDFoward = false);
+	((m_cKeyStateBuffer[DIK_NUMPAD0] & 0x80)) ? (m_InputStates.bDBack = true)		: (m_InputStates.bDBack = false);
+
 }
 
 void CInputManager::ResetInputStates()

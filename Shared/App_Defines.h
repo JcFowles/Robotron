@@ -118,6 +118,7 @@ struct InputStates
 	bool bRightPress;
 	bool bActivate;
 	bool bEscape;
+	
 	bool bToggle;
 	
 	bool bTab;
