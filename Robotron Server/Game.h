@@ -53,7 +53,7 @@ public:
 	void UpdateProjectile();
 	
 	void UpdatePowerUp();
-	void UpdateShield(PowerUpStates* _pPowerUp);
+	void UpdatePowerUp(PowerUpStates* _pPowerUp);
 
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
@@ -69,12 +69,22 @@ public:
 	********************/
 	bool CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB);
 	
+	// TO DO
 	void SpawnWave();
 	void CreateLust(float3 _f3Pos);
 	void CreateSloth(float3 _f3Pos);
 	void CreateWrath(float3 _f3Pos);
 	void SpawnPowerUp();
-	bool SpawnProjectile(float3 _Direction, float3 _Position, UINT _uiOwnerID);
+	void CreatePowerUpTen(float3 _f3Pos);
+	void CreatePowerUpFifty(float3 _f3Pos);
+	void CreatePowerUpHundred(float3 _f3Pos);
+	void DestroyAllPowerUps();
+	bool SpawnProjectile(float3 _Direction, float3 _Position, std::string strOwner);
+	void RespawnPlayers();
+	
+
+	bool GetSinglePlayer() const { return m_bSinglePlayer; }
+	void SetSinglePlayer(bool _SinglePlayer) { m_bSinglePlayer = _SinglePlayer; }
 
 	
 	/***********************
@@ -132,6 +142,7 @@ private:
 	CGame& operator= (const CGame& _kr);
 	
 
+
 	//member variables
 private:
 		
@@ -139,7 +150,7 @@ private:
 	CClock* m_pClock;
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
-	std::map<UINT, std::string>* m_pMapPlayersIDs;
+	//std::map<UINT, std::string>* m_pMapPlayersIDs;
 
 	
 	std::map<UINT, EnemyStates>* m_plistEnemies;
@@ -174,11 +185,19 @@ private:
 	bool m_iWrath;
 	int m_iSlothCount;
 
+	int m_iPowTenCount;
+	int m_iPowFiftyCount;
+	int m_iPowHundredCount;
 
 	float m_fTerrainDepth;
 	float m_fTerrainWidth;
 
 	bool bToggle;
+	bool m_bSinglePlayer;
+	bool m_bStartTimer;
+	bool m_bGameOver;
+	float m_fSpawnTimer;
+
 };
 
 #endif //__SERVER_GAME_H__

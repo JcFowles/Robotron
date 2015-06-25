@@ -28,10 +28,9 @@ public:
 	/***********************
 	* CProjectileObj: Default Constructor for Projectile Object class
 	* @author: Jc Fowles
-	* @parameter: UINT _uiPlayerID: The ID of the player that created this projectile
 	* @return:
 	********************/
-	CProjectileObj(UINT _uiPlayerID);
+	CProjectileObj();
 		
 	/***********************
 	* ~CProjectileObj: Destructor for Projectile Object class

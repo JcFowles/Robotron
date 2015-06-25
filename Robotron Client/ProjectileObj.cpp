@@ -15,9 +15,9 @@
 // Local Includes
 #include "ProjectileObj.h"
 
-CProjectileObj::CProjectileObj(UINT _uiPlayerID)
+CProjectileObj::CProjectileObj()
 {
-	m_uiPlayerID = _uiPlayerID;
+	
 }
 
 

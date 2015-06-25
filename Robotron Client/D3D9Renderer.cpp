@@ -160,7 +160,7 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 		return false;
 	}
 
-	RenderStates();
+	SetStates();
 
 	SetMaterial();
 
@@ -181,12 +181,12 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	//Initialise Map of lights
 	m_pLightMap = new std::map < UINT, D3DLIGHT9* > ;
 
-	//Initialise DirectionLight
-	D3DLightParameter DirectiomLightParam;
-	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
-	DirectiomLightParam.colorDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	DirectiomLightParam.vecDirection = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+
 	
+	//m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+	//m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	//m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTCOLOR);
+
 	//Create map for all the Materials
 	m_pMaterialMap = new std::map < int, D3DMATERIAL9 > ;
 
@@ -303,8 +303,11 @@ bool CD3D9Renderer::DeviceCreation()
 	return false;
 }
 
-void CD3D9Renderer::RenderStates()
+void CD3D9Renderer::SetStates()
 {
+
+	//Tile the texture
+	m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	//Set initial Lighting
 	//Redundant
 	//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -316,7 +319,7 @@ void CD3D9Renderer::RenderStates()
 	//m_pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(40, 40, 40));
 	//m_color = D3DCOLOR_XRGB(40, 40, 40);
 	//Set device to normalize all normals
-	m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
+	//m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
 	m_pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 	//m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 	//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
@@ -393,7 +396,7 @@ UINT CD3D9Renderer::CreateLights(D3DLightParameter _pLightParameter)
 	//Set light properties to light iID
 	m_pDevice->SetLight((m_iLightKeyCount), pD3DLight);
 	//Turn light on or off
-	m_pDevice->LightEnable((m_iLightKeyCount), (true));
+	m_pDevice->LightEnable((m_iLightKeyCount), (_pLightParameter.bIsTurnedOn));
 	
 	//Return a Light ID
 	return m_iLightKeyCount++;
@@ -462,6 +465,31 @@ bool CD3D9Renderer::UpdateDirectionLight(int _LightID, bool bIsTurnedOn)
 	return true;
 }
 
+bool CD3D9Renderer::UpdateSpotLight(int _LightID, bool _bIsTurnedOn, float3 _f3Position, float3 _f3Direction)
+{
+	//Find the light to update
+	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
+	
+	if (lightItter->second->Type == D3DLIGHT_SPOT)
+	{
+		//Set lights positions
+		lightItter->second->Position = { _f3Position.x, _f3Position.y + 2.5f, _f3Position.z };
+		//Sets lights Direction
+		lightItter->second->Direction = { _f3Direction.x, _f3Direction.y, _f3Direction.z };
+		//Set the Light
+		m_pDevice->SetLight((_LightID), (lightItter->second));
+		//Turn light on or off
+		m_pDevice->LightEnable((_LightID), (_bIsTurnedOn));
+	}
+	else
+	{
+		//Light to update not of type expected
+		return false;
+	}
+	return true;
+
+}
+
 bool CD3D9Renderer::SetMaterial()
 {
 	D3DMATERIAL9 D3DMaterial;
@@ -510,7 +538,26 @@ bool CD3D9Renderer::SetTexture(int _textureID, int _iStage)
 	{
 		//Set the material on the device
 		m_pDevice->SetTexture(_iStage, (TexIter->second));
+		//Texture blending
+		m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+		m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG2, D3DTA_TEXTURE);
 		return true;
+	}
+}
+
+void CD3D9Renderer::EnableAlphaBlend(bool _bEnable)
+{
+	if (_bEnable)
+	{
+		//Enable
+		m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+		m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTCOLOR);
+	}
+	else
+	{
+		//disable
+		m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 	}
 }
 
@@ -593,7 +640,7 @@ UINT CD3D9Renderer::CreateMaterial(MaterialValues _materialVal)
 	return m_iMaterialKeyCount;
 }
 
-void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues)
+void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues, int _iUVCoordTiled)
 {
 	D3DLOCKED_RECT lockRect;
 	ZeroMemory(&lockRect, sizeof(D3DLOCKED_RECT));
@@ -822,11 +869,14 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iS
 			//Normalize the calculated normal
 			D3DXVec3Normalize(&VertexNormal, &tempNormalVector);
 			
+			
 			//Create the CVertexUV and and it the vector of Vertices's
 			CVertexUV TempVertexNormal(CVertexUV(float3(fXPos, fYPos, fZPos), 
 												 float3(VertexNormal.x, VertexNormal.y, VertexNormal.z),
-												 float2( ( (float)iRow / _pImageInfo.Width ), ( (float)iCol / _pImageInfo.Height ) ) ) 
+												 float2(((float)iRow / (_pImageInfo.Width / _iUVCoordTiled)), ((float)iCol / (_pImageInfo.Height / _iUVCoordTiled))))
 									  );
+
+
 			_pVertices->push_back(TempVertexNormal);
 		}
 	}

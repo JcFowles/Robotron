@@ -96,6 +96,8 @@ struct PlayerStates
 	char cPlayerName[NetworkValues::MAX_NAME_LENGTH + 1];
 	UINT uiPlayerID;
 
+	bool bAlive;
+
 	float3 f3Positions;
 	float3 f3Direction;
 	float3 f3Velocity;
@@ -108,16 +110,25 @@ struct PlayerStates
 	BoundingBox BBox;
 
 	UINT uiScore;
-	UINT uiHealth;
-
+	UINT uiScoreCheck;
+	int iHealth;
+	int iMaxHealth;
+	
 	float fFireRate;
 	
+	UINT iNumEnemies;
+	UINT iWaveNumber;
+
+	int iLifeCount;
 };
 
 struct EnemyStates
 {
 	UINT uiEnemyID;
 	eEnemyTypes Etype;
+	float fRateOfDamage;
+
+	char cTargetName[NetworkValues::MAX_NAME_LENGTH + 1];
 	
 	float3 f3Positions;
 	float3 f3Direction;
@@ -128,6 +139,7 @@ struct EnemyStates
 	BoundingBox BBox; 
 
 	float fHealth;
+	UINT uiDamage;
 	UINT uiPoints;
 	
 };
@@ -152,8 +164,9 @@ struct PowerUpStates
 struct ProjectileStates
 {
 	UINT uiProjectileID;
-	UINT uiOwnerID;
-	
+	//UINT uiOwnerID;
+	char cOwnerName[NetworkValues::MAX_NAME_LENGTH + 1];
+
 	float fMaxSpeed;
 	float3 f3Velocity;
 	float3 f3Acceleration;
@@ -220,6 +233,7 @@ struct ClientDataPacket
 	UINT iNumEnemies;
 	UINT iNumProjectiles;
 	UINT iNumPlayers;
+	UINT iWaveNumber;
 }; 
 
 

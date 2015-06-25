@@ -22,8 +22,8 @@ CPlayerObj::CPlayerObj(IRenderer* _pRenderManager)
 		
 	m_bIsAlive = true;
 
-	m_uiMaxHealth = 100;
-	m_uiHealth = m_uiMaxHealth;
+	m_iLifeCount = 100;
+	m_uiHealth = m_iLifeCount;
 	m_uiScore = 0;
 	
 	m_fLightRange = 0.5;
@@ -31,17 +31,15 @@ CPlayerObj::CPlayerObj(IRenderer* _pRenderManager)
 	//Create light
 	D3DLightParameter PointLightParam;
 	PointLightParam.eLightType = D3DLIGHT_POINT;
-	PointLightParam.colorDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-	PointLightParam.colorAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-	PointLightParam.colorSpecular = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-
+	PointLightParam.colorDiffuse = D3DXCOLOR(1.0f, 1.0f, 0.0f, 1.0f);
+	PointLightParam.colorAmbient = D3DXCOLOR(1.0f, 1.0f, 0.0f, 1.0f);
+	PointLightParam.colorSpecular = D3DXCOLOR(1.0f, 1.0f, 0.0f, 1.0f);
+	PointLightParam.bIsTurnedOn = true;
 	PointLightParam.vecPosition = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	PointLightParam.fRange = m_fLightRange;
 	PointLightParam.fAttnLinear = 0.01f;
 	
 	m_uiLightID = _pRenderManager->CreateLights(PointLightParam);
-	int c = 9;
-
 }
 
 CPlayerObj::~CPlayerObj()

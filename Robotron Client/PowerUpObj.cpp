@@ -20,13 +20,21 @@ CPowerUpObj::CPowerUpObj(ePowerType _eType)
 {
 	switch (_eType)
 	{
-	case PU_SHIELD:
+	case PU_TEN:
+	{
+		m_uiPoints = 10;
+	}
+	break;
+	case PU_FIFTY:
+	{
+		m_uiPoints = 50;
+	}
+	break;
+	case PU_HUNDRED:
 	{
 		m_uiPoints = 100;
-
-
 	}
-		break;
+	break;
 	default:
 		break;
 	}

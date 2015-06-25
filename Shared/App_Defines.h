@@ -36,11 +36,16 @@ const float kfPlayerSize = 1.0f;
 const float kfFireRate = 0.2f;
 //Enemy Sizes
 const float kfLustSize = 0.8f;
+const float kfLustDamageRate = 0.5f;;
 const float kfSlothSize = 2.0f;
+const float kfSlothDamageRate = 1.50f;
 const float kfWrathSize = 3.0f;
+const float kfWrathDamageRate = 1.0f;
 
 //Power Up Size
-const float kfShieldSize = 0.5f;
+const float kfTenSize = 0.5f;
+const float kfFiftySize = 0.5f;
+const float kfHundredSize = 0.5f;
 
 //Projectile Size
 const float kfBulletSize = 0.2f;
@@ -56,7 +61,9 @@ const float kfScalarWidth = 0.50f;		//X-axis
 const float kfScalarHeight = 0.0f;		//Y-axis	
 const float kfScalarDepth = 0.50f;		//Z-axis
 
+const int kuiLifeIncreament = 1000;
 
+const float kfSpawnDelay = 5.0f;
 
 enum eMenuStates
 {
@@ -99,8 +106,9 @@ enum eEnemyTypes
 
 enum ePowerType
 {
-	PU_SHIELD, //Limited time invulnerable
-	//TO DO: More
+	PU_TEN, 
+	PU_FIFTY,
+	PU_HUNDRED,
 };
 
 enum eCameraType

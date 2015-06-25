@@ -12,7 +12,9 @@ CGame::~CGame()
 	//Delete Terrain
 	delete m_pTerrain;
 	m_pTerrain = 0;
-
+	delete m_pUnderLay;
+	m_pUnderLay = 0;
+	
 	//Delete Camera
 	delete m_pCamera;
 	m_pCamera = 0;
@@ -136,8 +138,9 @@ void CGame::DestroyInstance()
 	s_pGame = 0;
 }
 
-bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer)
+bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer, bool _bSinglePlayer)
 {	
+	m_bSinglePlayer = _bSinglePlayer;
 	m_strPlayerName = _ControllingPlayer;
 		
 	m_plistPlayers = new std::map < std::string, CPlayerObj* >;
@@ -157,12 +160,18 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	//Create and set up the terrain
 	m_pTerrain = new CTerrain();
 	ScalarVertex TerrainScalar = { kfScalarWidth, kfScalarHeight, kfScalarDepth };
-	std::string strImagePath = "Assets\\Heightmap.bmp";
-	VALIDATE(m_pTerrain->Initialise(m_pRenderManager, strImagePath, TerrainScalar));
+	std::string strHightMapPath = "Assets\\Heightmap.bmp";
+	std::string strTexturePath = "Assets\\Floor.png";
+	VALIDATE(m_pTerrain->Initialise(m_pRenderManager, strHightMapPath, strTexturePath, TerrainScalar,20 ));
 	m_pTerrain->SetCenter({ 0, 0, 0 });
 
+	m_pUnderLay = new CTerrain();
+	strHightMapPath = "Assets\\Heightmap.bmp";
+	strTexturePath = "Assets\\Space.png";
+	TerrainScalar = { kfScalarWidth*1.2f, kfScalarHeight, kfScalarDepth*1.2f };
+	VALIDATE(m_pUnderLay->Initialise(m_pRenderManager, strHightMapPath, strTexturePath, TerrainScalar, 1));
+	m_pUnderLay->SetCenter({ 0, -20, 0 });
 	
-
 	m_pDebugCam = new CDebugCamera();
 	VALIDATE(m_pDebugCam->Initialise(m_pRenderManager));
 	m_bDebug = false;
@@ -176,13 +185,16 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	m_iEnemyIDs->insert(std::pair<eEnemyTypes, UINT>(ET_WRATH, CreateEnemyAssest(ET_WRATH)));
 
 	//Create the Shield power up assets
-	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_SHIELD, CreatePowerUpAssest(PU_SHIELD)));
+	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_TEN, CreatePowerUpAssest(PU_TEN)));
+	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_FIFTY, CreatePowerUpAssest(PU_FIFTY)));
+	m_iPowerUpIDs->insert(std::pair<ePowerType, UINT>(PU_HUNDRED, CreatePowerUpAssest(PU_HUNDRED)));
 	
 	//Create Bullet asset
 	m_iBulletMaterialID = CreateProjectileAssest();
-
+		
 	//Initialise DirectionLight
 	D3DLightParameter DirectiomLightParam;
+	DirectiomLightParam.bIsTurnedOn = true;
 	DirectiomLightParam.eLightType = D3DLIGHT_DIRECTIONAL;
 	DirectiomLightParam.colorDiffuse = D3DXCOLOR(0.6f, 0.6f, 0.6f, 1.0f); //If changing this change in updateDirtional light too
 	DirectiomLightParam.vecDirection = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
@@ -192,7 +204,25 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 
 	//Update the Direction Light
 	m_pRenderManager->UpdateDirectionLight(m_iDirectionID, true);
-		
+	
+
+	D3DLightParameter SpotLightParam;
+	SpotLightParam.eLightType = D3DLIGHT_SPOT;
+	SpotLightParam.bIsTurnedOn = false;
+	SpotLightParam.fAttnLinear = 0.01f;
+	SpotLightParam.fAttnConstant = 0.0f;
+	SpotLightParam.fAttnExponential = 0.0f;
+	SpotLightParam.fFallOff = 1.0f;
+	SpotLightParam.fInnerAngle = (10.0f);
+	SpotLightParam.fOuterAngle = (100.0f);
+	SpotLightParam.fRange = 50.0f;
+	SpotLightParam.vecDirection = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+	SpotLightParam.vecPosition = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	SpotLightParam.colorDiffuse = D3DXCOLOR(-10.0f, -10.0f, -10.0f, -10.0f);
+
+	m_iSpotLightID = m_pRenderManager->CreateLights(SpotLightParam);
+
 	m_bLightning = false;
 
 	bToggle = 0;
@@ -234,28 +264,42 @@ void CGame::ProcessPlayers(ClientDataPacket* _pClientPacket)
 
 		if (iterPlayer != m_plistPlayers->end())
 		{
+			
 			//Set player position
 			iterPlayer->second->SetPosition(_pClientPacket->PlayerInfo[iPlayer].f3Positions);
 			//Set player Direction
 			iterPlayer->second->SetDirection(_pClientPacket->PlayerInfo[iPlayer].f3Direction);
 			//Set Player Health
-			iterPlayer->second->SetHealth(_pClientPacket->PlayerInfo[iPlayer].uiHealth);
+			iterPlayer->second->SetHealth(_pClientPacket->PlayerInfo[iPlayer].iHealth);
+			//Set Player life count
+			iterPlayer->second->SetLifeCount(_pClientPacket->PlayerInfo[iPlayer].iLifeCount);
 			//Set Player Score
 			iterPlayer->second->SetScore(_pClientPacket->PlayerInfo[iPlayer].uiScore);
 			//toggle toggle value to state that this has been updated
 			iterPlayer->second->m_bToggle = bToggle;
+			//set alive status of player
+			iterPlayer->second->SetIsAlive(_pClientPacket->PlayerInfo[iPlayer].bAlive);
 
-			//Update the lights
-			if (iterPlayer->second->GetLightRange() > 5.0f)
+			if (_pClientPacket->PlayerInfo[iPlayer].bAlive)
 			{
-				iterPlayer->second->SetLightRange(1.0f);
+				//Update the lights
+				if (iterPlayer->second->GetLightRange() > 5.0f)
+				{
+					iterPlayer->second->SetLightRange(1.0f);
+				}
+				else
+				{
+					iterPlayer->second->SetLightRange(iterPlayer->second->GetLightRange() + 0.05f);
+				}
+
+				m_pRenderManager->UpdatePointLight(iterPlayer->second->GetLightID(), true, iterPlayer->second->GetPosition(), iterPlayer->second->GetLightRange());
+			
 			}
 			else
 			{
-				iterPlayer->second->SetLightRange(iterPlayer->second->GetLightRange() + 0.05f);
+				//PLayer died turn there light off
+				m_pRenderManager->UpdatePointLight(iterPlayer->second->GetLightID(), false, iterPlayer->second->GetPosition(), iterPlayer->second->GetLightRange());
 			}
-
-			m_pRenderManager->UpdatePointLight(iterPlayer->second->GetLightID(), true, iterPlayer->second->GetPosition(), iterPlayer->second->GetLightRange());
 
 			//Lightning strike
 			m_pRenderManager->UpdateDirectionLight(m_iDirectionID, m_bLightning);
@@ -265,6 +309,7 @@ void CGame::ProcessPlayers(ClientDataPacket* _pClientPacket)
 				m_pPlayerAvatar = iterPlayer->second;
 
 			}
+			
 		}
 		else
 		{
@@ -306,13 +351,19 @@ void CGame::ProcessEnemies(ClientDataPacket* _pClientPacket)
 		
 		if (enemyIter != m_pListEnemies->end())
 		{
+			if (enemyIter->second->GetEnemyType() == ET_WRATH)
+			{
+				m_pRenderManager->UpdateSpotLight(m_iSpotLightID, true, enemyIter->second->GetPosition(), enemyIter->second->GetDirection()*5.0f);
+			}
+
 			//Set player position
 			enemyIter->second->SetPosition(_pClientPacket->EnemyInfo[iEnemy].f3Positions);
-						
 			//Set player Direction
 			enemyIter->second->SetDirection(_pClientPacket->EnemyInfo[iEnemy].f3Direction);
 			//toggle toggle value to state that this has been updated
 			enemyIter->second->m_bToggle = bToggle;
+
+
 
 		}
 		else
@@ -333,6 +384,12 @@ void CGame::ProcessEnemies(ClientDataPacket* _pClientPacket)
 		{
 			IDToDelete = ObjectCheck->second->GetObjectID();
 			delete ObjectCheck->second;
+
+			if (enemyIter->second->GetEnemyType() == ET_WRATH)
+			{
+				m_pRenderManager->UpdateSpotLight(m_iSpotLightID, false, enemyIter->second->GetPosition(), enemyIter->second->GetDirection());
+			}
+
 		}
 
 		//Check next object
@@ -437,27 +494,45 @@ void CGame::ProcessPowerUps(ClientDataPacket* _pClientPacket)
 
 void CGame::ProcessCamera()
 {
-	if (m_bDebug)
+
+	//Process Camera	
+	std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
+	m_pPlayerAvatar = playerItter->second;
+
+	if (m_bDebug) 
 	{
 		m_pDebugCam->Process();
 	}
 	else
 	{
-		//Process Camera	
-		std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
-		m_pPlayerAvatar = playerItter->second;
-
+		D3DXVECTOR3 d3dVTarget;
 		D3DXVECTOR3 d3dVPos;
-		d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
-		d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
-		d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
-
 		D3DXVECTOR3 d3dVUp;
 		d3dVUp.x = m_pPlayerAvatar->GetUpVector().x;
 		d3dVUp.y = m_pPlayerAvatar->GetUpVector().y;
 		d3dVUp.z = m_pPlayerAvatar->GetUpVector().z;
 
+		d3dVPos.x = m_pPlayerAvatar->GetPosition().x;
+		d3dVPos.y = m_pPlayerAvatar->GetPosition().y;
+		d3dVPos.z = m_pPlayerAvatar->GetPosition().z;
+
+		d3dVTarget = d3dVPos;
+		if (m_pPlayerAvatar->GetIsAlive() == false)
+		{			
+			d3dVPos.y = m_pPlayerAvatar->GetPosition().y + 50.0f;
+		}
+		
+		
 		//Set the camera
+		if (m_pCamera == 0)
+		{
+			m_pCamera = new CCameraStatic();
+			//Initialise the camera position
+			D3DXVECTOR3 D3DPosition = { d3dVPos.x, d3dVPos.y + 50.0f, d3dVPos.z };
+			//Initialise the Camera target
+			D3DXVECTOR3 D3DLookAt = { d3dVPos.x, d3dVPos.y, d3dVPos.z };
+			(m_pCamera->Initialise(D3DPosition, D3DLookAt, false));
+		}
 		m_pCamera->SetCamera(d3dVPos, d3dVPos, d3dVUp);
 		m_pCamera->Process(m_pRenderManager);
 	}
@@ -465,17 +540,22 @@ void CGame::ProcessCamera()
 
 void CGame::Draw()
 {
+	//Draw the under lay
+	m_pUnderLay->Draw(m_pRenderManager);
+	
 	//Draw every passed in from the server
+	m_pRenderManager->EnableAlphaBlend(true);
 	m_pTerrain->Draw(m_pRenderManager);
-		
+	m_pRenderManager->EnableAlphaBlend(false);
+
 	//Draw players
 	DrawPlayers();
+	
 	//Draw enemies
 	DrawEnemies();
-	//Draw Power Ups
-	DrawPowerUps();
-	//Draw Projectile
 	
+	//Draw Power Ups
+		
 
 	std::map< UINT, CProjectileObj*>::iterator iterBullet = m_pListBullets->begin();
 	while (iterBullet != m_pListBullets->end())
@@ -485,6 +565,11 @@ void CGame::Draw()
 
 		iterBullet++;
 	}
+
+	
+	DrawPowerUps();
+	//Draw Projectile
+	
 	
 	//Display HUD
 	DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
@@ -493,15 +578,16 @@ void CGame::Draw()
 	int iTop = 15;
 	int TextWidth = m_pRenderManager->GetFontWidth(TEXT_LIST);
 	int TextHieght = m_pRenderManager->GetFontHeight(TEXT_LIST);
-
+	RECT HudRec;
+	
 	//Health
 	std::string strHealth = "Health : ";
 	strHealth += std::to_string(m_pPlayerAvatar->GetHealth());
 	TextWidth = TextWidth * strHealth.length() + 5;
-	RECT HudRec;
+	
 	HudRec.left = iLeft;
 	HudRec.top = iTop;
-	HudRec.right = TextWidth;
+	HudRec.right = 800;
 	HudRec.bottom = iTop + TextHieght;
 
 	m_pRenderManager->RenderText(strHealth, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
@@ -509,12 +595,17 @@ void CGame::Draw()
 	std::string strScore = "Score : ";
 	strScore += std::to_string(m_pPlayerAvatar->GetScore());
 	iTop += TextHieght + 1;
-	TextWidth = m_pRenderManager->GetFontWidth(TEXT_LIST);
-	TextWidth = TextWidth *strScore.length() + 1;
 	HudRec.top = iTop;
-	HudRec.right = TextWidth;
 	HudRec.bottom = iTop + TextHieght;
 	m_pRenderManager->RenderText(strScore, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+	//Score
+	std::string strLife = "Lives : ";
+	strLife += std::to_string(m_pPlayerAvatar->GetLifeCount());
+	iTop += TextHieght + 1;
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strLife, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
 
 	
 }
@@ -525,9 +616,12 @@ void CGame::DrawPlayers()
 	std::map< std::string, CPlayerObj*>::iterator iterPlayer = m_plistPlayers->begin();
 	while (iterPlayer != m_plistPlayers->end())
 	{
-		//Draw the player avatar
-		iterPlayer->second->Draw();
-
+		//Only Draw players that are alive
+		if (iterPlayer->second->GetIsAlive())
+		{
+			//Draw the player avatar
+			iterPlayer->second->Draw();
+		}
 		iterPlayer++;
 	}
 }
@@ -546,6 +640,8 @@ void CGame::DrawEnemies()
 
 void CGame::DrawPowerUps()
 {
+	//Alpha blend the power ups
+	
 	std::map< UINT, CPowerUpObj*>::iterator iterPowUP = m_pListPowerUps->begin();
 	while (iterPowUP != m_pListPowerUps->end())
 	{
@@ -554,6 +650,7 @@ void CGame::DrawPowerUps()
 
 		iterPowUP++;
 	}
+	
 }
 //TO DO Drawing Functions
 
@@ -594,7 +691,7 @@ void CGame::RenderTeamScores(ClientDataPacket* _pClientPacket)
 		//Get player info, name, score, and current health
 		std::string strPlayerName(_pClientPacket->PlayerInfo[iPlayer].cPlayerName);
 		std::string strPlayerScore = std::to_string(_pClientPacket->PlayerInfo[iPlayer].uiScore);
-		std::string strPlayerHealth = std::to_string(_pClientPacket->PlayerInfo[iPlayer].uiHealth);
+		std::string strPlayerHealth = std::to_string(_pClientPacket->PlayerInfo[iPlayer].iHealth);
 
 		//Render the player information
 		dwTextFormat = DT_LEFT | DT_VCENTER | DT_SINGLELINE;
@@ -827,7 +924,7 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 		fEnemySize = kfLustSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 0.00f, 0.0f, 1.0f };
 		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
@@ -848,7 +945,7 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 		fEnemySize = kfWrathSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 0.00f, 0.50f, 1.0f };
 		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
@@ -868,7 +965,7 @@ int CGame::CreateEnemyAssest(eEnemyTypes _EnemyType)
 		fEnemySize = kfSlothSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 0.40f, 1.00f, 3.0f, 1.0f };
 		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
@@ -916,14 +1013,14 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 
 	switch (_Type)
 	{
-	case PU_SHIELD:
+	case PU_TEN:
 	{
-		strFilePath = "Assets\\Wrath.png";
-		fSize = kfShieldSize;
+		strFilePath = "Assets\\10.png";
+		fSize = kfTenSize;
 
 		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Material.f4Emissive = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Material.fPower = { 1.0f };
 
@@ -931,7 +1028,45 @@ int CGame::CreatePowerUpAssest(ePowerType _Type)
 		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
 		CMesh* pTempMesh = CreateCubeMesh(fSize, iTextureID);
 		//Add mesh to map
-		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_SHIELD, pTempMesh));
+		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_TEN, pTempMesh));
+
+	}
+	break;
+	case PU_FIFTY:
+	{
+		strFilePath = "Assets\\50.png";
+		fSize = kfFiftySize;
+
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fSize, iTextureID);
+		//Add mesh to map
+		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_FIFTY, pTempMesh));
+
+	}
+	break;
+	case PU_HUNDRED:
+	{
+		strFilePath = "Assets\\100.png";
+		fSize = kfHundredSize;
+
+		Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Material.fPower = { 1.0f };
+
+		//Create the Texture for the enemy
+		int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
+		CMesh* pTempMesh = CreateCubeMesh(fSize, iTextureID);
+		//Add mesh to map
+		m_pPowerUpMesh->insert(std::pair<ePowerType, CMesh* >(PU_HUNDRED, pTempMesh));
 
 	}
 	break;
@@ -986,6 +1121,35 @@ int CGame::CreateProjectileAssest()
 
 }
 
+bool CGame::GameOverCheck()
+{
+	bool bGameOver = true;
+	std::map<std::string, CPlayerObj*>::iterator playerIter = m_plistPlayers->begin();
+	std::map<std::string, CPlayerObj*>::iterator playerIterEnd = m_plistPlayers->end();
+	int iPlayer = 0;
+	while (playerIter != playerIterEnd)
+	{
+		//Check if any players are alive
+		if (playerIter->second->GetIsAlive() == true)
+		{
+			bGameOver = false;
+		}
+
+		//If we in single player check the life count as well
+		if (m_bSinglePlayer)
+		{
+			//Check if any players have lives left
+			if (playerIter->second->GetLifeCount() > 0)
+			{
+				bGameOver = false;
+			}
+		}
+		playerIter++;
+	}
+
+	return bGameOver;
+}
+
 //Create and Delete Objects
 
 void CGame::CreateEnemy(ClientDataPacket* _pClientPacket)
@@ -1010,7 +1174,17 @@ void CGame::CreateEnemy(ClientDataPacket* _pClientPacket)
 		//delete the temp variable
 		delete tempEnemy;
 		tempEnemy = 0;
+
+		return;
 	}
+	else
+	{
+		if (tempEnemy->GetEnemyType() == ET_WRATH)
+		{
+			m_pRenderManager->UpdateSpotLight(m_iSpotLightID, true, tempEnemy->GetPosition(), tempEnemy->GetDirection());
+		}
+	}
+
 }
 
 void CGame::CreatePowerUp(ClientDataPacket* _pClientPacket)
@@ -1054,7 +1228,7 @@ void CGame::CreateProjectile(ClientDataPacket* _pClientPacket)
 	std::pair<std::map<UINT, CProjectileObj*>::iterator, bool> MapBulletIter;
 
 	//Create enemy object
-	CProjectileObj* tempProj = new CProjectileObj(ProjectileInfo.uiOwnerID);
+	CProjectileObj* tempProj = new CProjectileObj();
 	//Initialise the enemy Object with the Cube Mesh and set its coordinates
 	tempProj->Initialise(bToggle, m_pRenderManager, m_iBulletMaterialID, m_pProjectileMesh, ProjectileInfo.uiProjectileID, ProjectileInfo.f3Positions);
 
@@ -1082,6 +1256,11 @@ void CGame::DeleteEnemy(ClientDataPacket* _pClientPacket)
 	}
 	else
 	{
+		if (enemyToRemove->second->GetEnemyType() == ET_WRATH)
+		{
+			m_pRenderManager->UpdateSpotLight(m_iSpotLightID, false, enemyToRemove->second->GetPosition(), enemyToRemove->second->GetDirection());
+		}
+
 		//Delete the object
 		delete enemyToRemove->second;
 		enemyToRemove->second = 0;
@@ -1130,6 +1309,7 @@ void CGame::DeleteProjectile(ClientDataPacket* _pClientPacket)
 	}
 
 }
+
 
 void CGame::ToggleCamera()
 {

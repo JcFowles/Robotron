@@ -109,11 +109,11 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 	m_pServerPacket = new ServerDataPacket;
 	m_pClientPacket = new ClientDataPacket;
 	
-
 	//Create and initialize the game
 	//Create and initialize the server side game
 	m_pGame = &(CGame::GetInstance());
 	m_pGame->Initialise();
+
 
 	//Initialise Map of player states
 	m_pMapClientInfo = new std::map < std::string, ClientInfo > ;
@@ -364,6 +364,8 @@ void CServerApp::ProcessCreation()
 
 		//Set whether server will be set to a multiplayer or single player server
 		m_bSinglePlayer = m_pServerPacket->bSuccess;
+		
+		m_pGame->SetSinglePlayer(m_bSinglePlayer);
 
 		//Client has sent back that it is this servers host
 
@@ -382,7 +384,7 @@ void CServerApp::ProcessCreation()
 		StringToStruct(m_strHostClient.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pClientPacket->cText);
 		//Send the data back to the client
 		m_pServer->SendData(m_pClientPacket, m_pServerPacket->clientInfo.clientSocAddr);
-
+				
 		//This server now has its host
 		m_bHaveHost = true;
 

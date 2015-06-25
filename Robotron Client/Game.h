@@ -66,7 +66,7 @@ public:
 	* @Parameter: std::string _ControllingPlayer: Name of the player who owns and controls this game
 	* @return: bool: 
 	********************/
-	bool Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer);
+	bool Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer, bool _bSinglePLayer);
 		
 	/***********************
 	* Draw: Draw all the assets of the game
@@ -191,7 +191,9 @@ public:
 	* @return: int: Returns the material iD for saving, to reference when drawing
 	********************/
 	int CreatePlayerAssest();
+	//TO DO
 
+	int CreateOverLayAssest();
 	/***********************
 	* CreateEnemyAssest: Create the rendering assets for the projectile
 	* @author: Jc Fowles
@@ -215,6 +217,9 @@ public:
 	********************/
 	int CreateProjectileAssest();
 	
+	//TO DO
+	bool GameOverCheck();
+
 	/***********************
 	* CreateCubeMesh: Creates a cube Mesh with origin in its very center
 	* @author: Jc Fowles
@@ -254,7 +259,8 @@ public:
 	* @return: void:
 	********************/
 	void CreateProjectile(ClientDataPacket* _pClientPacket);
-
+	//TO DO
+	 void CreateOverLay();
 	/***********************
 	* DeleteEnemy: delete an enemy
 	* @author: Jc Fowles
@@ -332,7 +338,8 @@ private:
 	std::map<std::string, CPlayerObj*>* m_plistPlayers;
 	
 	int m_iDirectionID;
-	int m_iLightningID;
+	int m_iSpotLightID;
+	
 	
 	std::map<UINT, CEnemyObj*>* m_pListEnemies;
 	std::map<UINT, CPowerUpObj*>* m_pListPowerUps;
@@ -352,6 +359,9 @@ private:
 	std::map<ePowerType, CMesh* >* m_pPowerUpMesh;
 			
 	CTerrain* m_pTerrain;
+	CTerrain* m_pUnderLay;
+	int m_pOverLayMatID;
+	CMesh* m_pOverlayMesh;
 
 	CCameraStatic* m_pCamera;
 	CDebugCamera* m_pDebugCam;
@@ -367,11 +377,11 @@ private:
 	ClientDataPacket* m_pClientPacket;
 
 	bool bToggle;
-	//bool bTab; // TO DO
 
 	bool m_bPauseItemSelected;
 	std::string m_strPauseItem;
 
+	bool m_bSinglePlayer;
 };
 
 #endif //__CLIENT_GAME_H__

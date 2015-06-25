@@ -41,6 +41,9 @@ CClientApp::~CClientApp(void)
 	//delete m_pGame;
 	//m_pGame = 0;
 
+	delete m_pClock;
+	m_pClock = 0;
+
 	delete m_pInputManager;
 	m_pInputManager = 0;
 
@@ -153,6 +156,8 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_strPauseOptions.push_back("Options");
 	m_strPauseOptions.push_back("Exit");
 
+	m_strGameOverOptions.push_back("Return To Main Menu");
+
 	m_eGameState = GS_MENU;
 	m_eHostState = HS_DEFAULT;
 	m_eMenuState = MS_MAIN;
@@ -208,7 +213,7 @@ void CClientApp::Process()
 	m_pInputManager->ProcessInput();
 	
 	//Process menu selection if we are in pause screen or menu state
-	if ((m_bGamePause == true) || (m_eGameState == GS_MENU))
+	if ((m_bGamePause == true) || (m_eGameState == GS_MENU) || (m_bGameOver == true))
 	{
 		//Menu selected on mouse click down
 		//Process the selected menu item on mouse click up
@@ -342,6 +347,8 @@ void CClientApp::ProcessGamePlay()
 			m_bDebugToggle = false;
 		}
 	}
+
+
 }
 
 void CClientApp::ProcessDebugInput()
@@ -500,6 +507,11 @@ void CClientApp::ProcessMenuSelection(std::string _strMenuItem)
 	if (m_bGamePause == true)
 	{
 		PauseMenuSelect(_strMenuItem);
+	}
+
+	if (m_bGameOver == true)
+	{
+		GameOverSelect(_strMenuItem);
 	}
 
 	//Depending on the current game state run the designated Menu select 
@@ -688,6 +700,42 @@ void CClientApp::PauseMenuSelect(std::string _strMenuItem)
 		m_eMenuState = MS_MAIN;
 	}
 	break;
+	}
+}
+
+void CClientApp::GameOverSelect(std::string _strMenuItem)
+{
+	unsigned int iGameOverItem;
+	for (iGameOverItem = 0; iGameOverItem < m_strGameOverOptions.size(); iGameOverItem++)
+	{
+		if (_strMenuItem == m_strGameOverOptions[iGameOverItem])
+		{
+			break;
+		}
+	}
+
+	switch (iGameOverItem)
+	{
+	case 0: //Return To main menu
+	{
+		//set game state to menu 
+		m_eGameState = GS_MENU;
+		//and set menu state to options
+		m_eMenuState = MS_MAIN;
+
+		SetClientInfo();
+		//other Aspects of message to send
+		m_pServerPacket->packetType = PT_LEAVE;
+		//Send message
+		m_pClient->SendData(m_pServerPacket);
+
+		m_pRenderManager->Clear(true, true, false);
+		//Reset Data
+		ResetData();
+
+	}
+	break;
+		
 	}
 }
 
@@ -1203,6 +1251,11 @@ void CClientApp::Draw()
 		{
 			DrawPause();
 		}
+
+		if (m_bGameOver == true)
+		{
+			DrawGameOver();
+		}
 	}
 	break;
 	
@@ -1232,6 +1285,29 @@ void CClientApp::DrawPause()
 	{
 		iYPos += (uiFontHeight + 40);
 		RenderText(m_strPauseOptions[i], iYPos, TEXT_LIST, true, dwTextFormat);
+	}
+}
+
+void CClientApp::DrawGameOver()
+{
+	int iYPos = (m_iScreenHeight / 16);
+	DWORD dwTextFormat;
+
+	//***TITLE***
+	dwTextFormat = DT_CENTER | DT_TOP | DT_SINGLELINE;
+	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
+
+	////***Pause***
+	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
+	iYPos += 230;
+
+	RenderText("Game Over", iYPos, TEXT_MENU, false, dwTextFormat);
+	iYPos += (uiFontHeight + 10);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	for (unsigned int i = 0; i < m_strGameOverOptions.size(); i++)
+	{
+		iYPos += (uiFontHeight + 40);
+		RenderText(m_strGameOverOptions[i], iYPos, TEXT_LIST, true, dwTextFormat);
 	}
 }
 
@@ -1845,6 +1921,7 @@ void CClientApp::ProcessReceiveData()
 			if (m_pGame != 0)
 			{
 				m_pGame->Process(m_pClientPacket);
+				m_bGameOver = m_pGame->GameOverCheck();
 			}
 		}
 		break;
@@ -2083,7 +2160,7 @@ void CClientApp::LoadGame()
 
 	m_pGame = &(CGame::GetInstance());
 	
-	m_pGame->Initialise(m_pRenderManager, m_strUserName);
+	m_pGame->Initialise(m_pRenderManager, m_strUserName, m_bsinglePlayer);
 	
 	m_pGame->AddAllPlayers(m_pClientPacket);
 

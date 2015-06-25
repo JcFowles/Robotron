@@ -129,6 +129,14 @@ public:
 	* @return: void: 
 	********************/
 	void PauseMenuSelect(std::string _strMenuItem);
+		
+	/***********************
+	* GameOverSelect: Process the game over menu selection
+	* @author: Jc Fowles
+	* @Parameter: std::string _strMenuItem: Which game over item was selected
+	* @return: void: 
+	********************/
+	void GameOverSelect(std::string _strMenuItem);
 
 	/***********************
 	* ProcessMenuSelection: process the menu selection
@@ -153,6 +161,13 @@ public:
 	********************/
 	void DrawPause();
 
+	/***********************
+	* DrawPause: Draw the game over menu
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
+	void DrawGameOver();
+	
 	/***********************
 	* MainMenuDraw: Draw the main menu
 	* @author: Jc Fowles
@@ -519,6 +534,7 @@ private:
 	std::vector<std::string> m_strInstructions;
 	std::vector<std::string> m_strExitOptions;
 	std::vector<std::string> m_strPauseOptions;
+	std::vector<std::string> m_strGameOverOptions;
 	bool m_bGameLoading;
 	bool m_bsinglePlayer;
 	bool m_bMenuClicked;
@@ -573,6 +589,7 @@ private:
 	int m_iFPS;
 
 	int m_iLightningTimer;
+	bool m_bGameOver;
 };
 
 #endif //__CLIENT_APP_H__

@@ -35,7 +35,7 @@ void CTerrain::SetCenter(float3 _f3Center)
 	m_f3Center.z = _f3Center.z - ((m_fSurfaceDepth * m_VertexScalar.fScalarDepth) / 2);
 }
 
-bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar)
+bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strHeightMapPath, std::string _strTexturePath, ScalarVertex _VertexScalar, int _iTiled)
 {
 	m_VertexScalar = _VertexScalar;
 
@@ -44,7 +44,7 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	ZeroMemory(&imageInfo, sizeof(D3DXIMAGE_INFO));
 
 	//Create the surface
-	m_iSurfaceID = _pRenderer->CreateOffScreenSurface(_strImagePath, imageInfo);
+	m_iSurfaceID = _pRenderer->CreateOffScreenSurface(_strHeightMapPath, imageInfo);
 
 	//Get the surface info and save them
 	m_fSurfaceWidth = (float)imageInfo.Width;
@@ -52,7 +52,7 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 
 	//std::vector<CVertex> pVertices;
 	std::vector<CVertexUV> pVertices;
-	_pRenderer->RetrieveVertices(&pVertices, m_iSurfaceID, imageInfo, _VertexScalar);
+	_pRenderer->RetrieveVertices(&pVertices, m_iSurfaceID, imageInfo, _VertexScalar, _iTiled);
 
 	std::vector<int> pIndices;
 	int iIndicesNum = GenerateStripIndices(&pIndices, imageInfo.Width, imageInfo.Height);
@@ -75,13 +75,13 @@ bool CTerrain::Initialise(IRenderer* _pRenderer, std::string _strImagePath, Scal
 	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.f4Emissive = { 0.0f, 0.0f, 0.0f, 0.0f };
 	Material.f4Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Material.fPower = { 1.0f };
+	Material.fPower = { 0.0f };
 	
 	m_iMaterialID = _pRenderer->CreateMaterial(Material);
 
 	//Set up the Texture for the terrain 
-	std::string strFilePath = "Assets\\Heightmap.bmp";
-	m_iTextureID = _pRenderer->CreateTexture(strFilePath);
+
+	m_iTextureID = _pRenderer->CreateTexture(_strTexturePath);
 
 	return true;
 }

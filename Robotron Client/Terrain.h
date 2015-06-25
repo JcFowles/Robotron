@@ -58,11 +58,12 @@ public:
 	* Initialise: Initialise the Terrain for use
 	* @author: Jc Fowles
 	* @parameter: IRenderer* _pRenderer: Pointer to the renderer manager
-	* @parameter: std::string _strImagePath: File path to texture
+	* @parameter: std::string _strHeightMapPath: File path to hieght map
+	* @parameter: std::string _strTexturePath: File path to Texture
 	* @parameter: _VertexScalar: Structure holding the scale data for vertices
 	* @return: bool: Initialise successfulness
 	********************/
-	bool Initialise(IRenderer* _pRenderer, std::string _strImagePath, ScalarVertex _VertexScalar);
+	bool Initialise(IRenderer* _pRenderer, std::string _strHeightMapPath, std::string _strTexturePath, ScalarVertex _VertexScalar, int _iTiled);
 	
 	/***********************
 	* Process: Process the Terrain

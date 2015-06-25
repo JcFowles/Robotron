@@ -41,7 +41,7 @@ public:
 	virtual D3DXMATRIX& GetViewMatrix() = 0;
 	virtual D3DXMATRIX& GetWorldMatrix() = 0;
 
-	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues) = 0;
+	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues, int _iUVCoordTiled) = 0;
 
 	virtual bool GetSpecularEnable() = 0;
 	virtual D3DXVECTOR3 GetAmbient() = 0;
@@ -68,6 +68,7 @@ public:
 
 	virtual bool UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange) = 0;
 	virtual bool UpdateDirectionLight(int _LightID, bool bIsTurnedOn) = 0;
+	virtual bool UpdateSpotLight(int _iSpotLightID, bool _bLightOn, float3 f3Position, float3 f3Direction) = 0;
 
 	//Render
 	virtual void Render(unsigned int _uiStaticId) = 0;
@@ -77,7 +78,7 @@ public:
 	virtual void RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYPos, D3DCOLOR _color) = 0;;
 	
 	virtual void RenderText(std::string _strText, RECT _rect, DWORD _color, eTextType _textType, DWORD _Format) = 0;
-
+	virtual void EnableAlphaBlend(bool _bEnable) = 0;;
 	virtual void SetBackgroundColor(DWORD _Color) = 0;
 
 	//Matrices
@@ -109,7 +110,12 @@ private:
 	IRenderer& operator= (const IRenderer& _kr);
 
 	virtual bool DeviceCreation() = 0;
-	virtual void RenderStates() = 0;
+	virtual void SetStates() = 0;
+
+	
+	
+
+
 };
 
 

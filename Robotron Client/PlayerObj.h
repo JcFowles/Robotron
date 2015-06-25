@@ -76,14 +76,29 @@ public:
 	********************/
 	UINT GetHealth() const { return m_uiHealth; }
 	
-	//Setter
-		
 	/***********************
 	* GetLightRange: Get the range of the point light
 	* @author: Jc Fowles
 	* @return: float: The range of the point light
 	********************/
 	float GetLightRange() const { return m_fLightRange; }
+
+	/***********************
+	* GetLifeCount: Get the Life count of the player
+	* @author: Jc Fowles
+	* @return: float: The Life count of the player
+	********************/
+	int GetLifeCount() const { return m_iLifeCount; }
+
+	//Setter
+	
+	/***********************
+	* SetLifeCount: Set the Life count
+	* @author: Jc Fowles
+	* @Parameter: int _LifeCount: value to set the Life count to 
+	* @return: void:
+	********************/
+	void SetLifeCount(int _LifeCount) { m_iLifeCount = _LifeCount; }
 
 	/***********************
 	* SetLightRange: Set the range of the point light
@@ -125,8 +140,10 @@ private:
 	bool m_bIsAlive;
 	
 	UINT m_uiHealth;
-	UINT m_uiMaxHealth;
+	int m_iLifeCount;
+	
 	UINT m_uiScore;
+	
 
 	UINT m_uiLightID;
 	float m_fLightRange;

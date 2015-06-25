@@ -155,7 +155,15 @@ public:
 	* @return: bool: return success
 	********************/
 	virtual bool SetTexture(int _textureID, int _iStage);
-
+		
+	/***********************
+	* EnableAlphaBlend: Set alpha enable state
+	* @author: Jc Fowles
+	* @Parameter: bool _bEnable: state to set alpha blend to 
+	* @return: void: 
+	********************/
+	virtual void EnableAlphaBlend(bool _bEnable);
+	
 	/***********************
 	* SetAmbient: Set Ambient color
 	* @author: Jc Fowles
@@ -203,7 +211,7 @@ public:
 	* @parameter: _fScaleValues: Width, Height and Depth Scale values
 	* @return: void
 	********************/
-	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues);
+	virtual void RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iSurfaceID, D3DXIMAGE_INFO& _pImageInfo, ScalarVertex _fScaleValues, int _iUVCoordTiled);
 
 	/***********************
 	* Render: Render a specific Static buffer, based on the passed in ID
@@ -338,10 +346,21 @@ public:
 	* @author: Jc Fowles
 	* @Parameter: int _LightID: Id to which light to update
 	* @Parameter: bool bIsTurnedOn: value to turn on or off the light
-	* @return: bool: 
+	* @return: bool: Successful Update
 	********************/
 	virtual bool UpdateDirectionLight(int _LightID, bool bIsTurnedOn);
 	
+	/***********************
+	* UpdateDirectionLight: Update the directional light used for the lighting effect
+	* @author: Jc Fowles
+	* @Parameter: int _LightID: Id to which light to update
+	* @Parameter: bool _bIsTurnedOn: value to turn on or off the light
+	* @Parameter: float3 _f3Position: position of the light
+	* @Parameter: float3 _f3Direction: Direction of the light
+	* @return: bool: Successful Update
+	********************/
+	virtual bool UpdateSpotLight(int _LightID, bool _bIsTurnedOn, float3 _f3Position, float3 _f3Direction);
+
 	/***********************
 	* FillRectColor: Fill a rectangle with a passed in color
 	* @author: Jc Fowles
@@ -402,7 +421,7 @@ private:
 	* @author: Jc Fowles
 	* @return: void
 	********************/
-	virtual void RenderStates();
+	virtual void SetStates();
 		
 	/***********************
 	* FontSelect: Returns a D3D Font pointer of the selected text type
