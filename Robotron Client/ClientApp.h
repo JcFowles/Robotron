@@ -588,6 +588,8 @@ private:
 
 	int m_iLightningTimer;
 	bool m_bGameOver;
+
+	bool m_bWireFrame;
 };
 
 #endif //__CLIENT_APP_H__

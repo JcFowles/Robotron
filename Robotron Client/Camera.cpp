@@ -71,6 +71,7 @@ bool CCamera::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget, bool 
 
 void CCamera::Process(IRenderer* _pRenderManager)
 {
+	//CS: Viewport
 	_pRenderManager->CreateViewMatrix(m_vecPosition, m_vecTarget, m_VecUp);
 }
 

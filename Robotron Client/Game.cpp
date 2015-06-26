@@ -549,11 +549,13 @@ void CGame::ProcessCamera()
 
 void CGame::Draw()
 {
+	// AB: Object Ordering
+
 	//Draw the under lay
 	m_pUnderLay->Draw(m_pRenderManager);
 	
 	//Draw every passed in from the server
-	//ALPHA BLENDED
+	// AB: Alpha Blending
 	m_pRenderManager->EnableAlphaBlend(true);
 	m_pTerrain->Draw(m_pRenderManager);
 	m_pRenderManager->EnableAlphaBlend(false);

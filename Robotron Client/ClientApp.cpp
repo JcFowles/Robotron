@@ -146,7 +146,9 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_strMultiPlayerOptions.push_back("Host Game");
 	
 	m_strOptionsMenu.push_back("Game options");
-	
+	m_strOptionsMenu.push_back("Toggle Wire Frame Mode :  [X]");
+	m_strOptionsMenu.push_back("Toggle Wire Frame Mode :  [   ]");
+		
 	m_strInstructions.push_back("Game Instructions");
 	m_strInstructions.push_back(" ");
 	m_strInstructions.push_back("Defend your self from the Seven Deadly Sins!");
@@ -176,6 +178,8 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_strPauseOptions.push_back("Exit");
 
 	m_strGameOverOptions.push_back("Return To Main Menu");
+
+	m_bWireFrame = false;
 
 	m_eGameState = GS_MENU;
 	m_eHostState = HS_DEFAULT;
@@ -337,6 +341,7 @@ void CClientApp::ProcessGamePlay()
 		//Process on button release
 		if (m_pInputManager->GetInputStates().bToggle == false)
 		{
+			//CS: Camera View FirstPerson/ThirdPerson
 			m_pGame->ToggleCamera();
 			m_bCamToggle = false;
 		}
@@ -360,7 +365,8 @@ void CClientApp::ProcessGamePlay()
 		//Process on button release
 		if (m_pInputManager->GetInputStates().bDebug == false)
 		{
-			//Toggle the pause screen
+			// CS: Toggle Debug Cam
+			//Toggle the Debug camera
 			m_bDebug = !m_bDebug;
 			m_pGame->SetDebug(m_bDebug);
 			m_bDebugToggle = false;
@@ -991,7 +997,7 @@ void CClientApp::OptionsMenuSelect(std::string _strMenuItem)
 		if (m_bGamePause == true)
 		{
 			//Game is running therefore return to the game not menu
-			m_pRenderManager->Clear(true, true, false);
+			//m_pRenderManager->Clear(true, true, false);
 			m_eGameState = GS_PLAY;
 		}
 		else
@@ -1005,8 +1011,18 @@ void CClientApp::OptionsMenuSelect(std::string _strMenuItem)
 	//Then clear the screen and set the game state
 	switch (iMenuItem)
 	{
-	case 0:
+	case 1: //Wire frame toggle on, so switch toggle it off
+	{
+		m_bWireFrame = false;
+		m_pRenderManager->ToggleWireFrame(m_bWireFrame);
+	}
 		break;
+	case 2: //Wire frame toggle is off, so toggle it on
+	{
+		m_bWireFrame = true;
+		m_pRenderManager->ToggleWireFrame(m_bWireFrame);
+	}
+	break;
 	default:
 		break;
 	}
@@ -1668,7 +1684,7 @@ void CClientApp::OptionsMenuDraw()
 	int iYPos = (m_iScreenHeight / 16);
 	DWORD dwTextFormat;
 	m_pRenderManager->SetBackgroundColor(D3DCOLOR_XRGB(0, 0, 0));
-
+	
 	//***TITLE***
 	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
@@ -1677,11 +1693,26 @@ void CClientApp::OptionsMenuDraw()
 	//***Options MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
-	for (unsigned int i = 0; i < m_strOptionsMenu.size(); i++)
+	RenderText(m_strOptionsMenu[0], iYPos, TEXT_MENU, false, dwTextFormat);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	iYPos += (uiFontHeight + 1);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	iYPos += 200 - (uiFontHeight + 1);
+	
+	std::string strWireFrame; 
+
+	if (m_bWireFrame == true)
 	{
-		iYPos += (uiFontHeight + 1);
-		RenderText(m_strOptionsMenu[i], iYPos, TEXT_MENU, true, dwTextFormat);
+		strWireFrame = m_strOptionsMenu[1];
 	}
+	else
+	{
+		strWireFrame = m_strOptionsMenu[2];
+	}
+	
+	iYPos += (uiFontHeight + 1);
+	RenderText(strWireFrame, iYPos, TEXT_MENU, true, dwTextFormat);
+		
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos = m_iScreenHeight - (2 * uiFontHeight);
@@ -1743,7 +1774,6 @@ void CClientApp::ExitMenuDraw()
 	}
 
 }
-
 
 //Render Frame
 bool CClientApp::RenderSingleFrame()
@@ -1829,14 +1859,19 @@ void CClientApp::ReceiveDataThread()
 	{
 		if (m_pClient->ReceiveData(pClientPacket))
 		{
-			//***CRITICAL SECTION***
-			//Stop other threads looking at the queue
-			//While one thread is in the process of acquiring an item from it
-			s_Mutex.Wait();
-			//Push onto the work queue
-			m_pClientDataQueue->push(*pClientPacket);
-			//Signal that you are done with the queue
-			s_Mutex.Signal();
+
+			if ((pClientPacket->serverInfo.cServerName == m_strServerName) ||
+				(m_bServerCreated == false))
+			{
+				//***CRITICAL SECTION***
+				//Stop other threads looking at the queue
+				//While one thread is in the process of acquiring an item from it
+				s_Mutex.Wait();
+				//Push onto the work queue
+				m_pClientDataQueue->push(*pClientPacket);
+				//Signal that you are done with the queue
+				s_Mutex.Signal();
+			}
 		}
 	
 	}
@@ -2128,7 +2163,6 @@ void CClientApp::RequestUserList()
 	//Send message 
 	m_pClient->SendData(m_pServerPacket);
 }
-
 
 //Miscellaneous functions
 void CClientApp::SetClientInfo()

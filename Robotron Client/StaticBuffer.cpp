@@ -209,6 +209,7 @@ bool CStaticBuffer::Initialise(IDirect3DDevice9* _pDevice,
 	//Create vertex buffer
 	HRESULT hr = _pDevice->CreateVertexBuffer((m_iNumVerts * (m_iStride)), 0, m_dwFvf, D3DPOOL_MANAGED, &m_pVertexBuffer, NULL);
 	
+	// GR: Vertex/Index Buffer
 	
 	//Convert vertexData to type CVertex
 	std::vector<CVertexUV>* pVertices = static_cast<std::vector<CVertexUV>*>(_pVertexData);
@@ -301,6 +302,7 @@ void CStaticBuffer::Render(IDirect3DDevice9* _pDevice)
 		s_iActiveStaticBuffer = m_iID;			
 	}
 
+	// GR: Draw Primitive
 	if(m_pIndexBuffer != 0)
 	{
 		//If using a Index buffer

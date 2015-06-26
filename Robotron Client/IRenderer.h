@@ -103,6 +103,7 @@ public:
 									) = 0;
 	
 	
+	virtual void ToggleWireFrame(bool _bWireFrame) = 0;
 	
 private:
 	//Disallow copies

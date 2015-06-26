@@ -74,6 +74,8 @@ void C3DObject::Process(float _fDT)
 
 void C3DObject::CalcWorldMatrix()
 {
+	// GR: Transformation Pipeline
+
 	m_fRotation = -(atan2(m_f3Direction.z, m_f3Direction.x) - atan2(1.0f, 0.0f)); //looking down z axis
 
 	//Matrices to make up the World Matrix

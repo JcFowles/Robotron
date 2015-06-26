@@ -171,6 +171,14 @@ public:
 	* @return: void
 	********************/
 	virtual void SetAmbient(D3DCOLOR _Color);
+		
+	/***********************
+	* ToggleWireFrame: Toggle the Wire frame mode on or off
+	* @author: Jc Fowles
+	* @Parameter: bool _bWireFrame: Desire wire frame state 
+	* @return: void: 
+	********************/
+	virtual void ToggleWireFrame(bool _bWireFrame);
 
 	/***********************
 	* SetSpecularEnable: Set Specular Enable
@@ -473,6 +481,8 @@ protected:
 	D3DCOLOR m_color;
 
 	IDirect3DSurface9* m_pBackBuffer;
+
+	bool m_bWireFrame;
 
 };
 

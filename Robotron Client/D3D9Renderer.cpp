@@ -192,11 +192,16 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	
 	m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &m_pBackBuffer);
 
+	m_bWireFrame = false;
+
 	return true;
 }
 
 bool CD3D9Renderer::DeviceCreation()
 {
+
+	
+
 	//Declare Variables structs
 	D3DDISPLAYMODE displayMode;
 	D3DCAPS9 caps;
@@ -213,10 +218,12 @@ bool CD3D9Renderer::DeviceCreation()
 
 	//Get the default Adapter
 	int iAdapter = D3DADAPTER_DEFAULT;
-
+	
+	// GR: Display Mode
 	//Get the default adapters display mode
 	m_pDirect3D->GetAdapterDisplayMode(iAdapter, &displayMode);
 
+	// GR: Capability
 	//Get the Caps for the device
 	m_pDirect3D->GetDeviceCaps(iAdapter, D3DevType, &caps);
 
@@ -320,14 +327,30 @@ void CD3D9Renderer::SetStates()
 	//Set device to normalize all normals
 	//m_pDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
 	m_pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
+	m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTCOLOR);
 	//m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 	//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 }
 
 void CD3D9Renderer::SetAmbient(D3DCOLOR _Color)
 {
-	//m_pDevice->SetRenderState(D3DRS_AMBIENT, _Color);
-	//m_color = _Color;
+	m_pDevice->SetRenderState(D3DRS_AMBIENT, _Color);
+	m_color = _Color;
+}
+
+void CD3D9Renderer::ToggleWireFrame(bool _bWireFrame)
+{
+	// GR: Render State
+	if (_bWireFrame == true)
+	{
+		m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
+	}
+	else 
+	{
+		m_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+	}
+	
 }
 
 D3DXVECTOR3 CD3D9Renderer::GetAmbient()
@@ -405,6 +428,8 @@ UINT CD3D9Renderer::CreateLights(D3DLightParameter _pLightParameter)
 
 bool CD3D9Renderer::UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3Pos, float _fRange )
 {
+	// LI: Point Light
+	
 	//Find the light to up date
 	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
 
@@ -435,6 +460,8 @@ bool CD3D9Renderer::UpdatePointLight(int _LightID, bool bIsTurnedOn, float3 _f3P
 
 bool CD3D9Renderer::UpdateDirectionLight(int _LightID, bool bIsTurnedOn)
 {
+	// LI: Directional Light
+
 	//Find the light to up date
 	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
 
@@ -466,6 +493,8 @@ bool CD3D9Renderer::UpdateDirectionLight(int _LightID, bool bIsTurnedOn)
 
 bool CD3D9Renderer::UpdateSpotLight(int _LightID, bool _bIsTurnedOn, float3 _f3Position, float3 _f3Direction)
 {
+	// LI: Spot Light
+	
 	//Find the light to update
 	std::map<UINT, D3DLIGHT9*>::iterator lightItter = m_pLightMap->find(_LightID);
 	
@@ -526,6 +555,9 @@ bool CD3D9Renderer::SetMaterial(int _materialID)
 
 bool CD3D9Renderer::SetTexture(int _textureID, int _iStage)
 {
+	// TX: Texture Set For Rendering
+
+	//Find texture to set
 	std::map<int, IDirect3DTexture9*>::iterator TexIter = m_pTextureMap->find(_textureID);
 
 	if (TexIter == m_pTextureMap->end())
@@ -546,12 +578,11 @@ bool CD3D9Renderer::SetTexture(int _textureID, int _iStage)
 
 void CD3D9Renderer::EnableAlphaBlend(bool _bEnable)
 {
+	// AB: Alpha Blending
 	if (_bEnable)
 	{
 		//Enable
 		m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-		m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTCOLOR);
 	}
 	else
 	{
@@ -562,6 +593,8 @@ void CD3D9Renderer::EnableAlphaBlend(bool _bEnable)
 
 UINT CD3D9Renderer::CreateTexture(std::string _strFileName)
 {
+	// TX: Texture Loading
+
 	//Create and ready the memory of the D3D Texture
 	IDirect3DTexture9* pD3DTexture = 0;
 	//ZeroMemory(pD3DTexture, sizeof(*pD3DTexture));
@@ -602,6 +635,8 @@ UINT CD3D9Renderer::CreateTexture(std::string _strFileName)
 
 UINT CD3D9Renderer::CreateMaterial(MaterialValues _materialVal)
 {	
+	// LI: Material
+
 	//Create and ready the memory of the D3D material
 	D3DMATERIAL9 D3DMaterial;
 	ZeroMemory(&D3DMaterial, sizeof(D3DMaterial));
@@ -656,6 +691,8 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iS
 
 	//Get bits pointer and cast to D3DCOLOR*
 	D3DCOLOR* pPixel = reinterpret_cast<D3DCOLOR*>(lockRect.pBits);
+
+	// LI: Normals
 
 	//Loop through entire surface pixel by pixel
 	//Use the pixel information to create the vertex
@@ -868,7 +905,8 @@ void CD3D9Renderer::RetrieveVertices(std::vector<CVertexUV>* _pVertices, int _iS
 			//Normalize the calculated normal
 			D3DXVec3Normalize(&VertexNormal, &tempNormalVector);
 			
-			
+			// TX: Texture Coordinate Transform
+
 			//Create the CVertexUV and and it the vector of Vertices's
 			CVertexUV TempVertexNormal(CVertexUV(float3(fXPos, fYPos, fZPos), 
 												 float3(VertexNormal.x, VertexNormal.y, VertexNormal.z),
@@ -918,6 +956,7 @@ void CD3D9Renderer::Clear(bool _bTarget, bool _bDepth, bool _bStencil)
 	if (_bStencil)
 	//If clearing a stencil
 	{
+		// GR: Depth/Stencil Buffer
 		dwClearFlags = dwClearFlags | D3DCLEAR_STENCIL;
 	}
 	
@@ -930,6 +969,8 @@ void CD3D9Renderer::Clear(bool _bTarget, bool _bDepth, bool _bStencil)
 	if (_bDepth)
 	//If clearing a the Z Buffer
 	{
+		// GR: Depth/Stencil Buffer
+		//ZENABLE is a redundant render state set automatically
 		dwClearFlags = dwClearFlags | D3DCLEAR_ZBUFFER;
 	}
 	
@@ -972,18 +1013,22 @@ void CD3D9Renderer::RenderDebugOutput(std::string _strInfo, int _iXPos, int _iYP
 
 void CD3D9Renderer::CreateViewMatrix(D3DXVECTOR3 _vPosition, D3DXVECTOR3 _vLookAt, D3DXVECTOR3 _vUp)
 {
+	
 	//Create and populate the view Matrix
 	D3DXMatrixLookAtLH(&m_matView, &_vPosition, &_vLookAt, &_vUp);
 
+	// GR: Transformation Pipeline
 	//Setting the View Matrix on the Device
 	m_pDevice->SetTransform(D3DTS_VIEW, &m_matView);
 }
 
 void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _fFar)
 {
+	
+	// CS: Aspect Ratio
 	//Calculate aspect ratio
 	float fAspectRatio = ((float)m_iScreenWidth / (float)m_iScreenHeight);
-
+	// MF: D3DX Usage
 	//Calculate the Projection matrix of the D3D Device
 	D3DXMatrixPerspectiveFovLH( &m_matProjection,
 								_fFov,						//The horizontal field of view
@@ -991,10 +1036,13 @@ void CD3D9Renderer::CalculateProjectionMatrix(float _fFov, float _fNear, float _
 								_fNear,						//The near view-plane
 								_fFar);						//The far view-plane
 
+	// GR: Transformation Pipeline
 	//Set the Projection matrix of the D3D Device
 	m_pDevice->SetTransform(D3DTS_PROJECTION, &m_matProjection);
 
 }
+
+
 
 int CD3D9Renderer::CreateOffScreenSurface(std::string _strFileName, D3DXIMAGE_INFO& _rImageInfo)
 {
