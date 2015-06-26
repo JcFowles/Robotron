@@ -99,14 +99,7 @@ public:
 	* @return: float3: The Direction of the object
 	********************/
 	float3 GetDirection() const { return m_f3Direction; }
-	
-	/***********************
-	* GetDamage: Get the Damage dealt by the enemy object
-	* @author: Jc Fowles
-	* @return: float: The Damage dealt by the enemy object
-	********************/
-	float GetDamage() const { return m_fDamage; }
-
+		
 	/***********************
 	* GetDamage: Get the ID number for the Object
 	* @author: Jc Fowles
@@ -147,16 +140,7 @@ public:
 	* @return: void:
 	********************/
 	void SetDirection(float3 _f3Direction) { m_f3Direction = _f3Direction; }
-
-	/***********************
-	* SetDamage: Set the Damage dealt by the enemy object
-	* @author: Jc Fowles
-	* @Parameter: float _Damage: value to set damage dealt to
-	* @return: void:
-	********************/
-	void SetDamage(float _Damage) { m_fDamage = _Damage; }
 	
-
 protected:
 	
 	/***********************
@@ -179,8 +163,7 @@ protected:
 	float m_fRotation;  //Yaw Rotation (Radians)
 	float m_fSize;		
 	float m_fMaxSpeed;
-	float m_fDamage;
-
+	
 	UINT m_uiObjectID;
 	
 

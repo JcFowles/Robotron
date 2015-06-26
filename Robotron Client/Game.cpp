@@ -168,10 +168,11 @@ bool CGame::Initialise(IRenderer* _RenderManager, std::string _ControllingPlayer
 	m_pUnderLay = new CTerrain();
 	strHightMapPath = "Assets\\Heightmap.bmp";
 	strTexturePath = "Assets\\Space.png";
-	TerrainScalar = { kfScalarWidth*1.2f, kfScalarHeight, kfScalarDepth*1.2f };
+	TerrainScalar = { kfScalarWidth*1.6f, kfScalarHeight, kfScalarDepth*1.6f };
 	VALIDATE(m_pUnderLay->Initialise(m_pRenderManager, strHightMapPath, strTexturePath, TerrainScalar, 1));
-	m_pUnderLay->SetCenter({ 0, -20, 0 });
+	m_pUnderLay->SetCenter({ 0, -30, 0 });
 	
+	//Debug camera initialize
 	m_pDebugCam = new CDebugCamera();
 	VALIDATE(m_pDebugCam->Initialise(m_pRenderManager));
 	m_bDebug = false;
@@ -275,6 +276,14 @@ void CGame::ProcessPlayers(ClientDataPacket* _pClientPacket)
 			iterPlayer->second->SetLifeCount(_pClientPacket->PlayerInfo[iPlayer].iLifeCount);
 			//Set Player Score
 			iterPlayer->second->SetScore(_pClientPacket->PlayerInfo[iPlayer].uiScore);
+			//Set Player Score
+			iterPlayer->second->SetDamage(_pClientPacket->PlayerInfo[iPlayer].iDamage);
+			//Set Player Score
+			iterPlayer->second->SetMaxHealth(_pClientPacket->PlayerInfo[iPlayer].iMaxHealth);
+			//Set Player Score
+			iterPlayer->second->SetWaveNumber(_pClientPacket->iWaveNumber);
+			//Set Player Score
+			iterPlayer->second->SetEnemyCount(_pClientPacket->iNumEnemies);
 			//toggle toggle value to state that this has been updated
 			iterPlayer->second->m_bToggle = bToggle;
 			//set alive status of player
@@ -499,7 +508,7 @@ void CGame::ProcessCamera()
 	std::map<std::string, CPlayerObj*>::iterator playerItter = m_plistPlayers->find(m_strPlayerName);
 	m_pPlayerAvatar = playerItter->second;
 
-	if (m_bDebug) 
+	if (m_bDebug) //If debug mode process the debug camera
 	{
 		m_pDebugCam->Process();
 	}
@@ -526,7 +535,7 @@ void CGame::ProcessCamera()
 		//Set the camera
 		if (m_pCamera == 0)
 		{
-			m_pCamera = new CCameraStatic();
+			m_pCamera = new CCamera();
 			//Initialise the camera position
 			D3DXVECTOR3 D3DPosition = { d3dVPos.x, d3dVPos.y + 50.0f, d3dVPos.z };
 			//Initialise the Camera target
@@ -544,6 +553,7 @@ void CGame::Draw()
 	m_pUnderLay->Draw(m_pRenderManager);
 	
 	//Draw every passed in from the server
+	//ALPHA BLENDED
 	m_pRenderManager->EnableAlphaBlend(true);
 	m_pTerrain->Draw(m_pRenderManager);
 	m_pRenderManager->EnableAlphaBlend(false);
@@ -554,60 +564,17 @@ void CGame::Draw()
 	//Draw enemies
 	DrawEnemies();
 	
+	//Draw projectiles
+	DrawProjectile();
+
 	//Draw Power Ups
-		
-
-	std::map< UINT, CProjectileObj*>::iterator iterBullet = m_pListBullets->begin();
-	while (iterBullet != m_pListBullets->end())
-	{
-		//Draw the Power UP avatar
-		iterBullet->second->Draw();
-
-		iterBullet++;
-	}
-
-	
 	DrawPowerUps();
-	//Draw Projectile
+	
+	//Draw HUD
+	DrawHUD();
 	
 	
-	//Display HUD
-	DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
-	DWORD dwTextColor =  D3DCOLOR_XRGB(165, 0, 0);
-	int iLeft = 5;
-	int iTop = 15;
-	int TextWidth = m_pRenderManager->GetFontWidth(TEXT_LIST);
-	int TextHieght = m_pRenderManager->GetFontHeight(TEXT_LIST);
-	RECT HudRec;
-	
-	//Health
-	std::string strHealth = "Health : ";
-	strHealth += std::to_string(m_pPlayerAvatar->GetHealth());
-	TextWidth = TextWidth * strHealth.length() + 5;
-	
-	HudRec.left = iLeft;
-	HudRec.top = iTop;
-	HudRec.right = 800;
-	HudRec.bottom = iTop + TextHieght;
-
-	m_pRenderManager->RenderText(strHealth, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
-	//Score
-	std::string strScore = "Score : ";
-	strScore += std::to_string(m_pPlayerAvatar->GetScore());
-	iTop += TextHieght + 1;
-	HudRec.top = iTop;
-	HudRec.bottom = iTop + TextHieght;
-	m_pRenderManager->RenderText(strScore, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
-
-	//Score
-	std::string strLife = "Lives : ";
-	strLife += std::to_string(m_pPlayerAvatar->GetLifeCount());
-	iTop += TextHieght + 1;
-	HudRec.top = iTop;
-	HudRec.bottom = iTop + TextHieght;
-	m_pRenderManager->RenderText(strLife, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
-
-	
+		
 }
 
 void CGame::DrawPlayers()
@@ -652,7 +619,87 @@ void CGame::DrawPowerUps()
 	}
 	
 }
-//TO DO Drawing Functions
+
+void CGame::DrawHUD()
+{
+	//Display HUD
+	DWORD dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	DWORD dwTextColor = D3DCOLOR_XRGB(165, 0, 0);
+	int iLeft = 5;
+	int iTop = 15;
+	int TextWidth = m_pRenderManager->GetFontWidth(TEXT_LIST);
+	int TextHieght = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	RECT HudRec;
+
+	//Health
+	std::string strHealth = "Health : ";
+	strHealth += std::to_string(m_pPlayerAvatar->GetHealth());
+	strHealth += " / ";
+	strHealth += std::to_string(m_pPlayerAvatar->GetMaxHealth());
+	TextWidth = TextWidth * strHealth.length() + 5;
+	HudRec.left = iLeft;
+	HudRec.top = iTop;
+	HudRec.right = 995;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strHealth, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+	//Wave count
+	dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE;
+	std::string strWave = "Wave : ";
+	strWave += std::to_string(m_pPlayerAvatar->GetWaveNumber());
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strWave, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+
+	//Damage
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	std::string strDamge = "Damage : ";
+	strDamge += std::to_string(m_pPlayerAvatar->GetDamge());
+	iTop += TextHieght + 1;
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strDamge, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+
+	//Damage
+	dwTextFormat = DT_RIGHT | DT_BOTTOM | DT_SINGLELINE;
+	std::string strEnemies = "Enemies Remaining : ";
+	strEnemies += std::to_string(m_pPlayerAvatar->GetEnemyCount());
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strEnemies, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+
+	//Score
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE;
+	std::string strScore = "Score : ";
+	strScore += std::to_string(m_pPlayerAvatar->GetScore());
+	iTop += TextHieght + 1;
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strScore, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+
+	//Life count
+	std::string strLife = "Lives : ";
+	strLife += std::to_string(m_pPlayerAvatar->GetLifeCount());
+	iTop += TextHieght + 1;
+	HudRec.top = iTop;
+	HudRec.bottom = iTop + TextHieght;
+	m_pRenderManager->RenderText(strLife, HudRec, dwTextColor, TEXT_LIST, dwTextFormat);
+}
+
+void CGame::DrawProjectile()
+{
+	std::map< UINT, CProjectileObj*>::iterator iterBullet = m_pListBullets->begin();
+	while (iterBullet != m_pListBullets->end())
+	{
+		//Draw the Power UP avatar
+		iterBullet->second->Draw();
+
+		iterBullet++;
+	}
+}
 
 void CGame::RenderTeamScores(ClientDataPacket* _pClientPacket)
 {
@@ -813,7 +860,7 @@ bool CGame::AddPlayer(ClientDataPacket* _pClientPacket, std::string _strPlayerTo
 		m_pPlayerAvatar = playerItter->second;
 
 		//Create the Camera
-		m_pCamera = new CCameraStatic();
+		m_pCamera = new CCamera();
 		//Initialise the camera position
 		D3DXVECTOR3 D3DPosition = { playerItter->second->GetPosition().x, playerItter->second->GetPosition().y + 50.0f, playerItter->second->GetPosition().z };
 		//Initialise the Camera target
@@ -892,7 +939,7 @@ void CGame::RemovePlayer(std::string _strLeftPlayer)
 int CGame::CreatePlayerAssest()
 {
 	//Create the texture for the Player object
-	std::string strFilePath = "Assets\\CompanionCube.png";
+	std::string strFilePath = "Assets\\Angel.png";
 	int iTextureID = m_pRenderManager->CreateTexture(strFilePath);
 	m_pPlayerMesh = CreateCubeMesh(kfPlayerSize, iTextureID);
 
@@ -1099,8 +1146,7 @@ int CGame::CreateProjectileAssest()
 	
 	MaterialValues Material;
 	
-	//TO DO: bullet mesh
-	strFilePath = "Assets\\Wrath.png";
+	strFilePath = "Assets\\Bullet.png";
 	
 	Material.f4Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Material.f4Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -1316,17 +1362,3 @@ void CGame::ToggleCamera()
 	m_pCamera->ToggleType();
 }
 
-void CGame::CameraMove(float _fUnit)
-{
-	m_pDebugCam->Move(_fUnit);
-}
-
-void CGame::CameraPitch(float _fUnit)
-{
-	m_pDebugCam->Pitch(_fUnit);
-}
-
-void CGame::CameraYaw(float _fUnit)
-{
-	m_pDebugCam->Yaw(_fUnit);
-}

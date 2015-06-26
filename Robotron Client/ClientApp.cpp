@@ -148,7 +148,26 @@ bool CClientApp::Initialise(HINSTANCE _hInstance, HWND _hWnd, int _iScreenWidth,
 	m_strOptionsMenu.push_back("Game options");
 	
 	m_strInstructions.push_back("Game Instructions");
-	
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Defend your self from the Seven Deadly Sins!");
+	m_strInstructions.push_back("Find Power ups to help you defeat the enemies");
+	m_strInstructions.push_back("As you rack up as many points as possible");
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Move With");
+	m_strInstructions.push_back("Up \t\t\t\t: \t[W]");
+	m_strInstructions.push_back("Left \t\t\t\t: \t[A]");
+	m_strInstructions.push_back("Down \t\t\t\t: \t[S]");
+	m_strInstructions.push_back("Right \t\t\t\t: \t[D]");
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Aim With \t\t\t: \tMouse Cursor");
+	m_strInstructions.push_back("Fire With \t\t\t: \tRight Click");
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Switch Camera View with\t: \t[F1] ");
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Switch Debug Camera with\t: \t[F4] ");
+	m_strInstructions.push_back(" ");
+	m_strInstructions.push_back("Bring Up the Pause menu\t: \t[Esc] ");
+
 	m_strExitOptions.push_back("Yes - Close The Game");
 	m_strExitOptions.push_back("No - Take Me Back");
 	
@@ -358,37 +377,37 @@ void CClientApp::ProcessDebugInput()
 		(!(m_pInputManager->GetInputStates().bDBugRight)))
 	{
 		//Turn Left
-		m_pGame->CameraYaw(-m_fDeltaTick);
+		m_pGame->GetDebugCam()->Yaw(-m_fDeltaTick);
 	}
 	if ((m_pInputManager->GetInputStates().bDBugRight) &&
 		(!(m_pInputManager->GetInputStates().bDBugLeft)))
 	{
 		//Turn Right
-		m_pGame->CameraYaw(m_fDeltaTick);
+		m_pGame->GetDebugCam()->Yaw(-m_fDeltaTick);
 	}
 	if ((m_pInputManager->GetInputStates().bDBugUp) &&
 		(!(m_pInputManager->GetInputStates().bDBugDown)))
 	{
 		//Turn Up
-		m_pGame->CameraPitch(m_fDeltaTick);
+		m_pGame->GetDebugCam()->Pitch(m_fDeltaTick);
 	}
 	if ((m_pInputManager->GetInputStates().bDBugDown) &&
 		(!(m_pInputManager->GetInputStates().bDBugUp)))
 	{
 		//Turn Down
-		m_pGame->CameraPitch(-m_fDeltaTick);
+		m_pGame->GetDebugCam()->Pitch(-m_fDeltaTick);
 	}
 	if ((m_pInputManager->GetInputStates().bDFoward) &&
 		(!(m_pInputManager->GetInputStates().bDBack)))
 	{
 		//Move forward
-		m_pGame->CameraMove(m_fDeltaTick);
+		m_pGame->GetDebugCam()->Move(m_fDeltaTick);
 	}
 	if ((m_pInputManager->GetInputStates().bDBack) &&
 		(!(m_pInputManager->GetInputStates().bDFoward)))
 	{
 		//Move backward
-		m_pGame->CameraMove(-m_fDeltaTick);
+		m_pGame->GetDebugCam()->Move(-m_fDeltaTick);
 	}
 	
 
@@ -1126,8 +1145,8 @@ void CClientApp::RenderText(std::string _strText, int _iYPos, eTextType _TextTyp
 {
 	//Create the text space as a RECT
 	RECT Rect;
-	Rect.left = 10;
-	Rect.right = m_iScreenWidth - 10;
+	Rect.left = 40;
+	Rect.right = m_iScreenWidth - 40;
 	Rect.top = _iYPos;
 	int uiFontHeight = m_pRenderManager->GetFontHeight(_TextType);
 	Rect.bottom = (Rect.top + uiFontHeight);
@@ -1297,7 +1316,7 @@ void CClientApp::DrawGameOver()
 	dwTextFormat = DT_CENTER | DT_TOP | DT_SINGLELINE;
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
-	////***Pause***
+	////***Game over***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 230;
 
@@ -1680,13 +1699,17 @@ void CClientApp::InstructionMenuDraw()
 	dwTextFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
 	RenderText(m_strGameTitle, iYPos, TEXT_TITLE, false, dwTextFormat);
 
-	//***Options MENU***
+	//***Instructions MENU***
 	int uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
 	iYPos += 200 - (uiFontHeight + 1);
-	for (unsigned int i = 0; i < m_strInstructions.size(); i++)
+	RenderText(m_strInstructions[0], iYPos, TEXT_MENU, false, dwTextFormat);
+	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_LIST);
+	iYPos += (uiFontHeight + 1);
+	dwTextFormat = DT_LEFT | DT_BOTTOM | DT_SINGLELINE | DT_EXPANDTABS;
+	for (unsigned int i = 1; i < m_strInstructions.size(); i++)
 	{
 		iYPos += (uiFontHeight + 1);
-		RenderText(m_strInstructions[i], iYPos, TEXT_MENU, true, dwTextFormat);
+		RenderText(m_strInstructions[i], iYPos, TEXT_LIST, false, dwTextFormat);
 	}
 
 	uiFontHeight = m_pRenderManager->GetFontHeight(TEXT_MENU);
@@ -2111,7 +2134,6 @@ void CClientApp::RequestUserList()
 void CClientApp::SetClientInfo()
 {
 	/*<CLIENT_INFO>*/
-	//TO DO ZeroMemory
 	//User Name
 	StringToStruct(m_strUserName.c_str(), NetworkValues::MAX_NAME_LENGTH, m_pServerPacket->clientInfo.cUserName);
 	//Client Socket address
@@ -2136,11 +2158,9 @@ void CClientApp::OpenServerApp()
 		filename = "..\\Debug\\Robotron Server";
 #endif
 #ifndef _DEBUG
-		//TO DO: change file path for final release
 		filename = "Robotron Server";
 #endif
 
-		//TO DO: hide server
 		std::string strTextToSend = m_strServerName + " " + m_strUserName;
 		int iError = (int)ShellExecuteA(m_hWnd, "open", filename.c_str(), strTextToSend.c_str(), NULL, SW_MINIMIZE);
 
@@ -2173,7 +2193,7 @@ void CClientApp::LoadGame()
 
 void CClientApp::LoadingScreen()
 {
-	//TO DO: comment
+	//Render a loading screen as a separate thread as the main thread set the game up
 	std::string strLoading = "LOADING";
 	std::string strLoadingDots = "";
 	int iNumDots = 0;

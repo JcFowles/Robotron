@@ -113,6 +113,7 @@ struct PlayerStates
 	UINT uiScoreCheck;
 	int iHealth;
 	int iMaxHealth;
+	int iDamage; 
 	
 	float fFireRate;
 	
@@ -176,7 +177,7 @@ struct ProjectileStates
 	//Collision Box
 	BoundingBox BBox;
 
-	float fDamage;
+	int iDamage;
 
 };
 

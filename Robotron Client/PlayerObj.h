@@ -90,8 +90,63 @@ public:
 	********************/
 	int GetLifeCount() const { return m_iLifeCount; }
 
+	/***********************
+	* GetMaxHealth: Get the max health of the player
+	* @author: Jc Fowles
+	* @return: float: The max health of the player
+	********************/
+	int GetMaxHealth() const { return m_iMaxHealth; }
+		
+	/***********************
+	* GetDamge: Get the Damage of the player
+	* @author: Jc Fowles
+	* @return: int: The Damage of the player
+	********************/
+	int GetDamge() const { return m_iDamge; }
+
+	/***********************
+	* GetWaveNumber: Set the wave number
+	* @author: Jc Fowles
+	* @return: int: the wave number
+	********************/
+	int GetWaveNumber() const { return m_iWaveNumber; }
+
+	/***********************
+	* GetEnemyCount: get the enemy count
+	* @author: Jc Fowles
+	* @return: int: the enemy count
+	********************/
+	int GetEnemyCount() const { return m_iEnemyCount; }
+
 	//Setter
+
 	
+	void SetEnemyCount(int _EnemyCount) { m_iEnemyCount = _EnemyCount; }
+
+	/***********************
+	* SetWaveNumber: Set the Wave number
+	* @author: Jc Fowles
+	* @Parameter: int _WaveNumber: value to set the wave number to
+	* @return: void:
+	********************/
+	void SetWaveNumber(int _WaveNumber) { m_iWaveNumber = _WaveNumber; }
+
+	/***********************
+	* SetDamge: Set the Damage
+	* @author: Jc Fowles
+	* @Parameter: int _Damge: value to set the damage to
+	* @return: void:
+	********************/
+	void SetDamage(int _Damge) { m_iDamge = _Damge; }
+	
+	/***********************
+	* SetMaxHealth: Set the max health 
+	* @author: Jc Fowles
+	* @Parameter: int _MaxHealth: value to set the max health to
+	* @return: void:
+	********************/
+	void SetMaxHealth(int _MaxHealth) { m_iMaxHealth = _MaxHealth; }
+
 	/***********************
 	* SetLifeCount: Set the Life count
 	* @author: Jc Fowles
@@ -139,8 +194,14 @@ private:
 		
 	bool m_bIsAlive;
 	
-	UINT m_uiHealth;
+	int m_uiHealth;
+	int m_iMaxHealth;
+	
 	int m_iLifeCount;
+	int m_iDamge;
+	int m_iWaveNumber;
+	
+	int m_iEnemyCount;
 	
 	UINT m_uiScore;
 	

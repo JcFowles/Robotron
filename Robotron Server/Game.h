@@ -13,8 +13,6 @@
 //
 #pragma once
 
-//TO DO: comment Headers
-
 #ifndef __SERVER_GAME_H__
 #define __SERVER_GAME_H__
 
@@ -31,33 +29,158 @@ class CGame
 {
 public:
 	//Singleton Methods
-	static CGame& GetInstance();
-	static void DestroyInstance();
-
-	~CGame(void);
-
-	bool Initialise();
-
-	void Process(ClientDataPacket* _pClientPacket);
-	void ProcessInput( ServerDataPacket* _pServerPacket);
-
-	//TO DO:COMMENT
 	
+	/***********************
+	* GetInstance: Get the game instance 
+	* @author: Jc Fowles
+	* @return: CGame&: 
+	********************/
+	static CGame& GetInstance();
+
+	/***********************
+	* DestroyInstance: Destroy the game instance
+	* @author: Jc Fowles
+	* @return: CGame&:
+	********************/
+	static void DestroyInstance();
+		
+	/***********************
+	* ~CGame: Destructor
+	* @author: Jc Fowles
+	* @return: : 
+	********************/
+	~CGame(void);
+		
+	/***********************
+	* Initialise: Initialise the game 
+	* @author: Jc Fowles
+	* @return: bool: Successful initialization
+	********************/
+	bool Initialise();
+		
+	/***********************
+	* Process: Process the Game
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pClientPacket: Data packet to save data to send
+	* @return: void: 
+	********************/
+	void Process(ClientDataPacket* _pClientPacket);
+
+	/***********************
+	* ProcessInput: Process the input
+	* @author: Jc Fowles
+	* @Parameter: ServerDataPacket * _pServerPacket: Data packet where inputs are found
+	* @return: void:
+	********************/
+	void ProcessInput( ServerDataPacket* _pServerPacket);
+		
+	/***********************
+	* AddPlayer: Add a player
+	* @author: Jc Fowles
+	* @Parameter: std::string _strUser: Name of player to add
+	* @return: void: 
+	********************/
 	void AddPlayer(std::string _strUser);
+
+	/***********************
+	* RemovePlayer: Remove a player
+	* @author: Jc Fowles
+	* @Parameter: std::string _strLeftPlayer: name of player to remove
+	* @return: void: 
+	********************/
 	void RemovePlayer(std::string _strLeftPlayer);
+	
+	/***********************
+	* UpdatePlayers: Update players
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void UpdatePlayers();
+	
+	/***********************
+	* UpdateEnemies: Update the enemies
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void UpdateEnemies();
+	
+	/***********************
+	* UpdateLust: Update the lust enemy
+	* @author: Jc Fowles
+	* @Parameter: EnemyStates * _Enemy: Enemy to update
+	* @return: void: 
+	********************/
 	void UpdateLust(EnemyStates* _Enemy);
+
+	/***********************
+	* UpdateSloth: Update the Sloth enemy
+	* @author: Jc Fowles
+	* @Parameter: EnemyStates * _Enemy: Enemy to update
+	* @return: void:
+	********************/
 	void UpdateSloth(EnemyStates* _pEnemy);
+
+	/***********************
+	* UpdateSloth: Update the Wrath enemy
+	* @author: Jc Fowles
+	* @Parameter: EnemyStates * _Enemy: Enemy to update
+	* @return: void:
+	********************/
 	void UpdateWrath(EnemyStates* _pEnemy);
+
+	/***********************
+	* UpdateProjectile: Update the projectile
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void UpdateProjectile();
 	
+	
+	/***********************
+	* UpdatePowerUp: Update the all the powers ups
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void UpdatePowerUp();
-	void UpdatePowerUp(PowerUpStates* _pPowerUp);
 
+	/***********************
+	* UpdatePowerUp: Update a single the powers up
+	* @author: Jc Fowles
+	* @Parameter: PowerUpStates* _pPowerUp: Power up to update
+	* @return: void:
+	********************/
+	void UpdatePowerUp(PowerUpStates* _pPowerUp);
+		
+	/***********************
+	* SetPlayerStates: Set the player states on the packet to send
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to save date on
+	* @return: void: 
+	********************/
 	void SetPlayerStates(ClientDataPacket* _pDataToSend);
+
+	/***********************
+	* SetEnemyStates: Set the enemy states on the packet to send
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to save date on
+	* @return: void:
+	********************/
 	void SetEnemyStates(ClientDataPacket* _pDataToSend);
+
+	/***********************
+	* SetPowUpStates: Set the power up states on the packet to send
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to save date on
+	* @return: void:
+	********************/
 	void SetPowUpStates(ClientDataPacket* _pDataToSend);
+
+	/***********************
+	* SetProjectileStates: Set the projectile states on the packet to send
+	* @author: Jc Fowles
+	* @Parameter: ClientDataPacket * _pDataToSend: Packet to save date on
+	* @return: void:
+	********************/
 	void SetProjectileStates(ClientDataPacket* _pDataToSend);
 		
 	/***********************
@@ -68,22 +191,108 @@ public:
 	* @return: bool: True if colliding
 	********************/
 	bool CheckCollision(BoundingBox _BBoxA, BoundingBox _BBoxB);
-	
-	// TO DO
+		
+	/***********************
+	* SpawnWave: Spawn a wave of enemies
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void SpawnWave();
+	
+	/***********************
+	* CreateLust: Create enemy of type lust
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn enemy
+	* @return: void:
+	********************/
 	void CreateLust(float3 _f3Pos);
+
+	/***********************
+	* CreateSloth: Create enemy of type Sloth
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn enemy
+	* @return: void:
+	********************/
 	void CreateSloth(float3 _f3Pos);
+
+	/***********************
+	* CreateWrath: Create enemy of type Wrath
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn enemy
+	* @return: void:
+	********************/
 	void CreateWrath(float3 _f3Pos);
+
+	/***********************
+	* SpawnPowerUp: Spawn power ups
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void SpawnPowerUp();
+
+	/***********************
+	* CreatePowerUpTen: Create power up of type
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn object
+	* @return: void:
+	********************/
 	void CreatePowerUpTen(float3 _f3Pos);
+
+	/***********************
+	* CreatePowerUpTen: Create power up of type
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn object
+	* @return: void:
+	********************/
 	void CreatePowerUpFifty(float3 _f3Pos);
+
+	/***********************
+	* CreatePowerUpTen: Create power up of type
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn object
+	* @return: void:
+	********************/
 	void CreatePowerUpHundred(float3 _f3Pos);
+
+	/***********************
+	* DestroyAllPowerUps: Destroy all power ups
+	* @author: Jc Fowles
+	* @Parameter: float3 _f3Pos: position to spawn object
+	* @return: void:
+	********************/
 	void DestroyAllPowerUps();
-	bool SpawnProjectile(float3 _Direction, float3 _Position, std::string strOwner);
+		
+	/***********************
+	* SpawnProjectile: Spawn a projectile
+	* @author: Jc Fowles
+	* @Parameter: float3 _Direction: Direction it will be fired
+	* @Parameter: float3 _Position: position It will spawn
+	* @Parameter: std::string strOwner: Who shot the projectile
+	* @Parameter: int _Damage: How much damage it will do
+	* @return: bool: Successful
+	********************/
+	bool SpawnProjectile(float3 _Direction, float3 _Position, std::string strOwner, int _Damage);
+		
+	/***********************
+	* RespawnPlayers: Respawn players
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
 	void RespawnPlayers();
 	
-
+	/***********************
+	* GetSinglePlayer: Get weather or not game is player in single player mode
+	* @author: Jc Fowles
+	* @return: bool: Weather or not the game is in single player mode
+	********************/
 	bool GetSinglePlayer() const { return m_bSinglePlayer; }
+		
+	/***********************
+	* SetSinglePlayer: Set weather game is played in single player mode
+	* @author: Jc Fowles
+	* @Parameter: bool _SinglePlayer: value set single player mode too
+	* @return: void: 
+	********************/
 	void SetSinglePlayer(bool _SinglePlayer) { m_bSinglePlayer = _SinglePlayer; }
 
 	
@@ -137,11 +346,27 @@ public:
 
 private:
 	//Disallowing copies and extra constructions
-	CGame();
-	CGame(const CGame& _kr);
-	CGame& operator= (const CGame& _kr);
 	
+	/***********************
+	* CGame: Constructor of the Game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
+	CGame();
 
+	/***********************
+	* CGame: Copy Constructor of the game instance
+	* @author: Jc Fowles
+	* @return:
+	********************/
+	CGame(const CGame& _kr);
+
+	/***********************
+	* operator=: Overloaded assignment operator
+	* @author: Jc Fowles
+	* @return:
+	********************/
+	CGame& operator= (const CGame& _kr);
 
 	//member variables
 private:
@@ -150,9 +375,7 @@ private:
 	CClock* m_pClock;
 
 	std::map<std::string, PlayerStates>* m_plistPlayers;
-	//std::map<UINT, std::string>* m_pMapPlayersIDs;
-
-	
+		
 	std::map<UINT, EnemyStates>* m_plistEnemies;
 	std::map<UINT, PowerUpStates>* m_pListPowerUps;
 	std::map<UINT, ProjectileStates>* m_pListProjectiles;
@@ -165,19 +388,15 @@ private:
 	
 	std::queue<ProjectileStates>* m_CreatedProjectile;
 	std::queue<ProjectileStates>* m_DestroyProjectile;
-
-
-	int m_iNumberPlayers;
-
-	UINT m_uiStage;
-
-	float m_fDt;
 	
 
+	UINT m_uiStage;
+	int m_iNumberPlayers;
+	float m_fDt;
+	
 	UINT  m_uiNextObjID;
 	UINT m_uiNextProjectileID;
-
-
+	
 	bool bMoreEnemies;
 	int m_iExtraEnemies;
 
@@ -197,7 +416,10 @@ private:
 	bool m_bStartTimer;
 	bool m_bGameOver;
 	float m_fSpawnTimer;
-
+	
+	float m_fSpeedIncreament;
+	float m_fHealthIncreament;
+	int m_iDamageIncreament;
 };
 
 #endif //__SERVER_GAME_H__

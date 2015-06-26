@@ -34,6 +34,7 @@
 //Player Size
 const float kfPlayerSize = 1.0f;
 const float kfFireRate = 0.2f;
+
 //Enemy Sizes
 const float kfLustSize = 0.8f;
 const float kfLustDamageRate = 0.5f;;
@@ -49,7 +50,7 @@ const float kfHundredSize = 0.5f;
 
 //Projectile Size
 const float kfBulletSize = 0.2f;
-const float kfBulletDamage = 5.0f;
+const int kiBulletDamage = 5;
 
 //Number initial enemies to spawn 
 const int kiInitialNumEnemies = 12;
@@ -126,7 +127,6 @@ struct InputStates
 	bool bRightPress;
 	bool bActivate;
 	bool bEscape;
-	
 	bool bToggle;
 	
 	bool bTab;
@@ -139,6 +139,16 @@ struct InputStates
 	bool bDBugRight;
 	bool bDFoward;
 	bool bDBack;
+};
+
+struct GamePad
+{
+	float fLeftStickX;
+	float fLeftStickY;
+	float fRightStickX;
+	float fRightStickY;
+	float fLeftTrigger;
+	float fRightTrigger;
 
 };
 

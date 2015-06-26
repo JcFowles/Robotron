@@ -472,6 +472,8 @@ protected:
 
 	D3DCOLOR m_color;
 
+	IDirect3DSurface9* m_pBackBuffer;
+
 };
 
 #endif //__CD3D9RENDERER_H__

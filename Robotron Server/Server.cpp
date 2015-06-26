@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CServer.cpp
-// Description : Server functionality //TO DO
+// Description : Server functionality 
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //

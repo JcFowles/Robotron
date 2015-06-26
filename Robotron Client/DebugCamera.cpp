@@ -7,7 +7,7 @@
 // (c) 2005 - 2015 Media Design School 
 // 
 // File Name : CDebugCamera.cpp
-// Description : Contains the main functionality of CCamera Class
+// Description : Contains the main functionality of  debug Camera Class
 // Author : Jc Fowles 
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
@@ -33,7 +33,7 @@ bool CDebugCamera::Initialise(IRenderer* _pRenderManager)
 	m_fMaxVelocity = 100.0f;
 	m_bInvertY = FALSE;
 	m_bEnableYMovement = TRUE;
-	m_fSpeed = 15.0f;
+	m_fSpeed = 25.0f;
 
 	m_D3DVecPosition = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	m_D3DVecTarget = D3DXVECTOR3(0.0f, 0.0f, 150.0f);
@@ -44,11 +44,7 @@ bool CDebugCamera::Initialise(IRenderer* _pRenderManager)
 	m_D3DVecVelocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_D3DVeclook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	D3DXVec3Normalize(&m_D3DVeclook, &m_D3DVeclook);
-
-	
-	//float fAspectRatio = (_fScreenWidth / _fScreenHeight);
-	//CreateProjectionMatrix(D3DXToRadian(45), fAspectRatio, 0.1f, 100000.0f);
-	
+		
 	Process();
 		
 	return true;
@@ -71,11 +67,9 @@ void CDebugCamera::Process()
 	}
 		
 	//Move the camera
-	//m_D3DVecVelocity += m_D3DVecVelocity * (_fDt);
-
 	m_D3DVecPosition += m_D3DVecVelocity ;
 	
-	//Could decelerate here. I'll just stop completely.
+	//Stop continues movement
 	m_D3DVecVelocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_D3DVecTarget = m_D3DVecPosition + m_D3DVeclook;
 
@@ -96,7 +90,7 @@ void CDebugCamera::Process()
 
 	//Calculate yaw and pitch
 	float lookLengthOnXZ = sqrtf(m_D3DVeclook.z * m_D3DVeclook.z + m_D3DVeclook.x * m_D3DVeclook.x);
-	m_fPitch = D3DXToDegree(atan2f(m_D3DVeclook.y, lookLengthOnXZ)); // atan2f(m_D3DVeclook.y, lookLengthOnXZ);
+	m_fPitch = D3DXToDegree(atan2f(m_D3DVeclook.y, lookLengthOnXZ)); 
 	
 	//Get the render to create the view matrix and set the view port
 	m_pRenderManager->CreateViewMatrix(m_D3DVecPosition, m_D3DVecTarget, D3DVecUp);
@@ -105,8 +99,8 @@ void CDebugCamera::Process()
 
 void CDebugCamera::Pitch(float _fDeg)
 {
-	
-	float fRotInRads = _fDeg * m_fSpeed;
+	float fRotInRads = D3DXToRadian(_fDeg);
+	fRotInRads = fRotInRads * m_fSpeed;
 	if (fRotInRads == 0.0f)
 	{
 		return;
@@ -124,7 +118,7 @@ void CDebugCamera::Pitch(float _fDeg)
 	}
 
 	D3DXMATRIX D3DXRotation;
-	D3DXMatrixRotationAxis(&D3DXRotation, &m_D3DVecRight, D3DXToRadian(fRotInRads));
+	D3DXMatrixRotationAxis(&D3DXRotation, &m_D3DVecRight, (fRotInRads));
 	D3DXVec3TransformNormal(&m_D3DVecUp, &m_D3DVecUp, &D3DXRotation);
 	D3DXVec3TransformNormal(&m_D3DVeclook, &m_D3DVeclook, &D3DXRotation);
 }
@@ -133,7 +127,7 @@ void CDebugCamera::Yaw(float _fDeg)
 {
 	float fRotInRads = D3DXToRadian(_fDeg);
 	fRotInRads = fRotInRads * m_fSpeed;
-	//TO DO - comment
+	
 	if (fRotInRads == 0.0f)
 	{
 		return;
@@ -148,7 +142,6 @@ void CDebugCamera::Yaw(float _fDeg)
 void CDebugCamera::Roll(float _fDeg)
 {
 	float fRotInRads = D3DXToRadian(_fDeg);
-	//TO DO - comment
 	if (fRotInRads == 0.0f)
 	{
 		return;
@@ -162,7 +155,6 @@ void CDebugCamera::Roll(float _fDeg)
 
 void CDebugCamera::Strafe(float _fDistance)
 {
-	//TO DO - comment
 	_fDistance = _fDistance * m_fSpeed;
 	m_D3DVecVelocity += m_D3DVecRight * _fDistance;
 }

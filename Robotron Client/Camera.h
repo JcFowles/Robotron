@@ -16,12 +16,10 @@
 #ifndef __CCAMERASTATIC_H__
 #define __CCAMERASTATIC_H__
 
-//TO DO: Rename, edit function headers, change to used float3 instead of D3DXVECTOR3
-
 //Local includes
 #include "IRenderer.h"
 
-class CCameraStatic
+class CCamera
 {
 	//Member Functions
 public:
@@ -31,14 +29,14 @@ public:
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	CCameraStatic();
+	CCamera();
 
 	/***********************
 	* ~CCam: destructor for Cam class
 	* @author: Jc Fowles
 	* @return:
 	********************/
-	~CCameraStatic();
+	~CCamera();
 		
 	//Getters
 		

@@ -7,15 +7,15 @@
 * (c) 2005 - 2015 Media Design School
 *
 * File Name : CCameraStatic.cpp
-* Description : Contains the main functionality of Static camera Class
+* Description : Contains the main functionality of camera Class
 * Author :	Jc Fowles
 * Mail :	Jc.Fowles@mediadesign.school.nz
 */
 
 // Local Includes
-#include "CameraStatic.h"
+#include "Camera.h"
 
-CCameraStatic::CCameraStatic()
+CCamera::CCamera()
 {
 	m_vecPosition = { 0, 50, 0 };
 	m_vecTarget = { 0, 0, 0 };
@@ -23,11 +23,11 @@ CCameraStatic::CCameraStatic()
 	m_bFirstPerson = true;
 }
 
-CCameraStatic::~CCameraStatic()
+CCamera::~CCamera()
 {
 }
 
-void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecUp)
+void CCamera::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecUp)
 {
 	if (m_bFirstPerson)
 		//First person view
@@ -46,7 +46,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 		//set target to be the avatar
 		m_vecTarget = _vecPosition;
 
-		//Set position 
+		//Set position above player
 		m_vecPosition = _vecPosition;
 		D3DXVECTOR3 AddHeight = { 0.0f, 50.0f, 0.0f };
 		m_vecPosition += AddHeight;
@@ -57,7 +57,7 @@ void CCameraStatic::SetCamera(D3DXVECTOR3 _vecTarget, D3DXVECTOR3 _vecPosition, 
 
 }
 
-bool CCameraStatic::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget, bool _bFirstPerson)
+bool CCamera::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget, bool _bFirstPerson)
 {
 	m_vecPosition = _vecPosition;
 	m_vecTarget = _vecTarget;
@@ -69,12 +69,12 @@ bool CCameraStatic::Initialise(D3DXVECTOR3 _vecPosition, D3DXVECTOR3 _vecTarget,
 	return true;
 }
 
-void CCameraStatic::Process(IRenderer* _pRenderManager)
+void CCamera::Process(IRenderer* _pRenderManager)
 {
 	_pRenderManager->CreateViewMatrix(m_vecPosition, m_vecTarget, m_VecUp);
 }
 
-void CCameraStatic::ToggleType()
+void CCamera::ToggleType()
 {
 	m_bFirstPerson = !m_bFirstPerson;
 }

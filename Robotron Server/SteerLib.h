@@ -18,8 +18,6 @@
 #include "../Shared/App_Defines.h"
 #include "../Shared/Network_Defines.h"
 
-//TO DO: comment headers
-
 #ifndef __STEER_H__
 #define __STEER_H__
 
@@ -39,7 +37,7 @@ inline void ApplyForce(SteeringStates* _SteeringInfo, float3* _pf3Position, floa
 	//Apply steer force acceleration
 	_f3Force = _f3Force.Limit(_SteeringInfo->fMaxForce*fDt);
 	_SteeringInfo->f3Acceleration += _f3Force;
-	//_SteeringInfo->f3Acceleration = _SteeringInfo->f3Acceleration.Limit(_SteeringInfo->fMaxAccel* fDt);
+	_SteeringInfo->f3Acceleration = _SteeringInfo->f3Acceleration.Limit(_SteeringInfo->fMaxAccel);
 
 
 };
@@ -62,6 +60,9 @@ inline void Update(SteeringStates* _SteeringInfo, float3* _pf3Position, float3* 
 		//_SteeringInfo->f3Velocity = _SteeringInfo->f3Velocity  * fDt*_SteeringInfo->fMaxSpeed;
 		_SteeringInfo->f3Velocity = _SteeringInfo->f3Velocity.Limit(_SteeringInfo->fMaxSpeed * fDt);
 		_SteeringInfo->f3Acceleration = _SteeringInfo->f3Acceleration * 0.0f;
+
+		//Set y value to zero to stop y movement
+		_SteeringInfo->f3Velocity.y = 0.0f;
 
 		*_pf3Position += _SteeringInfo->f3Velocity;
 		*_pf3Direction = _SteeringInfo->f3Velocity;
@@ -203,6 +204,9 @@ inline void Wander(SteeringStates* _SteeringInfo, float3* _pf3Position, float3* 
 		_SteeringInfo->f3Velocity = _SteeringInfo->f3Velocity.Limit(_SteeringInfo->fMaxSpeed * fDt);
 		_SteeringInfo->f3Acceleration = _SteeringInfo->f3Acceleration * 0.0f;
 		
+		//Zero out y movement
+		_SteeringInfo->f3Velocity.y = 0.0f;
+
 		//Apply Seek to direction and position
 		*_pf3Position += _SteeringInfo->f3Velocity;
 		*_pf3Direction = _SteeringInfo->f3Velocity;
@@ -233,7 +237,7 @@ inline bool Contain(SteeringStates* _SteeringInfo, float3* _pf3Position, float2 
 		 (_pf3Position->z < fMinZ) ||
 		 (_pf3Position->z > fMaxZ) )
 	{
-		_SteeringInfo->f3TargetPosition = { 0.0f, 1.0f, 0.0f };
+		_SteeringInfo->f3TargetPosition = { 0.0f, 0.0f, 0.0f };
 		return false;
 	}
 

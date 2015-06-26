@@ -29,7 +29,7 @@
 #include "ProjectileObj.h"
 #include "../Shared/Graphics_Defines.h"
 #include "Terrain.h"
-#include "CameraStatic.h"
+#include "Camera.h"
 #include "DebugCamera.h"
 
 class CGame
@@ -95,6 +95,20 @@ public:
 	* @return: void:
 	********************/
 	void DrawPowerUps();
+		
+	/***********************
+	* DrawHUD: Draw the HUD
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void DrawHUD();
+		
+	/***********************
+	* DrawProjectile: Draw the projectiles
+	* @author: Jc Fowles
+	* @return: void: 
+	********************/
+	void DrawProjectile();
 
 	/***********************
 	* RenderTeamScores: renders the score board to the screen
@@ -191,9 +205,7 @@ public:
 	* @return: int: Returns the material iD for saving, to reference when drawing
 	********************/
 	int CreatePlayerAssest();
-	//TO DO
-
-	int CreateOverLayAssest();
+	
 	/***********************
 	* CreateEnemyAssest: Create the rendering assets for the projectile
 	* @author: Jc Fowles
@@ -216,8 +228,12 @@ public:
 	* @return: int: Returns the material iD for saving, to reference when drawing
 	********************/
 	int CreateProjectileAssest();
-	
-	//TO DO
+		
+	/***********************
+	* GameOverCheck: Check if its game over 
+	* @author: Jc Fowles
+	* @return: bool: Whether game over or not
+	********************/
 	bool GameOverCheck();
 
 	/***********************
@@ -259,8 +275,7 @@ public:
 	* @return: void:
 	********************/
 	void CreateProjectile(ClientDataPacket* _pClientPacket);
-	//TO DO
-	 void CreateOverLay();
+		
 	/***********************
 	* DeleteEnemy: delete an enemy
 	* @author: Jc Fowles
@@ -291,15 +306,26 @@ public:
 	* @return: void: 
 	********************/
 	void ToggleCamera();
-
-	void CameraMove(float _fUnit);
-	void CameraPitch(float _fUnit);
-	void CameraYaw(float _fUnit);
-	//TO DO:
+		
+	/***********************
+	* GetDebugCam: Return the Debug camera
+	* @author: Jc Fowles
+	* @return: CDebugCamera*: The debug camera
+	********************/
 	CDebugCamera* GetDebugCam() const { return m_pDebugCam; }
-	void SetDebugCam(CDebugCamera* _DebugCam) { m_pDebugCam = _DebugCam; }
-
+	
+	/***********************
+	* GetDebug: Get the debug state
+	* @author: Jc Fowles
+	* @return: bool: Return weather in debug or not
+	********************/
 	bool GetDebug() const { return m_bDebug; }
+
+	/***********************
+	* SetDebug: Set the debug state
+	* @author: Jc Fowles
+	* @return: void:
+	********************/
 	void SetDebug(bool _Debug) { m_bDebug = _Debug; }
 	
 private:
@@ -325,9 +351,7 @@ private:
 	* @return:
 	********************/
 	CGame& operator= (const CGame& _kr);
-
 	
-
 	//member variables
 private:
 	
@@ -339,8 +363,7 @@ private:
 	
 	int m_iDirectionID;
 	int m_iSpotLightID;
-	
-	
+		
 	std::map<UINT, CEnemyObj*>* m_pListEnemies;
 	std::map<UINT, CPowerUpObj*>* m_pListPowerUps;
 	std::map<UINT, CProjectileObj*>* m_pListBullets;
@@ -360,10 +383,8 @@ private:
 			
 	CTerrain* m_pTerrain;
 	CTerrain* m_pUnderLay;
-	int m_pOverLayMatID;
-	CMesh* m_pOverlayMesh;
-
-	CCameraStatic* m_pCamera;
+	
+	CCamera* m_pCamera;
 	CDebugCamera* m_pDebugCam;
 	
 	bool m_bDebug;

@@ -109,6 +109,9 @@ bool CD3D9Renderer::Shutdown()
 		m_pSurfaceMap = 0;
 	}
 
+	m_pBackBuffer->Release();
+	m_pBackBuffer = 0;
+
 	//Deallocate the Material map
 	m_pMaterialMap->clear();
 	delete m_pMaterialMap;
@@ -181,17 +184,13 @@ bool CD3D9Renderer::Initialise(int _iWidth, int _iHeight, HWND _hWindow, bool _b
 	//Initialise Map of lights
 	m_pLightMap = new std::map < UINT, D3DLIGHT9* > ;
 
-
-	
-	//m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-	//m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	//m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTCOLOR);
-
 	//Create map for all the Materials
 	m_pMaterialMap = new std::map < int, D3DMATERIAL9 > ;
 
 	//Create map for all the Textures
 	m_pTextureMap = new std::map < int, IDirect3DTexture9* >; 
+	
+	m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &m_pBackBuffer);
 
 	return true;
 }
@@ -307,7 +306,7 @@ void CD3D9Renderer::SetStates()
 {
 
 	//Tile the texture
-	m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
+	//Redundant m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	//Set initial Lighting
 	//Redundant
 	//m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -539,8 +538,8 @@ bool CD3D9Renderer::SetTexture(int _textureID, int _iStage)
 		//Set the material on the device
 		m_pDevice->SetTexture(_iStage, (TexIter->second));
 		//Texture blending
-		m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-		m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG2, D3DTA_TEXTURE);
+		//Redundant m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+		//Redundant m_pDevice->SetTextureStageState(_iStage, D3DTSS_COLORARG2, D3DTA_TEXTURE);
 		return true;
 	}
 }
@@ -1065,16 +1064,12 @@ int	CD3D9Renderer::CreateStaticBuffer(	VertexType _VertexType,
 
 void CD3D9Renderer::SetBackgroundColor(DWORD _Color)
 {
-	IDirect3DSurface9* pBackBuffer;
-	m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-	m_pDevice->ColorFill(pBackBuffer, 0, _Color);
+	m_pDevice->ColorFill(m_pBackBuffer, 0, _Color);
 }
 
 void CD3D9Renderer::FillRectColor(DWORD _Color, RECT _rect)
 {
-	IDirect3DSurface9* pBackBuffer;
-	m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-	m_pDevice->ColorFill(pBackBuffer, &_rect, _Color);
+	m_pDevice->ColorFill(m_pBackBuffer, &_rect, _Color);
 }
 
 void CD3D9Renderer::CreateTextFont(UINT uiHeight, UINT uiWidth, char* _strFontType, eTextType _textType)

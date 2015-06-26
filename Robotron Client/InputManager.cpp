@@ -1,4 +1,18 @@
-//TO DO
+//
+// Bachelor of Software Engineering
+// Media Design School 
+// Auckland
+// New Zealand 
+// 
+// (c) 2005 - 2015 Media Design School 
+// 
+// File Name : InputManager.cpp
+// Description : Contains the main functionality of InputManager 
+// Author : Jc Fowles 
+// Mail : Jc.Fowles@mediadesign.school.nz 
+//
+
+//This include
 #include "InputManager.h"
 
 
@@ -139,35 +153,33 @@ bool CInputManager::ReadDevice(IDirectInputDevice8* _pDIDevice, void* _pDataBuff
 	while (true)
 	{
 		//No device
-		if (_pDIDevice == 0)
-		{
-			return false;
-		}
-		//Poll the device.
-		_pDIDevice->Poll();
+		if (_pDIDevice)
+		{		
+			//Poll the device.
+			_pDIDevice->Poll();
 
-		//Read in the state.
-		hResult = _pDIDevice->GetDeviceState(_iBufferSize, (LPVOID)_pDataBuffer);
-		if (SUCCEEDED(hResult))
-		{
-			break;
-		}
+			//Read in the state.
+			hResult = _pDIDevice->GetDeviceState(_iBufferSize, (LPVOID)_pDataBuffer);
+			if (SUCCEEDED(hResult))
+			{
+				break;
+			}
 
-		//Return false on all errors except not lost device or un-acquired device
-		if ((hResult != DIERR_INPUTLOST) &&
-			(hResult != DIERR_NOTACQUIRED))
-		{
-			return false;
-		}
+			//Return false on all errors except not lost device or un-acquired device
+			if ((hResult != DIERR_INPUTLOST) &&
+				(hResult != DIERR_NOTACQUIRED))
+			{
+				return false;
+			}
 
-		//Reacquire the device if we have lost the device or need to reacquire it
-		//Then try again
-		if (FAILED(_pDIDevice->Acquire()))
-		{
-			//unable to acquire device
-			return false;
+			//Reacquire the device if we have lost the device or need to reacquire it
+			//Then try again
+			if (FAILED(_pDIDevice->Acquire()))
+			{
+				//unable to acquire device
+				return false;
+			}
 		}
-		
 		
 	}
 	return true;
@@ -184,10 +196,6 @@ void CInputManager::ProcessInput()
 
 void CInputManager::ProcessMouse()
 {
-	//Update the mouse cursor location based on the change of the mouse location during the frame
-	//m_MousePos.x += m_mouseState.lX;
-	//m_MousePos.y += m_mouseState.lY;
-
 	//Set mouse position to the cursor position
 	GetCursorPos(&m_MousePos);
 	ScreenToClient(m_hWnd, &m_MousePos);
@@ -198,7 +206,6 @@ void CInputManager::ProcessMouse()
 	if (m_MousePos.y < 0)  { m_MousePos.y = 0; }
 	if (m_MousePos.y > m_iScreenHeight) { m_MousePos.y = m_iScreenHeight; }
 
-	//TO DO Control remap
 	if (m_mouseState.rgbButtons[0] & 0x80)
 	{
 		m_InputStates.bActivate = true;
@@ -213,7 +220,7 @@ void CInputManager::ProcessMouse()
 
 void CInputManager::ProcessKeyBoard()
 {
-	//TO DO remapping
+	//Normal Controls
 	((m_cKeyStateBuffer[DIK_W] & 0x80))		 ? (m_InputStates.bUpPress = true)		: (m_InputStates.bUpPress = false);
 	((m_cKeyStateBuffer[DIK_S] & 0x80))		 ? (m_InputStates.bDownPress = true)	: (m_InputStates.bDownPress = false);
 	((m_cKeyStateBuffer[DIK_A] & 0x80))		 ? (m_InputStates.bLeftPress = true)	: (m_InputStates.bLeftPress = false);

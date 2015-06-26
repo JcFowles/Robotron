@@ -12,8 +12,6 @@
 // Mail : Jc.Fowles@mediadesign.school.nz 
 //
 
-//TO DO COmment headers
-
 //This include
 #include "ServerApp.h"
 
@@ -137,7 +135,6 @@ bool CServerApp::Initialise(HWND _hWnd, int _iScreenWidth, int _iScreenHeight, L
 		
 	return true;
 }
-
 
 //Frame calls
 void CServerApp::Process()

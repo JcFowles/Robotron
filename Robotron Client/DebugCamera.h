@@ -13,8 +13,6 @@
 //
 #pragma once
 
-//TO DO remove unneeded
-
 //Include library
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -176,7 +174,6 @@ public:
 	********************/
 	void SetUpVec(D3DXVECTOR3& _D3DVecUp) { m_D3DVecUp = _D3DVecUp; };
 	
-	
 	/***********************
 	* SetMaxVelocity: Set max velocity
 	* @author: Jc Fowles
@@ -293,12 +290,6 @@ private:
 	//Rotation Limitations
 	float       m_fMaxPitch;
 	float       m_fMaxVelocity;
-
-	//Projection Values
-	float       m_fFOV;
-	float       m_fAspect;
-	float       m_fNearPlane;
-	float       m_fFarPlane;
 	
 	//Camera Booleans
 	BOOL        m_bInvertY;

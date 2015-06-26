@@ -19,9 +19,8 @@
 #endif
 
 //Library includes
-//TO DO
 #include <ctime>
-//#include <WinSock2.h>
+
 //Local Includes
 #include "ServerApp.h"
 

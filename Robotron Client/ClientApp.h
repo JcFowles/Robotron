@@ -408,9 +408,9 @@ public:
 	void SetClientInfo();
 		
 	/***********************
-	* LobbySelect: TO DO:
+	* LobbySelect: Process lobby menu
 	* @author: Jc Fowles
-	* @Parameter: std::string _strMenuItem: TO DO:
+	* @Parameter: std::string _strMenuItem: which menu item was pressed
 	* @return: void: 
 	********************/
 	void LobbyMenuSelect(std::string _strMenuItem);
@@ -560,9 +560,7 @@ private:
 	std::string m_strServerName;
 	std::string m_strUserName;
 	bool m_bClientActive;
-
-
-
+	
 	//Maps
 	std::multimap< std::string, ServerInfo>* m_pMapActiveServers;
 	
